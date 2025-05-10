@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "titulo": "Grupo de Oração da RCC Altônia",
+    "dia": "10",
+    "mes": "Maio",
+    "ano": "2025",
+    "hora": "20:30",
+    "descricao": "Encontro semanal do grupo de oração"
+  },
+  {
+    "id": 2,
+    "titulo": "Adoração do Santíssimo com a r...",
+    "dia": "22",
+    "mes": "Maio",
+    "ano": "2025",
+    "hora": "20:30",
+    "descricao": "Adoração do Santíssimo com a renovação carismática"
+  },
+  {
+    "id": 3,
+    "titulo": "Grupo de Oração da RCC Altônia",
+    "dia": "25",
+    "mes": "Maio",
+    "ano": "2025",
+    "hora": "20:30",
+    "descricao": "Encontro semanal do grupo de oração"
+  },
+  {
+    "id": 4,
+    "titulo": "Adoração do Santíssimo",
+    "dia": "26",
+    "mes": "Maio",
+    "ano": "2025",
+    "hora": "20:30",
+    "descricao": "Adoração do Santíssimo"
+  }
+]
