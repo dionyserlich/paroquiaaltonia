@@ -1,9 +1,9 @@
 [
   {
     "id": 1,
-    "titulo": "Festa de São Sebastião",
-    "imagem": "/placeholder.svg?height=128&width=400",
-    "link": "/eventos/festa-sao-sebastiao"
+    "titulo": "Segundo Lual Maranata",
+    "imagem": "/maranata.jpg",
+    "link": "/eventos/segundo-lual-jovens-maranata"
   },
   {
     "id": 2,
