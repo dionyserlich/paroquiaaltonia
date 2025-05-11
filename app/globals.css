@@ -25,12 +25,12 @@ header.bg-transparent {
   background-color: transparent !important;
 }
 
-/* Efeito de Parallax para o Hero */
+/* Efeito de Parallax para o Hero - 100% de largura */
 .hero-parallax {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 100vw; /* Ocupar toda a largura da viewport */
   height: 60vh;
   min-height: 400px;
   background-image: url("/images/imagem-principal-hero.png");
@@ -40,15 +40,36 @@ header.bg-transparent {
   z-index: 1;
 }
 
+.fade-quick-links {
+  background: linear-gradient(90deg, rgba(10, 30, 66, 0) 0%, rgba(10, 30, 66, 1) 96%);
+  width: 65px;
+  position: absolute;
+  right: 0;
+  height: 70px;
+}
+
 /* Ajuste para o conteúdo que vai rolar por cima da imagem */
 main > div[class*="relative z-20"] {
   background-color: #0a1e42;
   position: relative;
   z-index: 20;
   margin-top: 51vh; /* Deve corresponder à altura do hero */
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.2);
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  box-shadow: 0 -10px 70px rgba(0, 0, 0, 0.2);
+  max-width: 650px; /* Manter o conteúdo limitado */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Esconder a barra de rolagem mas manter a funcionalidade */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 body {
@@ -144,4 +165,18 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Ajustes para o layout com largura limitada */
+header {
+  max-width: 650px;
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+
+.fixed.bottom-0.left-0.right-0 {
+  max-width: 650px;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%);
 }

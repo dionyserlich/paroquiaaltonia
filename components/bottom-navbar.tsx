@@ -8,7 +8,7 @@ import Image from "next/image"
 
 export default function BottomNavbar() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#0a1e42] border-t border-blue-900 flex justify-between items-center px-2 py-2 z-40">
+    <nav className="fixed bottom-0 bg-[#0a1e42] border-t border-blue-900 flex justify-between items-center px-2 py-2 z-40 w-full">
       <NavItem href="/liturgia" icon={<Book size={20} />} label="Liturgia" />
       <NavItem href="/folhetos" icon={<Book size={20} />} label="Folhetos" />
 

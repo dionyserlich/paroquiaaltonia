@@ -12,15 +12,18 @@ import PageClient from "./page-client"
 export default function Home() {
   return (
     <PageClient>
-      <main className="flex min-h-screen flex-col bg-[#0a1e42]">
+      <main className="flex min-h-screen flex-col bg-[#00143d]">
         <Header />
 
-        {/* Hero Section com efeito Parallax */}
+        {/* Hero Section com efeito Parallax - 100% de largura */}
         <section className="relative w-full h-[60vh] min-h-[400px] hero-parallax">
+          {/* Overlay com conteúdo centralizado */}
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white bg-gradiente z-10">
-            <Suspense fallback={<div className="p-4 rounded-full bg-yellow-500/80 animate-pulse" />}>
-              <LiveMassButton />
-            </Suspense>
+            <div className="max-w-[650px] w-full mx-auto flex flex-col items-center justify-center">
+              <Suspense fallback={<div className="p-4 rounded-full bg-yellow-500/80 animate-pulse" />}>
+                <LiveMassButton />
+              </Suspense>
+            </div>
           </div>
         </section>
 
@@ -34,7 +37,8 @@ export default function Home() {
           </section>
 
           {/* Quick Links */}
-          <section className="w-full px-4 py-6">
+          <section className="w-full py-6">
+            <div className="fade-quick-links"></div>
             <QuickLinks />
           </section>
 
@@ -60,7 +64,10 @@ export default function Home() {
               </Suspense>
             </div>
             <div className="mt-4">
-              <a href="/eventos" className="block w-full bg-yellow-500 text-center py-3 rounded-lg font-medium">
+              <a
+                href="/eventos"
+                className="text-[#4d3600] block w-full bg-yellow-500 text-center py-3 rounded-lg font-medium"
+              >
                 Ver agenda completa
               </a>
             </div>
@@ -76,7 +83,10 @@ export default function Home() {
               <NewsList />
             </Suspense>
             <div className="mt-4">
-              <a href="/noticias" className="block w-full bg-yellow-500 text-center py-3 rounded-lg font-medium">
+              <a
+                href="/noticias"
+                className="text-[#4d3600] block w-full bg-yellow-500 text-center py-3 rounded-lg font-medium"
+              >
                 Ver mais notícias
               </a>
             </div>

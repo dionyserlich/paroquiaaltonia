@@ -6,7 +6,8 @@
     "mes": "Maio",
     "ano": "2025",
     "hora": "20:30",
-    "descricao": "Encontro semanal do grupo de oração"
+    "descricao": "Encontro semanal do grupo de oração",
+    "conteudo": "<h2>Grupo de Oração da RCC Altônia</h2><p>Venha participar do nosso encontro semanal de oração e louvor.</p><p>Local: Salão Paroquial</p>"
   },
   {
     "id": 2,
@@ -15,7 +16,8 @@
     "mes": "Maio",
     "ano": "2025",
     "hora": "20:30",
-    "descricao": "Adoração do Santíssimo com a renovação carismática"
+    "descricao": "Adoração do Santíssimo com a renovação carismática",
+    "conteudo": "<h2>Adoração do Santíssimo</h2><p>Momento de adoração e louvor ao Santíssimo Sacramento.</p><p>Local: Igreja Matriz</p>"
   },
   {
     "id": 3,
@@ -24,7 +26,8 @@
     "mes": "Maio",
     "ano": "2025",
     "hora": "20:30",
-    "descricao": "Encontro semanal do grupo de oração"
+    "descricao": "Encontro semanal do grupo de oração",
+    "conteudo": "<h2>Grupo de Oração da RCC Altônia</h2><p>Venha participar do nosso encontro semanal de oração e louvor.</p><p>Local: Salão Paroquial</p>"
   },
   {
     "id": 4,
@@ -33,6 +36,7 @@
     "mes": "Maio",
     "ano": "2025",
     "hora": "20:30",
-    "descricao": "Adoração do Santíssimo"
+    "descricao": "Adoração do Santíssimo",
+    "conteudo": "<h2>Adoração do Santíssimo</h2><p>Momento de adoração e louvor ao Santíssimo Sacramento.</p><p>Local: Igreja Matriz</p>"
   }
 ]

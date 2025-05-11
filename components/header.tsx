@@ -30,7 +30,7 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 transition-all duration-300 ${
+      className={`fixed top-0 z-50 flex items-center justify-between px-4 py-3 transition-all duration-300 w-full ${
         isScrolled ? "bg-[#0a1e42]" : "bg-transparent"
       }`}
       style={{ backgroundColor: isScrolled ? "#0a1e42" : "transparent" }}
