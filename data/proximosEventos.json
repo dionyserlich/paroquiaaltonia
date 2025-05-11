@@ -48,5 +48,15 @@
     "hora": "20:30",
     "descricao": "2º Luau Jovens Maranata",
     "conteudo": "<p>2º Luau Jovens Maranata</p><p>2º Luau Jovens Maranata<br>2º Luau Jovens Maranata<br>2º Luau Jovens Maranata</p><p>2º Luau Jovens Maranata</p>"
+  },
+  {
+    "id": 6,
+    "titulo": "Teste",
+    "dia": "12",
+    "mes": "Maio",
+    "ano": "2025",
+    "hora": "19:50",
+    "descricao": "",
+    "conteudo": "<p>Teste</p>"
   }
 ]
