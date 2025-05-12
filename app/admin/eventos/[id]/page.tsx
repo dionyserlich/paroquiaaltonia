@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import RichTextEditor from "@/components/rich-text-editor"
+import DeployStatus from "@/components/deploy-status"
 import "@/app/admin/admin.css"
 
 export default function EditarEvento({ params }: { params: { id: string } }) {
@@ -24,6 +25,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [commitSha, setCommitSha] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     if (isNew) return
@@ -62,6 +64,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
     e.preventDefault()
     setSaving(true)
     setError("")
+    setCommitSha(undefined)
 
     try {
       const url = isNew ? "/api/admin/eventos" : `/api/admin/eventos/${params.id}`
@@ -76,17 +79,30 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
       })
 
       if (res.ok) {
-        router.push("/admin/eventos")
+        const data = await res.json()
+
+        // Se a resposta incluir informações do commit, mostrar o status do deploy
+        if (data._commit && data._commit.sha) {
+          setCommitSha(data._commit.sha)
+        } else {
+          // Se não houver informações do commit, redirecionar imediatamente
+          router.push("/admin/eventos")
+        }
       } else {
         const data = await res.json()
         setError(data.error || "Erro ao salvar evento")
+        setSaving(false)
       }
     } catch (err) {
       setError("Erro ao salvar evento")
       console.error(err)
-    } finally {
       setSaving(false)
     }
+  }
+
+  function handleDeployComplete() {
+    // Quando o deploy for concluído, podemos redirecionar o usuário
+    router.push("/admin/eventos")
   }
 
   if (loading) return <div className="admin-page p-4">Carregando...</div>
@@ -105,6 +121,8 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
       <main className="container mx-auto p-4">
         {error && <div className="admin-alert admin-alert-error">{error}</div>}
 
+        {commitSha && <DeployStatus commitSha={commitSha} onDeployComplete={handleDeployComplete} />}
+
         <div className="admin-card">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
@@ -119,6 +137,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                 onChange={handleChange}
                 className="admin-input"
                 required
+                disabled={saving}
               />
             </div>
 
@@ -135,6 +154,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                   onChange={handleChange}
                   className="admin-input"
                   required
+                  disabled={saving}
                 />
               </div>
 
@@ -149,6 +169,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                   onChange={handleChange}
                   className="admin-input"
                   required
+                  disabled={saving}
                 >
                   <option value="">Selecione...</option>
                   <option value="Janeiro">Janeiro</option>
@@ -178,6 +199,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                   onChange={handleChange}
                   className="admin-input"
                   required
+                  disabled={saving}
                 />
               </div>
 
@@ -194,6 +216,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                   className="admin-input"
                   required
                   placeholder="Ex: 20:30"
+                  disabled={saving}
                 />
               </div>
             </div>
@@ -209,6 +232,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                 onChange={handleChange}
                 className="admin-input"
                 rows={2}
+                disabled={saving}
               />
             </div>
 
@@ -225,7 +249,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
 
             <div className="flex justify-end">
               <button type="submit" disabled={saving} className="admin-btn admin-btn-success disabled:opacity-50">
-                {saving ? "Salvando..." : "Salvar"}
+                {saving ? (commitSha ? "Salvando..." : "Processando...") : "Salvar"}
               </button>
             </div>
           </form>

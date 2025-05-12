@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { type getGithubConfig, isGithubConfigured } from "../../config"
+import { getGithubConfig, isGithubConfigured } from "@/app/utils/githubConfig"
 
 // Função para obter o conteúdo de um arquivo do GitHub
 async function getFileContent(path: string, config: ReturnType<typeof getGithubConfig>) {
@@ -69,15 +68,8 @@ async function updateFile(
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
-    // Obter configuração dos cookies ou variáveis de ambiente
-    const cookieStore = cookies()
-
-    const config = {
-      owner: cookieStore.get("github_owner")?.value || process.env.GITHUB_OWNER || "seu-usuario-github",
-      repo: cookieStore.get("github_repo")?.value || process.env.GITHUB_REPO || "paroquia-sao-sebastiao",
-      branch: cookieStore.get("github_branch")?.value || process.env.GITHUB_BRANCH || "main",
-      token: cookieStore.get("github_token")?.value || process.env.GITHUB_TOKEN || "",
-    }
+    // Obter configuração do GitHub
+    const config = getGithubConfig()
 
     // Verificar se o GitHub está configurado
     if (!isGithubConfigured(config)) {
@@ -114,9 +106,16 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 
     // Atualizar arquivo no GitHub
-    await updateFile("data/missas.json", missas, sha, `Atualizar missa: ${data.titulo}`, config)
+    const updateResult = await updateFile("data/missas.json", missas, sha, `Atualizar missa: ${data.titulo}`, config)
 
-    return NextResponse.json(missas[index])
+    return NextResponse.json({
+      ...missas[index],
+      _commit: {
+        sha: updateResult.commit.sha,
+        message: updateResult.commit.message,
+        url: updateResult.commit.html_url,
+      },
+    })
   } catch (error: any) {
     console.error("Erro ao atualizar missa:", error)
     return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 })
@@ -125,15 +124,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
-    // Obter configuração dos cookies ou variáveis de ambiente
-    const cookieStore = cookies()
-
-    const config = {
-      owner: cookieStore.get("github_owner")?.value || process.env.GITHUB_OWNER || "seu-usuario-github",
-      repo: cookieStore.get("github_repo")?.value || process.env.GITHUB_REPO || "paroquia-sao-sebastiao",
-      branch: cookieStore.get("github_branch")?.value || process.env.GITHUB_BRANCH || "main",
-      token: cookieStore.get("github_token")?.value || process.env.GITHUB_TOKEN || "",
-    }
+    // Obter configuração do GitHub
+    const config = getGithubConfig()
 
     // Verificar se o GitHub está configurado
     if (!isGithubConfigured(config)) {
@@ -161,9 +153,22 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     const novasMissas = missas.filter((m: any) => m.id !== id)
 
     // Atualizar arquivo no GitHub
-    await updateFile("data/missas.json", novasMissas, sha, `Excluir missa: ${missa.titulo}`, config)
+    const updateResult = await updateFile(
+      "data/missas.json",
+      novasMissas,
+      sha,
+      `Excluir missa: ${missa.titulo}`,
+      config,
+    )
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      _commit: {
+        sha: updateResult.commit.sha,
+        message: updateResult.commit.message,
+        url: updateResult.commit.html_url,
+      },
+    })
   } catch (error: any) {
     console.error("Erro ao excluir missa:", error)
     return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 })

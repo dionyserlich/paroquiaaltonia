@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import DeployStatus from "@/components/deploy-status"
 import "@/app/admin/admin.css"
 
 export default function AdminEventos() {
   const [eventos, setEventos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [commitSha, setCommitSha] = useState<string | undefined>(undefined)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -76,19 +79,37 @@ export default function AdminEventos() {
     if (!confirm("Tem certeza que deseja excluir este evento?")) return
 
     try {
+      setDeletingId(id)
+      setCommitSha(undefined)
+
       const res = await fetch(`/api/admin/eventos/${id}`, {
         method: "DELETE",
       })
 
       if (res.ok) {
+        const data = await res.json()
+
+        // Remover o evento da lista
         setEventos(eventos.filter((evento) => evento.id !== id))
+
+        // Se a resposta incluir informações do commit, mostrar o status do deploy
+        if (data._commit && data._commit.sha) {
+          setCommitSha(data._commit.sha)
+        }
       } else {
         setError("Erro ao excluir evento")
+        setDeletingId(null)
       }
     } catch (err) {
       setError("Erro ao excluir evento")
       console.error(err)
+      setDeletingId(null)
     }
+  }
+
+  function handleDeployComplete() {
+    setCommitSha(undefined)
+    setDeletingId(null)
   }
 
   if (loading) return <div className="admin-page p-4">Carregando...</div>
@@ -106,6 +127,8 @@ export default function AdminEventos() {
 
       <main className="container mx-auto p-4">
         {error && <div className="admin-alert admin-alert-error">{error}</div>}
+
+        {commitSha && <DeployStatus commitSha={commitSha} onDeployComplete={handleDeployComplete} />}
 
         <div className="flex justify-end mb-4">
           <Link href="/admin/eventos/novo" className="admin-btn admin-btn-success">
@@ -142,8 +165,12 @@ export default function AdminEventos() {
                       <Link href={`/admin/eventos/${evento.id}`} className="admin-link mr-4">
                         Editar
                       </Link>
-                      <button onClick={() => handleDelete(evento.id)} className="text-red-600 hover:text-red-800">
-                        Excluir
+                      <button
+                        onClick={() => handleDelete(evento.id)}
+                        className="text-red-600 hover:text-red-800"
+                        disabled={deletingId === evento.id}
+                      >
+                        {deletingId === evento.id ? "Excluindo..." : "Excluir"}
                       </button>
                     </td>
                   </tr>

@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import DeployStatus from "@/components/deploy-status"
 import "@/app/admin/admin.css"
 
 export default function AdminMissas() {
   const [missas, setMissas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [commitSha, setCommitSha] = useState<string | undefined>(undefined)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -33,19 +36,37 @@ export default function AdminMissas() {
     if (!confirm("Tem certeza que deseja excluir esta missa?")) return
 
     try {
+      setDeletingId(id)
+      setCommitSha(undefined)
+
       const res = await fetch(`/api/admin/missas/${id}`, {
         method: "DELETE",
       })
 
       if (res.ok) {
+        const data = await res.json()
+
+        // Remover a missa da lista
         setMissas(missas.filter((missa) => missa.id !== id))
+
+        // Se a resposta incluir informações do commit, mostrar o status do deploy
+        if (data._commit && data._commit.sha) {
+          setCommitSha(data._commit.sha)
+        }
       } else {
         setError("Erro ao excluir missa")
+        setDeletingId(null)
       }
     } catch (err) {
       setError("Erro ao excluir missa")
       console.error(err)
+      setDeletingId(null)
     }
+  }
+
+  function handleDeployComplete() {
+    setCommitSha(undefined)
+    setDeletingId(null)
   }
 
   if (loading) return <div className="admin-page p-4">Carregando...</div>
@@ -63,6 +84,8 @@ export default function AdminMissas() {
 
       <main className="container mx-auto p-4">
         {error && <div className="admin-alert admin-alert-error">{error}</div>}
+
+        {commitSha && <DeployStatus commitSha={commitSha} onDeployComplete={handleDeployComplete} />}
 
         <div className="flex justify-end mb-4">
           <Link href="/admin/missas/nova" className="admin-btn admin-btn-success">
@@ -97,8 +120,12 @@ export default function AdminMissas() {
                       <Link href={`/admin/missas/${missa.id}`} className="admin-link mr-4">
                         Editar
                       </Link>
-                      <button onClick={() => handleDelete(missa.id)} className="text-red-600 hover:text-red-800">
-                        Excluir
+                      <button
+                        onClick={() => handleDelete(missa.id)}
+                        className="text-red-600 hover:text-red-800"
+                        disabled={deletingId === missa.id}
+                      >
+                        {deletingId === missa.id ? "Excluindo..." : "Excluir"}
                       </button>
                     </td>
                   </tr>
