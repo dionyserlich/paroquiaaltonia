@@ -73,6 +73,11 @@ export default function AdminPanel() {
             description="Configurar integração com o GitHub"
             link="/admin/configuracao"
           />
+          <AdminCard
+            title="Status de Deploy da Vercel"
+            description="Visualizar status dos deploys na Vercel"
+            link="/admin/vercel-status"
+          />
         </div>
       </main>
     </div>
