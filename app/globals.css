@@ -32,7 +32,7 @@ header.bg-transparent {
   left: 0;
   width: 100vw; /* Ocupar toda a largura da viewport */
   height: 60vh;
-  min-height: 400px;
+  min-height: 170px;
   background-image: url("/images/imagem-principal-hero.png");
   background-size: cover;
   background-position: center;
@@ -168,7 +168,7 @@ body {
 }
 
 /* Ajustes para o layout com largura limitada */
-header {
+header.fixed {
   max-width: 650px;
   left: 50% !important;
   transform: translateX(-50%);

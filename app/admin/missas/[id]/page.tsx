@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import "@/app/admin/admin.css"
 
 export default function EditarMissa({ params }: { params: { id: string } }) {
   const isNew = params.id === "nova"
@@ -98,26 +99,26 @@ export default function EditarMissa({ params }: { params: { id: string } }) {
     }
   }
 
-  if (loading) return <div className="p-4">Carregando...</div>
+  if (loading) return <div className="admin-page p-4">Carregando...</div>
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-[#0a1e42] text-white p-4 shadow-md">
+    <div className="admin-page">
+      <header className="admin-header">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">{isNew ? "Nova Missa" : "Editar Missa"}</h1>
-          <Link href="/admin/missas" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          <Link href="/admin/missas" className="admin-btn admin-btn-primary">
             Voltar
           </Link>
         </div>
       </header>
 
       <main className="container mx-auto p-4">
-        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+        {error && <div className="admin-alert admin-alert-error">{error}</div>}
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="admin-card">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label htmlFor="titulo" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="titulo" className="admin-label">
                 Título
               </label>
               <input
@@ -126,13 +127,13 @@ export default function EditarMissa({ params }: { params: { id: string } }) {
                 name="titulo"
                 value={formData.titulo}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 required
               />
             </div>
 
             <div className="mb-4">
-              <label htmlFor="inicio" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="inicio" className="admin-label">
                 Data e Hora de Início
               </label>
               <input
@@ -141,13 +142,13 @@ export default function EditarMissa({ params }: { params: { id: string } }) {
                 name="inicio"
                 value={formData.inicio}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 required
               />
             </div>
 
             <div className="mb-4">
-              <label htmlFor="fim" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="fim" className="admin-label">
                 Data e Hora de Fim
               </label>
               <input
@@ -156,13 +157,13 @@ export default function EditarMissa({ params }: { params: { id: string } }) {
                 name="fim"
                 value={formData.fim}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 required
               />
             </div>
 
             <div className="mb-4">
-              <label htmlFor="linkEmbed" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="linkEmbed" className="admin-label">
                 Link de Incorporação (YouTube)
               </label>
               <input
@@ -171,13 +172,13 @@ export default function EditarMissa({ params }: { params: { id: string } }) {
                 name="linkEmbed"
                 value={formData.linkEmbed}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 required
               />
             </div>
 
             <div className="mb-4">
-              <label htmlFor="descricao" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="descricao" className="admin-label">
                 Descrição
               </label>
               <textarea
@@ -185,17 +186,13 @@ export default function EditarMissa({ params }: { params: { id: string } }) {
                 name="descricao"
                 value={formData.descricao}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 rows={4}
               />
             </div>
 
             <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={saving}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
-              >
+              <button type="submit" disabled={saving} className="admin-btn admin-btn-success disabled:opacity-50">
                 {saving ? "Salvando..." : "Salvar"}
               </button>
             </div>

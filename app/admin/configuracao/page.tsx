@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import "@/app/admin/admin.css"
 
 export default function ConfiguracaoGitHub() {
   const [config, setConfig] = useState({
@@ -86,33 +87,33 @@ export default function ConfiguracaoGitHub() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-[#0a1e42] text-white p-4 shadow-md">
+    <div className="admin-page">
+      <header className="admin-header">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Configuração do GitHub</h1>
-          <Link href="/admin" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          <Link href="/admin" className="admin-btn admin-btn-primary">
             Voltar
           </Link>
         </div>
       </header>
 
       <main className="container mx-auto p-4">
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="admin-card">
           <p className="mb-4 text-gray-700">
             Para que o painel administrativo funcione corretamente, é necessário configurar a integração com o GitHub.
             Isso permitirá que as alterações feitas no painel sejam salvas diretamente no repositório do GitHub.
           </p>
 
-          <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400">
-            <h2 className="text-lg font-semibold text-yellow-800 mb-2">Como obter um token do GitHub</h2>
-            <ol className="list-decimal list-inside text-yellow-800 space-y-2">
+          <div className="mb-6 admin-alert admin-alert-warning">
+            <h2 className="text-lg font-semibold mb-2">Como obter um token do GitHub</h2>
+            <ol className="list-decimal list-inside space-y-2">
               <li>
                 Acesse{" "}
                 <a
                   href="https://github.com/settings/tokens"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="admin-link"
                 >
                   https://github.com/settings/tokens
                 </a>
@@ -135,13 +136,11 @@ export default function ConfiguracaoGitHub() {
             </div>
           </div>
 
-          {status === "success" && (
-            <div className="mb-4 p-4 bg-green-100 border-l-4 border-green-400 text-green-700">{message}</div>
-          )}
+          {status === "success" && <div className="admin-alert admin-alert-success">{message}</div>}
 
           {status === "error" && (
             <div className="mb-4">
-              <div className="p-4 bg-red-100 border-l-4 border-red-400 text-red-700">{message}</div>
+              <div className="admin-alert admin-alert-error">{message}</div>
               {detailedError && (
                 <div className="mt-2 p-4 bg-gray-100 border-l-4 border-gray-400 text-gray-700 whitespace-pre-line text-sm font-mono">
                   {detailedError}
@@ -152,7 +151,7 @@ export default function ConfiguracaoGitHub() {
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label htmlFor="owner" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="owner" className="admin-label">
                 Proprietário do Repositório (usuário ou organização)
               </label>
               <input
@@ -161,14 +160,14 @@ export default function ConfiguracaoGitHub() {
                 name="owner"
                 value={config.owner}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 required
               />
               <p className="text-sm text-gray-500 mt-1">Ex: "seu-usuario-github" (sem aspas)</p>
             </div>
 
             <div className="mb-4">
-              <label htmlFor="repo" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="repo" className="admin-label">
                 Nome do Repositório
               </label>
               <input
@@ -177,14 +176,14 @@ export default function ConfiguracaoGitHub() {
                 name="repo"
                 value={config.repo}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 required
               />
               <p className="text-sm text-gray-500 mt-1">Ex: "paroquia-sao-sebastiao" (sem aspas)</p>
             </div>
 
             <div className="mb-4">
-              <label htmlFor="branch" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="branch" className="admin-label">
                 Branch Principal
               </label>
               <input
@@ -193,14 +192,14 @@ export default function ConfiguracaoGitHub() {
                 name="branch"
                 value={config.branch}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 required
               />
               <p className="text-sm text-gray-500 mt-1">Geralmente é "main" ou "master"</p>
             </div>
 
             <div className="mb-4">
-              <label htmlFor="token" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="token" className="admin-label">
                 Token de Acesso Pessoal do GitHub
               </label>
               <input
@@ -209,7 +208,7 @@ export default function ConfiguracaoGitHub() {
                 name="token"
                 value={config.token}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 required
               />
               <p className="text-sm text-gray-500 mt-1">
@@ -222,14 +221,14 @@ export default function ConfiguracaoGitHub() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+                className="admin-btn admin-btn-success disabled:opacity-50"
               >
                 {status === "loading" ? "Salvando..." : "Salvar Configuração"}
               </button>
             </div>
           </form>
           <div className="flex justify-between mt-4 pt-4 border-t border-gray-200">
-            <Link href="/admin/diagnostico" className="text-blue-600 hover:text-blue-800">
+            <Link href="/admin/diagnostico" className="admin-link">
               Executar diagnóstico da integração
             </Link>
           </div>

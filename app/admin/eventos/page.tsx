@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import "@/app/admin/admin.css"
 
 export default function AdminEventos() {
   const [eventos, setEventos] = useState<any[]>([])
@@ -13,10 +14,53 @@ export default function AdminEventos() {
   useEffect(() => {
     async function loadEventos() {
       try {
-        const res = await fetch("/api/proximos-eventos")
+        const res = await fetch("/api/proximos-eventos?incluirPassados=true")
         if (!res.ok) throw new Error("Falha ao carregar eventos")
         const data = await res.json()
-        setEventos(data)
+
+        // Função para converter data do evento para objeto Date
+        const getEventoDate = (evento: any) => {
+          try {
+            // Converter mês de texto para número
+            const meses: Record<string, string> = {
+              Janeiro: "01",
+              Fevereiro: "02",
+              Março: "03",
+              Abril: "04",
+              Maio: "05",
+              Junho: "06",
+              Julho: "07",
+              Agosto: "08",
+              Setembro: "09",
+              Outubro: "10",
+              Novembro: "11",
+              Dezembro: "12",
+            }
+
+            let mesNumero = evento.mes
+            if (isNaN(Number.parseInt(evento.mes))) {
+              mesNumero = meses[evento.mes] || "01"
+            }
+
+            // Extrair apenas a hora e minuto do formato de hora (ex: "20:30h" -> "20:30")
+            const hora = evento.hora.replace(/[^\d:]/g, "")
+
+            // Criar objeto Date
+            return new Date(`${evento.ano}-${mesNumero}-${evento.dia}T${hora}:00`)
+          } catch (error) {
+            console.error(`Erro ao processar data do evento ${evento.id}:`, error)
+            return new Date(0) // Data mínima em caso de erro
+          }
+        }
+
+        // Ordenar eventos por data (mais recente primeiro)
+        const sortedEventos = [...data].sort((a, b) => {
+          const dataA = getEventoDate(a)
+          const dataB = getEventoDate(b)
+          return dataB.getTime() - dataA.getTime() // Ordem decrescente de data (mais recente primeiro)
+        })
+
+        setEventos(sortedEventos)
       } catch (err) {
         setError("Erro ao carregar eventos")
         console.error(err)
@@ -47,62 +91,58 @@ export default function AdminEventos() {
     }
   }
 
-  if (loading) return <div className="p-4">Carregando...</div>
+  if (loading) return <div className="admin-page p-4">Carregando...</div>
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-[#0a1e42] text-white p-4 shadow-md">
+    <div className="admin-page">
+      <header className="admin-header">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Gerenciar Eventos</h1>
-          <Link href="/admin" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          <Link href="/admin" className="admin-btn admin-btn-primary">
             Voltar
           </Link>
         </div>
       </header>
 
       <main className="container mx-auto p-4">
-        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+        {error && <div className="admin-alert admin-alert-error">{error}</div>}
 
         <div className="flex justify-end mb-4">
-          <Link href="/admin/eventos/novo" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+          <Link href="/admin/eventos/novo" className="admin-btn admin-btn-success">
             Novo Evento
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="admin-card overflow-hidden">
+          <table className="admin-table">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Título
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
+                <th>Título</th>
+                <th>Data</th>
+                <th>Hora</th>
+                <th className="text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {eventos.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={4} className="text-center text-gray-500">
                     Nenhum evento cadastrado
                   </td>
                 </tr>
               ) : (
                 eventos.map((evento) => (
                   <tr key={evento.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">{evento.titulo}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td>{evento.titulo}</td>
+                    <td>
                       {evento.dia} de {evento.mes} de {evento.ano}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{evento.hora}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link href={`/admin/eventos/${evento.id}`} className="text-blue-600 hover:text-blue-900 mr-4">
+                    <td>{evento.hora}</td>
+                    <td className="text-right">
+                      <Link href={`/admin/eventos/${evento.id}`} className="admin-link mr-4">
                         Editar
                       </Link>
-                      <button onClick={() => handleDelete(evento.id)} className="text-red-600 hover:text-red-900">
+                      <button onClick={() => handleDelete(evento.id)} className="text-red-600 hover:text-red-800">
                         Excluir
                       </button>
                     </td>

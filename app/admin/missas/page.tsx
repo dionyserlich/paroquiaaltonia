@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import "@/app/admin/admin.css"
 
 export default function AdminMissas() {
   const [missas, setMissas] = useState<any[]>([])
@@ -47,62 +48,56 @@ export default function AdminMissas() {
     }
   }
 
-  if (loading) return <div className="p-4">Carregando...</div>
+  if (loading) return <div className="admin-page p-4">Carregando...</div>
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-[#0a1e42] text-white p-4 shadow-md">
+    <div className="admin-page">
+      <header className="admin-header">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Gerenciar Missas</h1>
-          <Link href="/admin" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          <Link href="/admin" className="admin-btn admin-btn-primary">
             Voltar
           </Link>
         </div>
       </header>
 
       <main className="container mx-auto p-4">
-        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+        {error && <div className="admin-alert admin-alert-error">{error}</div>}
 
         <div className="flex justify-end mb-4">
-          <Link href="/admin/missas/nova" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+          <Link href="/admin/missas/nova" className="admin-btn admin-btn-success">
             Nova Missa
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="admin-card overflow-hidden">
+          <table className="admin-table">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Título
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Início
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fim</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
+                <th>Título</th>
+                <th>Início</th>
+                <th>Fim</th>
+                <th className="text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {missas.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={4} className="text-center text-gray-500">
                     Nenhuma missa cadastrada
                   </td>
                 </tr>
               ) : (
                 missas.map((missa) => (
                   <tr key={missa.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">{missa.titulo}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{new Date(missa.inicio).toLocaleString("pt-BR")}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{new Date(missa.fim).toLocaleString("pt-BR")}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link href={`/admin/missas/${missa.id}`} className="text-blue-600 hover:text-blue-900 mr-4">
+                    <td>{missa.titulo}</td>
+                    <td>{new Date(missa.inicio).toLocaleString("pt-BR")}</td>
+                    <td>{new Date(missa.fim).toLocaleString("pt-BR")}</td>
+                    <td className="text-right">
+                      <Link href={`/admin/missas/${missa.id}`} className="admin-link mr-4">
                         Editar
                       </Link>
-                      <button onClick={() => handleDelete(missa.id)} className="text-red-600 hover:text-red-900">
+                      <button onClick={() => handleDelete(missa.id)} className="text-red-600 hover:text-red-800">
                         Excluir
                       </button>
                     </td>

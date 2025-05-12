@@ -24,6 +24,7 @@ import {
   Redo,
   X,
 } from "lucide-react"
+import "@/app/admin/admin.css"
 
 interface RichTextEditorProps {
   value: string
@@ -144,7 +145,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Negrito"
           type="button"
         >
-          <Bold size={18} />
+          <Bold size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleItalic().run()}
@@ -152,7 +153,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Itálico"
           type="button"
         >
-          <Italic size={18} />
+          <Italic size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -160,7 +161,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Título 1"
           type="button"
         >
-          <Heading1 size={18} />
+          <Heading1 size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -168,7 +169,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Título 2"
           type="button"
         >
-          <Heading2 size={18} />
+          <Heading2 size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -176,7 +177,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Lista com marcadores"
           type="button"
         >
-          <List size={18} />
+          <List size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
@@ -184,7 +185,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Lista numerada"
           type="button"
         >
-          <ListOrdered size={18} />
+          <ListOrdered size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => setShowLinkMenu(!showLinkMenu)}
@@ -192,7 +193,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Link"
           type="button"
         >
-          <LinkIcon size={18} />
+          <LinkIcon size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => setShowImageMenu(!showImageMenu)}
@@ -200,7 +201,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Imagem"
           type="button"
         >
-          <ImageIcon size={18} />
+          <ImageIcon size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().setTextAlign("left").run()}
@@ -208,7 +209,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Alinhar à esquerda"
           type="button"
         >
-          <AlignLeft size={18} />
+          <AlignLeft size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().setTextAlign("center").run()}
@@ -216,7 +217,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Centralizar"
           type="button"
         >
-          <AlignCenter size={18} />
+          <AlignCenter size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().setTextAlign("right").run()}
@@ -224,7 +225,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           title="Alinhar à direita"
           type="button"
         >
-          <AlignRight size={18} />
+          <AlignRight size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().undo().run()}
@@ -233,7 +234,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           type="button"
           disabled={!editor.can().undo()}
         >
-          <Undo size={18} />
+          <Undo size={18} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().redo().run()}
@@ -242,7 +243,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
           type="button"
           disabled={!editor.can().redo()}
         >
-          <Redo size={18} />
+          <Redo size={18} className="text-gray-700" />
         </button>
       </div>
 
@@ -253,17 +254,13 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}
             placeholder="https://exemplo.com"
-            className="flex-1 p-2 border border-gray-300 rounded mr-2"
+            className="admin-input mr-2"
           />
-          <button
-            onClick={setLink}
-            className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
-            type="button"
-          >
+          <button onClick={setLink} className="admin-btn admin-btn-primary" type="button">
             Salvar
           </button>
           <button onClick={() => setShowLinkMenu(false)} className="ml-2 p-2 rounded hover:bg-gray-200" type="button">
-            <X size={18} />
+            <X size={18} className="text-gray-700" />
           </button>
         </div>
       )}
@@ -276,13 +273,9 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://exemplo.com/imagem.jpg"
-              className="flex-1 p-2 border border-gray-300 rounded mr-2"
+              className="admin-input mr-2"
             />
-            <button
-              onClick={addImage}
-              className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
-              type="button"
-            >
+            <button onClick={addImage} className="admin-btn admin-btn-primary" type="button">
               Inserir
             </button>
             <button
@@ -290,12 +283,12 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
               className="ml-2 p-2 rounded hover:bg-gray-200"
               type="button"
             >
-              <X size={18} />
+              <X size={18} className="text-gray-700" />
             </button>
           </div>
           <div className="flex items-center">
             <span className="mr-2 text-sm text-gray-600">ou</span>
-            <label className="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded cursor-pointer">
+            <label className="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded cursor-pointer text-gray-700">
               <input
                 type="file"
                 accept="image/*"
@@ -309,7 +302,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
         </div>
       )}
 
-      <EditorContent editor={editor} className="prose max-w-none p-4" />
+      <EditorContent editor={editor} className="prose max-w-none p-4 text-gray-800 bg-white" />
     </div>
   )
 }

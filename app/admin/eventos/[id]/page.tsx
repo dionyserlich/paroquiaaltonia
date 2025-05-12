@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import RichTextEditor from "@/components/rich-text-editor"
+import "@/app/admin/admin.css"
 
 export default function EditarEvento({ params }: { params: { id: string } }) {
   const isNew = params.id === "novo"
@@ -88,26 +89,26 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
     }
   }
 
-  if (loading) return <div className="p-4">Carregando...</div>
+  if (loading) return <div className="admin-page p-4">Carregando...</div>
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-[#0a1e42] text-white p-4 shadow-md">
+    <div className="admin-page">
+      <header className="admin-header">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">{isNew ? "Novo Evento" : "Editar Evento"}</h1>
-          <Link href="/admin/eventos" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          <Link href="/admin/eventos" className="admin-btn admin-btn-primary">
             Voltar
           </Link>
         </div>
       </header>
 
       <main className="container mx-auto p-4">
-        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+        {error && <div className="admin-alert admin-alert-error">{error}</div>}
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="admin-card">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label htmlFor="titulo" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="titulo" className="admin-label">
                 Título
               </label>
               <input
@@ -116,14 +117,14 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                 name="titulo"
                 value={formData.titulo}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 required
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div>
-                <label htmlFor="dia" className="block text-gray-700 text-sm font-bold mb-2">
+                <label htmlFor="dia" className="admin-label">
                   Dia
                 </label>
                 <input
@@ -132,13 +133,13 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                   name="dia"
                   value={formData.dia}
                   onChange={handleChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="admin-input"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="mes" className="block text-gray-700 text-sm font-bold mb-2">
+                <label htmlFor="mes" className="admin-label">
                   Mês
                 </label>
                 <select
@@ -146,7 +147,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                   name="mes"
                   value={formData.mes}
                   onChange={handleChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="admin-input"
                   required
                 >
                   <option value="">Selecione...</option>
@@ -166,7 +167,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
               </div>
 
               <div>
-                <label htmlFor="ano" className="block text-gray-700 text-sm font-bold mb-2">
+                <label htmlFor="ano" className="admin-label">
                   Ano
                 </label>
                 <input
@@ -175,13 +176,13 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                   name="ano"
                   value={formData.ano}
                   onChange={handleChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="admin-input"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="hora" className="block text-gray-700 text-sm font-bold mb-2">
+                <label htmlFor="hora" className="admin-label">
                   Hora
                 </label>
                 <input
@@ -190,7 +191,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                   name="hora"
                   value={formData.hora}
                   onChange={handleChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="admin-input"
                   required
                   placeholder="Ex: 20:30"
                 />
@@ -198,7 +199,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="descricao" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="descricao" className="admin-label">
                 Descrição Curta
               </label>
               <textarea
@@ -206,13 +207,13 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                 name="descricao"
                 value={formData.descricao}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="admin-input"
                 rows={2}
               />
             </div>
 
             <div className="mb-4">
-              <label htmlFor="conteudo" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="conteudo" className="admin-label">
                 Conteúdo Completo
               </label>
               <RichTextEditor
@@ -223,11 +224,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
             </div>
 
             <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={saving}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
-              >
+              <button type="submit" disabled={saving} className="admin-btn admin-btn-success disabled:opacity-50">
                 {saving ? "Salvando..." : "Salvar"}
               </button>
             </div>

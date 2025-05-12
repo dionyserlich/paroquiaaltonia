@@ -2,11 +2,8 @@ import { NextResponse } from "next/server"
 import fs from "fs/promises"
 import path from "path"
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    const incluirPassados = searchParams.get("incluirPassados") === "true"
-
     const filePath = path.join(process.cwd(), "data", "proximosEventos.json")
 
     // Verificar se o arquivo existe
@@ -33,20 +30,6 @@ export async function GET(request: Request) {
       console.error("Erro ao fazer parse do JSON:", error)
       return NextResponse.json([], { status: 500 })
     }
-
-    // Garantir que todos os eventos tenham os campos necessários
-    eventos = eventos.filter((evento: any) => {
-      return (
-        evento &&
-        typeof evento === "object" &&
-        evento.id &&
-        evento.titulo &&
-        evento.dia &&
-        evento.mes &&
-        evento.ano &&
-        evento.hora
-      )
-    })
 
     // Função para converter data do evento para objeto Date
     const getEventoDate = (evento: any) => {
@@ -85,32 +68,20 @@ export async function GET(request: Request) {
 
     const hoje = new Date()
 
-    // Se incluirPassados for true, retornar todos os eventos
-    if (incluirPassados) {
-      // Ordenar todos os eventos por data (mais recente primeiro)
-      eventos.sort((a: any, b: any) => {
-        const dataA = getEventoDate(a)
-        const dataB = getEventoDate(b)
-        return dataB.getTime() - dataA.getTime() // Ordem decrescente de data
-      })
-
-      return NextResponse.json(eventos)
-    }
-
-    // Filtrar apenas eventos futuros
-    const eventosFuturos = eventos.filter((evento: any) => {
+    // Filtrar apenas eventos passados
+    const eventosPassados = eventos.filter((evento: any) => {
       const dataEvento = getEventoDate(evento)
-      return !isNaN(dataEvento.getTime()) && dataEvento >= hoje
+      return !isNaN(dataEvento.getTime()) && dataEvento < hoje
     })
 
-    // Ordenar eventos futuros por data (mais próximo primeiro)
-    eventosFuturos.sort((a: any, b: any) => {
+    // Ordenar eventos passados por data (mais recente primeiro)
+    eventosPassados.sort((a: any, b: any) => {
       const dataA = getEventoDate(a)
       const dataB = getEventoDate(b)
-      return dataA.getTime() - dataB.getTime() // Ordem crescente de data (mais próximo primeiro)
+      return dataB.getTime() - dataA.getTime() // Ordem decrescente de data (mais recente primeiro)
     })
 
-    return NextResponse.json(eventosFuturos)
+    return NextResponse.json(eventosPassados)
   } catch (error) {
     console.error("Erro ao ler proximosEventos.json:", error)
     return NextResponse.json([], { status: 500 })
