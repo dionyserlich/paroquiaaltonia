@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import fs from "fs"
+import fs from "fs/promises"
 import path from "path"
 import { v4 as uuidv4 } from "uuid"
 
@@ -7,21 +7,27 @@ export async function GET() {
   try {
     const filePath = path.join(process.cwd(), "data", "ultimasNoticias.json")
 
-    // Se o arquivo não existir, criar um arquivo vazio
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify([]), "utf8")
+    // Verificar se o arquivo existe
+    try {
+      await fs.access(filePath)
+    } catch (error) {
+      console.error(`Arquivo ultimasNoticias.json não encontrado: ${error}`)
+      // Se o arquivo não existir, criar um novo com array vazio
+      await fs.mkdir(path.dirname(filePath), { recursive: true })
+      await fs.writeFile(filePath, JSON.stringify([]), "utf8")
       return NextResponse.json([], { status: 200 })
     }
 
-    const fileContents = fs.readFileSync(filePath, "utf8")
+    const fileContents = await fs.readFile(filePath, "utf8")
     let noticias = []
 
     try {
       noticias = JSON.parse(fileContents)
     } catch (e) {
-      console.error("Erro ao parsear JSON de notícias:", e)
+      console.error(`Erro ao parsear JSON de notícias: ${e}`)
       // Se o arquivo estiver corrompido, criar um novo
-      fs.writeFileSync(filePath, JSON.stringify([]), "utf8")
+      await fs.writeFile(filePath, JSON.stringify([]), "utf8")
+      noticias = []
     }
 
     // Ordenar por data (mais recente primeiro)
@@ -31,8 +37,8 @@ export async function GET() {
 
     return NextResponse.json(noticias, { status: 200 })
   } catch (error) {
-    console.error("Erro ao buscar notícias:", error)
-    return NextResponse.json({ error: "Erro ao buscar notícias" }, { status: 500 })
+    console.error(`Erro ao buscar notícias: ${error}`)
+    return NextResponse.json({ error: `Erro ao buscar notícias: ${error.message}` }, { status: 500 })
   }
 }
 
@@ -46,22 +52,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Título, resumo e conteúdo são obrigatórios" }, { status: 400 })
     }
 
+    // Verificar se o diretório existe e criar se não existir
+    const dirPath = path.dirname(filePath)
+    try {
+      await fs.access(dirPath)
+    } catch (error) {
+      await fs.mkdir(dirPath, { recursive: true })
+    }
+
     let noticias = []
 
     // Verificar se o arquivo existe e criar se não existir
-    if (!fs.existsSync(path.dirname(filePath))) {
-      fs.mkdirSync(path.dirname(filePath), { recursive: true })
-    }
-
-    if (fs.existsSync(filePath)) {
-      const fileContents = fs.readFileSync(filePath, "utf8")
+    try {
+      await fs.access(filePath)
+      const fileContents = await fs.readFile(filePath, "utf8")
       try {
         noticias = JSON.parse(fileContents)
       } catch (e) {
-        console.error("Erro ao parsear JSON de notícias:", e)
+        console.error(`Erro ao parsear JSON de notícias: ${e}`)
         // Se o arquivo estiver corrompido, criar um novo
         noticias = []
       }
+    } catch (error) {
+      // Arquivo não existe, criar um novo
+      console.log("Arquivo de notícias não existe, criando novo arquivo")
     }
 
     // Criar nova notícia
@@ -78,12 +92,14 @@ export async function POST(request: Request) {
     // Adicionar à lista
     noticias.push(novaNoticia)
 
-    // Salvar arquivo
-    fs.writeFileSync(filePath, JSON.stringify(noticias, null, 2))
+    // Salvar arquivo usando método mais seguro
+    const tempFile = `${filePath}.temp`
+    await fs.writeFile(tempFile, JSON.stringify(noticias, null, 2), "utf8")
+    await fs.rename(tempFile, filePath)
 
     return NextResponse.json(novaNoticia, { status: 201 })
   } catch (error) {
-    console.error("Erro ao criar notícia:", error)
-    return NextResponse.json({ error: "Erro ao criar notícia" }, { status: 500 })
+    console.error(`Erro ao criar notícia: ${error}`)
+    return NextResponse.json({ error: `Erro ao criar notícia: ${error.message}` }, { status: 500 })
   }
 }
