@@ -68,7 +68,7 @@ export default function EventosLista() {
     <div className="space-y-4">
       {eventos.map((evento) => (
         <Link href={`/eventos/${evento.id}`} key={evento.id}>
-          <div className="bg-[#0c2657] p-4 rounded-lg hover:bg-[#0d2d6a] transition-colors">
+          <div className="bg-[#0c2657] p-4 rounded-lg hover:bg-[#0d2d6a] transition-colors mb-5">
             <h2 className="text-xl font-bold text-white">{evento.titulo}</h2>
             <div className="flex items-center mt-2 text-yellow-500">
               <Calendar className="mr-2" size={16} />

@@ -45,8 +45,14 @@ export default function EventsList() {
               // Extrair apenas a hora e minuto do formato de hora (ex: "20:30h" -> "20:30")
               const hora = evento.hora.replace(/[^\d:]/g, "")
 
-              // Criar objeto Date
-              return new Date(`${evento.ano}-${mesNumero}-${evento.dia}T${hora}:00`)
+              // Criar objeto Date usando UTC para evitar problemas de fuso horário
+              const dataString = `${evento.ano}-${mesNumero}-${evento.dia}T${hora}:00`
+              const dataEvento = new Date(dataString)
+
+              // Ajustar para o fuso horário local do Brasil (UTC-3)
+              const dataAjustada = new Date(dataEvento.getTime() + 3 * 60 * 60 * 1000)
+
+              return dataAjustada
             } catch (error) {
               console.error(`Erro ao processar data do evento ${evento.id}:`, error)
               return new Date(0) // Data mínima em caso de erro

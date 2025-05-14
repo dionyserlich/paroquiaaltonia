@@ -12,10 +12,10 @@
   {
     "id": 2,
     "titulo": "Adoração do Santíssimo com a r...",
-    "dia": "22",
+    "dia": "14",
     "mes": "Maio",
     "ano": "2025",
-    "hora": "20:30",
+    "hora": "14:30",
     "descricao": "Adoração do Santíssimo com a renovação carismática",
     "conteudo": "<h2>Adoração do Santíssimo</h2><p>Momento de adoração e louvor ao Santíssimo Sacramento.</p><p>Local: Igreja Matriz</p>"
   },
@@ -38,15 +38,5 @@
     "hora": "20:30",
     "descricao": "Adoração do Santíssimo",
     "conteudo": "<h2>Adoração do Santíssimo</h2><p>Momento de adoração e louvor ao Santíssimo Sacramento.</p><p>Local: Igreja Matriz</p>"
-  },
-  {
-    "id": 5,
-    "titulo": "teste",
-    "dia": "14",
-    "mes": "Maio",
-    "ano": "2025",
-    "hora": "20:00",
-    "descricao": "teste",
-    "conteudo": "<p>teste</p>"
   }
 ]

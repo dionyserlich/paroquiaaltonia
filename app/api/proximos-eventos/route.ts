@@ -75,14 +75,22 @@ export async function GET(request: Request) {
         // Extrair apenas a hora e minuto do formato de hora (ex: "20:30h" -> "20:30")
         const hora = evento.hora.replace(/[^\d:]/g, "")
 
-        // Criar objeto Date
-        return new Date(`${evento.ano}-${mesNumero}-${evento.dia}T${hora}:00`)
+        // Criar objeto Date usando UTC para evitar problemas de fuso horário
+        const dataString = `${evento.ano}-${mesNumero}-${evento.dia}T${hora}:00`
+        const dataEvento = new Date(dataString)
+
+        // Ajustar para o fuso horário local do Brasil (UTC-3)
+        // Isso garante que a data seja interpretada corretamente independente do fuso do servidor
+        const dataAjustada = new Date(dataEvento.getTime() + 3 * 60 * 60 * 1000)
+
+        return dataAjustada
       } catch (error) {
         console.error(`Erro ao processar data do evento ${evento.id}:`, error)
         return new Date(0) // Data mínima em caso de erro
       }
     }
 
+    // Obter a data atual no fuso horário local
     const hoje = new Date()
 
     // Se incluirPassados for true, retornar todos os eventos
@@ -100,6 +108,7 @@ export async function GET(request: Request) {
     // Filtrar apenas eventos futuros
     const eventosFuturos = eventos.filter((evento: any) => {
       const dataEvento = getEventoDate(evento)
+      console.log(`Evento: ${evento.titulo}, Data: ${dataEvento}, Hoje: ${hoje}, É futuro: ${dataEvento >= hoje}`)
       return !isNaN(dataEvento.getTime()) && dataEvento >= hoje
     })
 

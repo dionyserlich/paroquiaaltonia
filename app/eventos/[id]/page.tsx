@@ -10,8 +10,8 @@ export default function EventoPage({ params }: { params: { id: string } }) {
     <PageClient>
       <main className="flex min-h-screen flex-col bg-[#00143d]">
         <Header />
-
-        <div className="relative z-20 pt-16">
+        
+        <div className="page-no-hero z-20">
           <div className="container mx-auto px-4 py-6">
             <Link href="/eventos" className="flex items-center text-white mb-4">
               <ChevronLeft size={20} />

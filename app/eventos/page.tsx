@@ -8,10 +8,11 @@ export default function EventosPage() {
     <PageClient>
       <main className="flex min-h-screen flex-col bg-[#00143d]">
         <Header />
-
-        <div className="relative z-20 pt-16">
+        <h1 className="text-2xl font-bold text-white mb-6 text-center mt-10">Eventos</h1>
+        <div className="z-20 page-no-hero">
+        
           <div className="container mx-auto px-4 py-6">
-            <h1 className="text-2xl font-bold text-white mb-6">Eventos</h1>
+            
             <EventosAbas />
           </div>
         </div>

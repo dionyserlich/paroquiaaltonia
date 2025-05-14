@@ -49,11 +49,13 @@ export default function EventoDetalhes({ id }: { id: string }) {
   }
 
   return (
+  
     <div className="bg-[#0c2657] rounded-lg overflow-hidden">
       <div className="p-6">
         <h1 className="text-2xl font-bold text-white mb-4">{evento.titulo}</h1>
-
+        
         <div className="flex items-center mb-6 text-yellow-500">
+
           <Calendar className="mr-2" size={20} />
           <span>
             {evento.dia} de {evento.mes} de {evento.ano} às {evento.hora}

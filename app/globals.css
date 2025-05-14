@@ -54,12 +54,25 @@ main > div[class*="relative z-20"] {
   position: relative;
   z-index: 20;
   margin-top: 51vh; /* Deve corresponder à altura do hero */
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
+  border-radius: 15px;
   box-shadow: 0 -10px 70px rgba(0, 0, 0, 0.2);
   max-width: 650px; /* Manter o conteúdo limitado */
   margin-left: auto;
   margin-right: auto;
+  width: 100%;
+}
+
+.page-no-hero{
+  background-color: #0a1e42;
+  position: relative;
+  z-index: 20;
+  margin-top: 0; /* Deve corresponder à altura do hero */
+  border-radius: 15px;
+  box-shadow: 0 -10px 70px rgba(0, 0, 0, 0.2);
+  max-width: 650px; /* Manter o conteúdo limitado */
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 /* Esconder a barra de rolagem mas manter a funcionalidade */
