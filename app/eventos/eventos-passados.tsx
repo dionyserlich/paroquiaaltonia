@@ -37,7 +37,7 @@ export default function EventosPassados() {
     return (
       <div className="space-y-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-24 bg-gray-700/30 rounded-lg animate-pulse" />
+          <div key={i} className="h-24 bg-gray-700/50 rounded-lg animate-pulse" />
         ))}
       </div>
     )

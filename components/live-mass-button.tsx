@@ -11,48 +11,40 @@ export default function LiveMassButton() {
   const [ultimaMissa, setUltimaMissa] = useState<any>(null)
   const [isLive, setIsLive] = useState(false)
   const [open, setOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function loadData() {
-      setIsLoading(true)
-      try {
-        const missasData = await getMissas()
+      const missasData = await getMissas()
 
-        if (!Array.isArray(missasData) || missasData.length === 0) {
-          setMissas([])
-          setMissaAoVivo(null)
-          setUltimaMissa(null)
-          setIsLive(false)
-          return
-        }
+      if (!Array.isArray(missasData) || missasData.length === 0) {
+        setMissas([])
+        setMissaAoVivo(null)
+        setUltimaMissa(null)
+        setIsLive(false)
+        return
+      }
 
-        setMissas(missasData)
+      setMissas(missasData)
 
-        // Verificar se tem missa ao vivo agora
-        const agora = new Date()
+      // Verificar se tem missa ao vivo agora
+      const agora = new Date()
 
-        // Procurar por uma missa que esteja acontecendo agora
-        const missaAtual = missasData.find((missa) => {
-          const inicio = new Date(missa.inicio)
-          const fim = new Date(missa.fim)
-          return agora >= inicio && agora <= fim
-        })
+      // Procurar por uma missa que esteja acontecendo agora
+      const missaAtual = missasData.find((missa) => {
+        const inicio = new Date(missa.inicio)
+        const fim = new Date(missa.fim)
+        return agora >= inicio && agora <= fim
+      })
 
-        if (missaAtual) {
-          setMissaAoVivo(missaAtual)
-          setIsLive(true)
-        } else {
-          setMissaAoVivo(null)
-          setIsLive(false)
+      if (missaAtual) {
+        setMissaAoVivo(missaAtual)
+        setIsLive(true)
+      } else {
+        setMissaAoVivo(null)
+        setIsLive(false)
 
-          // Se não tiver missa ao vivo, pegar a última missa
-          setUltimaMissa(missasData[0]) // A lista já vem ordenada pela API
-        }
-      } catch (error) {
-        console.error("Erro ao carregar missas:", error)
-      } finally {
-        setIsLoading(false)
+        // Se não tiver missa ao vivo, pegar a última missa
+        setUltimaMissa(missasData[0]) // A lista já vem ordenada pela API
       }
     }
 
@@ -72,16 +64,6 @@ export default function LiveMassButton() {
       hour: "2-digit",
       minute: "2-digit",
     }).format(data)
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center text-white">
-        <div className="h-8 w-48 bg-gray-700/30 rounded-lg animate-pulse mb-2" />
-        <div className="h-16 w-16 bg-yellow-500/50 rounded-full animate-pulse mb-2" />
-        <div className="h-6 w-32 bg-gray-700/30 rounded-lg animate-pulse" />
-      </div>
-    )
   }
 
   if (!missaAoVivo && !ultimaMissa) {

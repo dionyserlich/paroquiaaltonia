@@ -2,7 +2,6 @@ import { Suspense } from "react"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
 import EventosAbas from "./eventos-abas"
-import EventsSkeleton from "@/components/skeletons/events-skeleton"
 
 export default function EventosPage() {
   return (
@@ -13,14 +12,7 @@ export default function EventosPage() {
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-2xl font-bold text-white mb-6">Eventos</h1>
 
-          <Suspense
-            fallback={
-              <div className="space-y-4">
-                <EventsSkeleton />
-                <EventsSkeleton />
-              </div>
-            }
-          >
+          <Suspense fallback={<div className="h-64 bg-gray-700/50 rounded-lg animate-pulse" />}>
             <EventosAbas />
           </Suspense>
         </div>
