@@ -3,95 +3,80 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
+import { ArrowLeft, Save, Upload } from "lucide-react"
 import RichTextEditor from "@/components/rich-text-editor"
-import "@/app/admin/admin.css"
 
-interface PageProps {
+interface NoticiaFormProps {
   params: {
     id: string
   }
 }
 
-export default function EditarNoticia({ params }: PageProps) {
+export default function NoticiaForm({ params }: NoticiaFormProps) {
   const router = useRouter()
   const { id } = params
   const isNovo = id === "nova"
 
   const [titulo, setTitulo] = useState("")
+  const [resumo, setResumo] = useState("")
   const [conteudo, setConteudo] = useState("")
   const [imagem, setImagem] = useState("")
-  const [data, setData] = useState("")
   const [destaque, setDestaque] = useState(false)
   const [loading, setLoading] = useState(!isNovo)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [uploadingImage, setUploadingImage] = useState(false)
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
+  const [imagemPreview, setImagemPreview] = useState<string | null>(null)
 
   useEffect(() => {
-    if (isNovo) {
-      setData(new Date().toISOString().split("T")[0])
-      return
+    if (!isNovo) {
+      carregarNoticia()
     }
-
-    async function loadNoticia() {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const res = await fetch(`/api/admin/noticias/${id}`, {
-          cache: "no-store",
-          next: { revalidate: 0 },
-        })
-
-        if (!res.ok) {
-          throw new Error(`Erro ao carregar notícia: ${res.status}`)
-        }
-
-        const data = await res.json()
-        setTitulo(data.titulo || "")
-        setConteudo(data.conteudo || "")
-        setImagem(data.imagem || "")
-        setData(formatDateForInput(data.data) || new Date().toISOString().split("T")[0])
-        setDestaque(data.destaque || false)
-      } catch (err: any) {
-        console.error("Erro ao carregar notícia:", err)
-        setError(err.message || "Erro ao carregar notícia")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadNoticia()
   }, [id, isNovo])
 
-  function formatDateForInput(dateString: string) {
+  async function carregarNoticia() {
     try {
-      const date = new Date(dateString)
-      return date.toISOString().split("T")[0]
+      setLoading(true)
+      const res = await fetch(`/api/admin/noticias/${id}`)
+
+      if (!res.ok) {
+        throw new Error("Notícia não encontrada")
+      }
+
+      const noticia = await res.json()
+
+      setTitulo(noticia.titulo)
+      setResumo(noticia.resumo)
+      setConteudo(noticia.conteudo)
+      setImagem(noticia.imagem)
+      setDestaque(noticia.destaque)
+      setImagemPreview(noticia.imagem)
     } catch (error) {
-      return new Date().toISOString().split("T")[0]
+      console.error("Erro ao carregar notícia:", error)
+      setErro("Erro ao carregar notícia. Tente novamente.")
+    } finally {
+      setLoading(false)
     }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    if (!titulo || !conteudo) {
-      setError("Título e conteúdo são obrigatórios")
+    if (!titulo || !resumo || !conteudo) {
+      setErro("Preencha todos os campos obrigatórios.")
       return
     }
 
     try {
-      setSaving(true)
-      setError(null)
+      setSalvando(true)
 
-      const noticiaData = {
+      const noticia = {
         titulo,
+        resumo,
         conteudo,
         imagem,
-        data: new Date(data).toISOString(),
         destaque,
       }
 
@@ -103,31 +88,27 @@ export default function EditarNoticia({ params }: PageProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(noticiaData),
+        body: JSON.stringify(noticia),
       })
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}))
-        throw new Error(errorData.error || `Erro ao ${isNovo ? "criar" : "atualizar"} notícia: ${res.status}`)
+        throw new Error("Erro ao salvar notícia")
       }
 
       router.push("/admin/noticias")
-    } catch (err: any) {
-      console.error(`Erro ao ${isNovo ? "criar" : "atualizar"} notícia:`, err)
-      setError(err.message || `Erro ao ${isNovo ? "criar" : "atualizar"} notícia`)
+    } catch (error) {
+      console.error("Erro ao salvar notícia:", error)
+      setErro("Erro ao salvar notícia. Tente novamente.")
     } finally {
-      setSaving(false)
+      setSalvando(false)
     }
   }
 
-  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImagemUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
     try {
-      setUploadingImage(true)
-      setError(null)
-
       const formData = new FormData()
       formData.append("file", file)
 
@@ -137,16 +118,15 @@ export default function EditarNoticia({ params }: PageProps) {
       })
 
       if (!res.ok) {
-        throw new Error(`Erro ao fazer upload da imagem: ${res.status}`)
+        throw new Error("Erro ao fazer upload da imagem")
       }
 
       const data = await res.json()
       setImagem(data.url)
-    } catch (err: any) {
-      console.error("Erro ao fazer upload da imagem:", err)
-      alert(err.message || "Erro ao fazer upload da imagem")
-    } finally {
-      setUploadingImage(false)
+      setImagemPreview(data.url)
+    } catch (error) {
+      console.error("Erro ao fazer upload da imagem:", error)
+      alert("Erro ao fazer upload da imagem. Tente novamente.")
     }
   }
 
@@ -154,10 +134,16 @@ export default function EditarNoticia({ params }: PageProps) {
     return (
       <div className="admin-page">
         <header className="admin-header">
-          <div className="container mx-auto">
-            <h1 className="text-xl font-bold">Carregando notícia...</h1>
+          <div className="container mx-auto flex justify-between items-center">
+            <h1 className="text-xl font-bold">Carregando...</h1>
           </div>
         </header>
+        <main className="container mx-auto p-4">
+          <div className="admin-card animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        </main>
       </div>
     )
   }
@@ -166,110 +152,106 @@ export default function EditarNoticia({ params }: PageProps) {
     <div className="admin-page">
       <header className="admin-header">
         <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center">
-            <Link href="/admin/noticias" className="mr-4">
-              ← Voltar
+          <h1 className="text-xl font-bold">{isNovo ? "Nova Notícia" : "Editar Notícia"}</h1>
+          <div className="flex gap-2">
+            <Link href="/admin/noticias" className="admin-btn admin-btn-secondary">
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Voltar
             </Link>
-            <h1 className="text-xl font-bold">{isNovo ? "Nova Notícia" : "Editar Notícia"}</h1>
+            <button onClick={handleSubmit} disabled={salvando} className="admin-btn admin-btn-primary">
+              <Save className="h-5 w-5 mr-2" />
+              {salvando ? "Salvando..." : "Salvar"}
+            </button>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto p-4">
-        {error && (
+        {erro && (
           <div className="admin-alert admin-alert-danger mb-4">
-            <p>{error}</p>
+            <p>{erro}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="admin-form">
-          <div className="admin-form-group">
-            <label htmlFor="titulo" className="admin-form-label">
+        <form onSubmit={handleSubmit} className="admin-card">
+          <div className="mb-4">
+            <label htmlFor="titulo" className="admin-label">
               Título <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               id="titulo"
+              className="admin-input"
               value={titulo}
               onChange={(e) => setTitulo(e.target.value)}
-              className="admin-form-input"
               required
             />
           </div>
 
-          <div className="admin-form-group">
-            <label htmlFor="data" className="admin-form-label">
-              Data <span className="text-red-500">*</span>
+          <div className="mb-4">
+            <label htmlFor="resumo" className="admin-label">
+              Resumo <span className="text-red-500">*</span>
             </label>
-            <input
-              type="date"
-              id="data"
-              value={data}
-              onChange={(e) => setData(e.target.value)}
-              className="admin-form-input"
+            <textarea
+              id="resumo"
+              className="admin-input"
+              rows={3}
+              value={resumo}
+              onChange={(e) => setResumo(e.target.value)}
               required
-            />
+            ></textarea>
+            <p className="text-sm text-gray-500 mt-1">Breve descrição da notícia (será exibida na listagem)</p>
           </div>
 
-          <div className="admin-form-group">
-            <label htmlFor="imagem" className="admin-form-label">
-              Imagem
-            </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                id="imagem"
-                value={imagem}
-                onChange={(e) => setImagem(e.target.value)}
-                className="admin-form-input flex-grow"
-                placeholder="URL da imagem"
-              />
-              <div className="relative">
-                <input
-                  type="file"
-                  id="upload"
-                  onChange={handleImageUpload}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                  accept="image/*"
-                />
-                <button type="button" className="admin-btn admin-btn-secondary" disabled={uploadingImage}>
-                  {uploadingImage ? "Enviando..." : "Upload"}
-                </button>
+          <div className="mb-4">
+            <label className="admin-label">Imagem Destacada</label>
+            <div className="flex flex-col md:flex-row gap-4 items-start">
+              <div className="relative h-48 w-full md:w-64 bg-gray-100 rounded overflow-hidden">
+                {imagemPreview ? (
+                  <Image src={imagemPreview || "/placeholder.svg"} alt="Preview" fill className="object-cover" />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-gray-500">Sem imagem</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center">
+                  <label htmlFor="imagem" className="admin-btn admin-btn-secondary cursor-pointer">
+                    <Upload className="h-5 w-5 mr-2" />
+                    Selecionar Imagem
+                  </label>
+                  <input type="file" id="imagem" className="hidden" accept="image/*" onChange={handleImagemUpload} />
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Imagem que será exibida no topo da notícia e na listagem. Recomendado: 1200x630px
+                </p>
               </div>
             </div>
-            {imagem && (
-              <div className="mt-2">
-                <img src={imagem || "/placeholder.svg"} alt="Preview" className="h-32 object-cover rounded" />
-              </div>
-            )}
           </div>
 
-          <div className="admin-form-group">
-            <label className="admin-form-label flex items-center">
+          <div className="mb-4">
+            <label className="flex items-center">
               <input
                 type="checkbox"
+                className="h-4 w-4 text-blue-600"
                 checked={destaque}
                 onChange={(e) => setDestaque(e.target.checked)}
-                className="mr-2"
               />
-              Destaque
+              <span className="ml-2">Marcar como destaque</span>
             </label>
+            <p className="text-sm text-gray-500 mt-1">Notícias em destaque aparecem em primeiro lugar na listagem</p>
           </div>
 
-          <div className="admin-form-group">
-            <label htmlFor="conteudo" className="admin-form-label">
+          <div className="mb-4">
+            <label htmlFor="conteudo" className="admin-label">
               Conteúdo <span className="text-red-500">*</span>
             </label>
-            <RichTextEditor value={conteudo} onChange={setConteudo} />
-          </div>
-
-          <div className="admin-form-buttons">
-            <Link href="/admin/noticias" className="admin-btn admin-btn-secondary">
-              Cancelar
-            </Link>
-            <button type="submit" className="admin-btn admin-btn-primary" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar"}
-            </button>
+            <RichTextEditor
+              value={conteudo}
+              onChange={setConteudo}
+              placeholder="Escreva o conteúdo da notícia aqui..."
+            />
           </div>
         </form>
       </main>

@@ -1,5 +1,5 @@
-import EditarNoticia from "../[id]/page"
+import NoticiaForm from "../[id]/page"
 
-export default function NovaNoticia() {
-  return <EditarNoticia params={{ id: "nova" }} />
+export default function NovaNoticias() {
+  return <NoticiaForm params={{ id: "nova" }} />
 }

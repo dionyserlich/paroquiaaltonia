@@ -3,83 +3,143 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { getNoticia } from "@/lib/api"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
+import { ArrowLeft, Share2 } from "lucide-react"
+import { formatarData } from "@/lib/utils"
 
-export default function NoticiaDetalhes({ id }: { id: string }) {
-  const [noticia, setNoticia] = useState<any>(null)
+interface NoticiaDetalhesProps {
+  id: string
+}
+
+interface Noticia {
+  id: string
+  titulo: string
+  resumo: string
+  conteudo: string
+  imagem: string
+  data: string
+}
+
+export default function NoticiaDetalhes({ id }: NoticiaDetalhesProps) {
+  const [noticia, setNoticia] = useState<Noticia | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function loadNoticia() {
+    async function carregarNoticia() {
       try {
-        const noticiaData = await getNoticia(id)
-        if (!noticiaData) {
-          setError("Notícia não encontrada")
-        } else {
-          setNoticia(noticiaData)
+        const response = await fetch(`/api/noticias/${id}`)
+
+        if (!response.ok) {
+          throw new Error("Notícia não encontrada")
         }
-      } catch (err) {
-        console.error("Erro ao carregar notícia:", err)
-        setError("Erro ao carregar notícia. Tente novamente mais tarde.")
+
+        const data = await response.json()
+        setNoticia(data)
+      } catch (error) {
+        console.error(`Erro ao carregar notícia ${id}:`, error)
+        setError("Erro ao carregar notícia")
       } finally {
         setLoading(false)
       }
     }
 
-    loadNoticia()
+    carregarNoticia()
   }, [id])
+
+  const compartilhar = async () => {
+    if (!noticia) return
+
+    const titulo = noticia.titulo
+    const url = window.location.href
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: titulo,
+          text: noticia.resumo,
+          url: url,
+        })
+      } else {
+        // Fallback para navegadores que não suportam a API Web Share
+        navigator.clipboard.writeText(url)
+        alert("Link copiado para a área de transferência!")
+      }
+    } catch (error) {
+      console.error("Erro ao compartilhar:", error)
+    }
+  }
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-4 animate-pulse">
-        <div className="h-64 bg-gray-200 rounded-lg mb-4" />
-        <div className="h-8 bg-gray-200 rounded w-3/4 mb-4" />
-        <div className="h-4 bg-gray-200 rounded w-1/4 mb-6" />
-        <div className="space-y-2">
-          <div className="h-4 bg-gray-200 rounded w-full" />
-          <div className="h-4 bg-gray-200 rounded w-full" />
-          <div className="h-4 bg-gray-200 rounded w-3/4" />
+      <div className="px-4 py-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-700/50 rounded w-3/4 mb-6"></div>
+          <div className="h-64 bg-gray-700/50 rounded mb-6"></div>
+          <div className="h-4 bg-gray-700/50 rounded mb-2"></div>
+          <div className="h-4 bg-gray-700/50 rounded mb-2"></div>
+          <div className="h-4 bg-gray-700/50 rounded mb-2"></div>
+          <div className="h-4 bg-gray-700/50 rounded mb-2"></div>
+          <div className="h-4 bg-gray-700/50 rounded w-2/3"></div>
         </div>
       </div>
     )
   }
 
-  if (error) {
+  if (error || !noticia) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-8 text-center">
-        <p className="text-red-500 mb-4">{error}</p>
-        <Link href="/noticias" className="text-blue-600 hover:underline">
-          Voltar para a lista de notícias
-        </Link>
+      <div className="px-4 py-6">
+        <div className="bg-gray-800 rounded-lg p-6 text-center">
+          <h1 className="text-2xl font-bold text-red-400 mb-4">Notícia não encontrada</h1>
+          <p className="text-white/70 mb-6">A notícia que você está procurando não existe ou foi removida.</p>
+          <Link href="/noticias" className="inline-flex items-center text-yellow-500 hover:text-yellow-400">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar para todas as notícias
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="relative h-64 w-full">
-        <Image
-          src={noticia.imagem || "/placeholder.svg?height=300&width=800"}
-          alt={noticia.titulo}
-          fill
-          className="object-cover"
-        />
+    <div className="px-4 py-6">
+      <div className="mb-6">
+        <Link href="/noticias" className="inline-flex items-center text-yellow-500 hover:text-yellow-400">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar para todas as notícias
+        </Link>
       </div>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-2">{noticia.titulo}</h1>
-        <p className="text-sm text-gray-500 mb-6">
-          {format(new Date(noticia.data), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-        </p>
-        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: noticia.conteudo }} />
-        <div className="mt-8">
-          <Link href="/noticias" className="text-blue-600 hover:underline">
-            ← Voltar para a lista de notícias
-          </Link>
+
+      <article className="bg-gray-800 rounded-lg overflow-hidden">
+        <div className="relative h-64 md:h-80">
+          <Image
+            src={noticia.imagem || "/placeholder.svg?height=600&width=800"}
+            alt={noticia.titulo}
+            fill
+            className="object-cover"
+            priority
+          />
         </div>
-      </div>
+
+        <div className="p-6">
+          <div className="flex justify-between items-start mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-white">{noticia.titulo}</h1>
+            <button
+              onClick={compartilhar}
+              className="text-gray-300 hover:text-yellow-500 p-2 rounded-full hover:bg-gray-700"
+              aria-label="Compartilhar notícia"
+            >
+              <Share2 className="h-5 w-5" />
+            </button>
+          </div>
+
+          <p className="text-gray-400 mb-6">{formatarData(noticia.data)}</p>
+
+          <div
+            className="prose prose-invert max-w-none text-gray-200"
+            dangerouslySetInnerHTML={{ __html: noticia.conteudo }}
+          />
+        </div>
+      </article>
     </div>
   )
 }
