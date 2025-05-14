@@ -20,9 +20,17 @@ export default function VercelDeployNotification({
   const [isPolling, setIsPolling] = useState<boolean>(false)
   const [elapsedTime, setElapsedTime] = useState<number>(0)
   const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  // Garantir que o componente só seja renderizado no cliente
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Iniciar verificação quando receber um deployId
   useEffect(() => {
+    if (!mounted) return
+
     if (deployId) {
       setStatus("pending")
       setMessage("Verificando status do deploy...")
@@ -33,10 +41,12 @@ export default function VercelDeployNotification({
       setStatus("idle")
       setIsPolling(false)
     }
-  }, [deployId])
+  }, [deployId, mounted])
 
   // Contador de tempo decorrido
   useEffect(() => {
+    if (!mounted) return
+
     let timer: NodeJS.Timeout
 
     if (isPolling) {
@@ -48,10 +58,12 @@ export default function VercelDeployNotification({
     return () => {
       if (timer) clearInterval(timer)
     }
-  }, [isPolling])
+  }, [isPolling, mounted])
 
   // Polling para verificar o status do deploy
   useEffect(() => {
+    if (!mounted) return
+
     let pollTimer: NodeJS.Timeout
 
     const checkDeployStatus = async () => {
@@ -109,7 +121,7 @@ export default function VercelDeployNotification({
     return () => {
       if (pollTimer) clearInterval(pollTimer)
     }
-  }, [deployId, isPolling, onDeployComplete, autoRefresh])
+  }, [deployId, isPolling, onDeployComplete, autoRefresh, mounted])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -121,7 +133,7 @@ export default function VercelDeployNotification({
     return new Date(timestamp).toLocaleString()
   }
 
-  if (status === "idle") {
+  if (!mounted || status === "idle") {
     return null
   }
 
