@@ -8,11 +8,19 @@ import { getBanners } from "@/lib/api"
 export default function BannerSlider() {
   const [banners, setBanners] = useState<any[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function loadBanners() {
-      const bannersData = await getBanners()
-      setBanners(bannersData)
+      setIsLoading(true)
+      try {
+        const bannersData = await getBanners()
+        setBanners(bannersData)
+      } catch (error) {
+        console.error("Erro ao carregar banners:", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     loadBanners()
@@ -36,8 +44,12 @@ export default function BannerSlider() {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length)
   }
 
+  if (isLoading) {
+    return <div className="h-48 bg-gray-700/30 rounded-xl animate-pulse" />
+  }
+
   if (banners.length === 0) {
-    return <div className="h-48 bg-gray-700/50 rounded-xl animate-pulse" />
+    return <div className="h-48 bg-gray-700/50 rounded-xl" />
   }
 
   return (

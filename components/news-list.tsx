@@ -7,24 +7,40 @@ import { getUltimasNoticias } from "@/lib/api"
 
 export default function NewsList() {
   const [noticias, setNoticias] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function loadNoticias() {
-      const noticiasData = await getUltimasNoticias()
-      setNoticias(noticiasData)
+      setIsLoading(true)
+      try {
+        const noticiasData = await getUltimasNoticias()
+        setNoticias(noticiasData)
+      } catch (error) {
+        console.error("Erro ao carregar notícias:", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     loadNoticias()
   }, [])
 
-  if (noticias.length === 0) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-48 bg-gray-700/50 rounded-lg animate-pulse" />
+        <div className="h-48 bg-gray-700/30 rounded-lg animate-pulse" />
         <div className="grid grid-cols-2 gap-4">
-          <div className="h-32 bg-gray-700/50 rounded-lg animate-pulse" />
-          <div className="h-32 bg-gray-700/50 rounded-lg animate-pulse" />
+          <div className="h-32 bg-gray-700/30 rounded-lg animate-pulse" />
+          <div className="h-32 bg-gray-700/30 rounded-lg animate-pulse" />
         </div>
+      </div>
+    )
+  }
+
+  if (noticias.length === 0) {
+    return (
+      <div className="p-4 text-center text-white">
+        <p>Nenhuma notícia disponível no momento.</p>
       </div>
     )
   }

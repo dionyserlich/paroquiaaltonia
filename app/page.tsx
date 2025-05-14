@@ -8,6 +8,10 @@ import QuickLinks from "@/components/quick-links"
 import BottomNavbar from "@/components/bottom-navbar"
 import Header from "@/components/header"
 import PageClient from "./page-client"
+import BannerSkeleton from "@/components/skeletons/banner-skeleton"
+import LiveMassSkeleton from "@/components/skeletons/live-mass-skeleton"
+import NewsSkeleton from "@/components/skeletons/news-skeleton"
+import EventsSkeleton from "@/components/skeletons/events-skeleton"
 
 export default function Home() {
   return (
@@ -20,7 +24,7 @@ export default function Home() {
           {/* Overlay com conteúdo centralizado */}
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white bg-gradiente z-10">
             <div className="max-w-[650px] w-full mx-auto flex flex-col items-center justify-center">
-              <Suspense fallback={<div className="p-4 rounded-full bg-yellow-500/80 animate-pulse" />}>
+              <Suspense fallback={<LiveMassSkeleton />}>
                 <LiveMassButton />
               </Suspense>
             </div>
@@ -31,7 +35,7 @@ export default function Home() {
         <div className="relative z-20">
           {/* Banner Slider */}
           <section className="w-full px-4 py-2 mt-[-80px]">
-            <Suspense fallback={<div className="h-48 bg-gray-300/20 animate-pulse rounded-xl" />}>
+            <Suspense fallback={<BannerSkeleton />}>
               <BannerSlider />
             </Suspense>
           </section>
@@ -49,17 +53,7 @@ export default function Home() {
               <span className="text-white ml-1 text-xl">eventos:</span>
             </div>
             <div className="min-h-[200px]">
-              {" "}
-              {/* Altura mínima para evitar saltos de layout */}
-              <Suspense
-                fallback={
-                  <div className="space-y-2">
-                    {[...Array(3)].map((_, i) => (
-                      <div key={i} className="h-16 bg-gray-700/50 rounded-lg animate-pulse" />
-                    ))}
-                  </div>
-                }
-              >
+              <Suspense fallback={<EventsSkeleton />}>
                 <EventsList />
               </Suspense>
             </div>
@@ -79,7 +73,7 @@ export default function Home() {
               <h2 className="text-white text-xl font-bold">Últimas</h2>
               <span className="text-white ml-1 text-xl">notícias:</span>
             </div>
-            <Suspense fallback={<div className="h-64 bg-gray-300/20 animate-pulse rounded-xl" />}>
+            <Suspense fallback={<NewsSkeleton />}>
               <NewsList />
             </Suspense>
             <div className="mt-4">

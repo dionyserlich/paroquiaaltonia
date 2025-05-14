@@ -1,9 +1,8 @@
 import { Suspense } from "react"
-import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
 import EventoDetalhes from "./evento-detalhes"
+import EventoDetalhesSkeleton from "@/components/skeletons/evento-detalhes-skeleton"
 
 export default function EventoPage({ params }: { params: { id: string } }) {
   return (
@@ -12,12 +11,7 @@ export default function EventoPage({ params }: { params: { id: string } }) {
 
       <div className="relative z-20 pt-16">
         <div className="container mx-auto px-4 py-6">
-          <Link href="/eventos" className="flex items-center text-white mb-4">
-            <ChevronLeft size={20} />
-            <span>Voltar para eventos</span>
-          </Link>
-
-          <Suspense fallback={<div className="h-64 bg-gray-700/50 rounded-lg animate-pulse" />}>
+          <Suspense fallback={<EventoDetalhesSkeleton />}>
             <EventoDetalhes id={params.id} />
           </Suspense>
         </div>
