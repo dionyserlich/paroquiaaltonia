@@ -4,53 +4,46 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { getNoticias } from "@/lib/api"
-import { formatarData } from "@/lib/utils"
+import { formatDistanceToNow } from "date-fns"
+import { ptBR } from "date-fns/locale"
 
 export default function NoticiasLista() {
   const [noticias, setNoticias] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function carregarNoticias() {
+    async function loadNoticias() {
       try {
-        setLoading(true)
-        const data = await getNoticias()
-        setNoticias(data)
+        const noticiasData = await getNoticias()
+        setNoticias(noticiasData)
       } catch (error) {
         console.error("Erro ao carregar notícias:", error)
-        setError("Não foi possível carregar as notícias")
       } finally {
         setLoading(false)
       }
     }
 
-    carregarNoticias()
+    loadNoticias()
   }, [])
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        {[1, 2, 3].map((item) => (
-          <div key={item} className="bg-gray-800 rounded-lg overflow-hidden animate-pulse">
-            <div className="h-48 bg-gray-700"></div>
-            <div className="p-4">
-              <div className="h-6 bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div className="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
-              <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
-              <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
-              <div className="h-4 bg-gray-700 rounded w-2/3"></div>
-            </div>
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-white rounded-lg shadow-md p-4 animate-pulse">
+            <div className="h-48 bg-gray-200 rounded-lg mb-4" />
+            <div className="h-6 bg-gray-200 rounded w-3/4 mb-2" />
+            <div className="h-4 bg-gray-200 rounded w-1/4" />
           </div>
         ))}
       </div>
     )
   }
 
-  if (error || noticias.length === 0) {
+  if (noticias.length === 0) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 text-center">
-        <p className="text-white/70">{error || "Nenhuma notícia disponível no momento."}</p>
+      <div className="bg-white rounded-lg shadow-md p-8 text-center">
+        <p className="text-gray-500">Nenhuma notícia disponível no momento.</p>
       </div>
     )
   }
@@ -58,23 +51,30 @@ export default function NoticiasLista() {
   return (
     <div className="space-y-6">
       {noticias.map((noticia) => (
-        <Link
-          href={`/noticias/${noticia.id}`}
-          key={noticia.id}
-          className="block bg-gray-800 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-        >
-          <div className="relative h-48 md:h-64">
-            <Image
-              src={noticia.imagem || "/placeholder.svg?height=400&width=800"}
-              alt={noticia.titulo}
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="p-4">
-            <h2 className="text-xl font-bold text-white mb-2">{noticia.titulo}</h2>
-            <p className="text-gray-400 text-sm mb-3">{formatarData(noticia.data)}</p>
-            <p className="text-gray-300">{noticia.resumo}</p>
+        <Link href={`/noticias/${noticia.id}`} key={noticia.id}>
+          <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="md:flex">
+              <div className="md:w-1/3 relative h-48 md:h-auto">
+                <Image
+                  src={noticia.imagem || "/placeholder.svg?height=200&width=300"}
+                  alt={noticia.titulo}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-4 md:w-2/3">
+                <h2 className="text-xl font-bold mb-2">{noticia.titulo}</h2>
+                <p className="text-sm text-gray-500 mb-2">
+                  {formatDistanceToNow(new Date(noticia.data), { addSuffix: true, locale: ptBR })}
+                </p>
+                <div
+                  className="text-gray-600 line-clamp-3"
+                  dangerouslySetInnerHTML={{
+                    __html: noticia.conteudo.replace(/<[^>]*>/g, " ").substring(0, 150) + "...",
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </Link>
       ))}

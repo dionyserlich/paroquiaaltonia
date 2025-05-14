@@ -1,104 +1,83 @@
 import { NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
-import { githubConfig } from "@/app/utils/githubConfig"
+import { getGithubConfig, isGithubConfigured } from "@/app/utils/githubConfig"
 
-// Função para obter o conteúdo do arquivo do GitHub
-async function getFileContent(filePath: string) {
-  try {
-    const githubFilePath = `data/noticias.json`
-    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${githubFilePath}?ref=${githubConfig.branch}`
+// Função para salvar o arquivo no GitHub
+async function saveFileToGitHub(content: string) {
+  const config = getGithubConfig()
 
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `token ${githubConfig.token}`,
-        "Content-Type": "application/json",
-      },
-    })
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        // Se o arquivo não existir, retornar um array vazio
-        return { content: "[]", sha: "" }
-      }
-      throw new Error(`GitHub API responded with status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    const content = Buffer.from(data.content, "base64").toString("utf-8")
-
-    return { content, sha: data.sha }
-  } catch (error) {
-    console.error("Erro ao obter conteúdo do arquivo:", error)
-    // Se houver erro, tentar ler do arquivo local
-    if (fs.existsSync(filePath)) {
-      const content = fs.readFileSync(filePath, "utf8")
-      return { content, sha: "" }
-    }
-    return { content: "[]", sha: "" }
+  if (!isGithubConfigured(config)) {
+    throw new Error("GitHub não configurado")
   }
+
+  const filePath = "data/noticias.json"
+  const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${filePath}`
+
+  // Primeiro, obter o SHA do arquivo atual
+  const getResponse = await fetch(url, {
+    headers: {
+      Authorization: `token ${config.token}`,
+      "Content-Type": "application/json",
+    },
+  })
+
+  let sha = ""
+  if (getResponse.ok) {
+    const fileData = await getResponse.json()
+    sha = fileData.sha
+  }
+
+  // Agora, atualizar o arquivo
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `token ${config.token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: "Atualização de notícias",
+      content: Buffer.from(content).toString("base64"),
+      sha: sha || undefined,
+      branch: config.branch,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Erro ao salvar arquivo no GitHub: ${error}`)
+  }
+
+  return response.json()
 }
 
-// Função para atualizar o arquivo no GitHub
-async function updateFileOnGitHub(content: string, sha: string) {
-  try {
-    const githubFilePath = `data/noticias.json`
-    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${githubFilePath}`
-
-    const response = await fetch(url, {
-      method: "PUT",
-      headers: {
-        Authorization: `token ${githubConfig.token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: "Atualização de notícias",
-        content: Buffer.from(content).toString("base64"),
-        sha: sha,
-        branch: githubConfig.branch,
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`GitHub API responded with status: ${response.status}`)
-    }
-
-    return true
-  } catch (error) {
-    console.error("Erro ao atualizar arquivo no GitHub:", error)
-    return false
-  }
-}
-
+// GET - Obter uma notícia específica
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id
     const filePath = path.join(process.cwd(), "data", "noticias.json")
 
-    // Obter conteúdo atual do arquivo
-    const { content } = await getFileContent(filePath)
-
-    let noticias = []
-    try {
-      noticias = JSON.parse(content)
-    } catch (e) {
-      console.error("Erro ao parsear JSON:", e)
-      return NextResponse.json({ error: "Erro ao ler arquivo de notícias" }, { status: 500 })
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json(null, { status: 404 })
     }
+
+    const fileContents = fs.readFileSync(filePath, "utf8")
+    const noticias = JSON.parse(fileContents)
 
     const noticia = noticias.find((n: any) => n.id === id)
 
     if (!noticia) {
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
+      return NextResponse.json(null, { status: 404 })
     }
 
     return NextResponse.json(noticia)
   } catch (error) {
     console.error(`Erro ao buscar notícia ${params.id}:`, error)
-    return NextResponse.json({ error: "Erro ao buscar notícia" }, { status: 500 })
+    return NextResponse.json(null, { status: 500 })
   }
 }
 
+// PUT - Atualizar uma notícia
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id
@@ -106,21 +85,20 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const filePath = path.join(process.cwd(), "data", "noticias.json")
 
     // Validar dados
-    if (!data.titulo || !data.resumo || !data.conteudo) {
-      return NextResponse.json({ error: "Título, resumo e conteúdo são obrigatórios" }, { status: 400 })
+    if (!data.titulo || !data.conteudo) {
+      return NextResponse.json({ error: "Título e conteúdo são obrigatórios" }, { status: 400 })
     }
 
-    // Obter conteúdo atual do arquivo
-    const { content, sha } = await getFileContent(filePath)
-
-    let noticias = []
-    try {
-      noticias = JSON.parse(content)
-    } catch (e) {
-      console.error("Erro ao parsear JSON:", e)
-      return NextResponse.json({ error: "Erro ao ler arquivo de notícias" }, { status: 500 })
+    // Verificar se o arquivo existe
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json({ error: "Arquivo de notícias não encontrado" }, { status: 404 })
     }
 
+    // Ler arquivo
+    const fileContents = fs.readFileSync(filePath, "utf8")
+    const noticias = JSON.parse(fileContents)
+
+    // Encontrar índice da notícia
     const index = noticias.findIndex((n: any) => n.id === id)
 
     if (index === -1) {
@@ -131,25 +109,21 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     noticias[index] = {
       ...noticias[index],
       titulo: data.titulo,
-      resumo: data.resumo,
       conteudo: data.conteudo,
-      imagem: data.imagem || noticias[index].imagem,
+      imagem: data.imagem !== undefined ? data.imagem : noticias[index].imagem,
+      data: data.data || noticias[index].data,
       destaque: data.destaque !== undefined ? data.destaque : noticias[index].destaque,
     }
 
-    // Salvar no GitHub
-    const updatedContent = JSON.stringify(noticias, null, 2)
-    const updated = await updateFileOnGitHub(updatedContent, sha)
+    // Salvar no arquivo local
+    fs.writeFileSync(filePath, JSON.stringify(noticias, null, 2))
 
-    if (!updated) {
-      return NextResponse.json({ error: "Erro ao salvar notícia no GitHub" }, { status: 500 })
-    }
-
-    // Salvar localmente também
+    // Salvar no GitHub se configurado
     try {
-      fs.writeFileSync(filePath, updatedContent)
-    } catch (e) {
-      console.error("Erro ao salvar arquivo localmente:", e)
+      await saveFileToGitHub(JSON.stringify(noticias, null, 2))
+    } catch (githubError) {
+      console.error("Erro ao salvar no GitHub:", githubError)
+      // Continua mesmo com erro no GitHub, pois já salvou localmente
     }
 
     return NextResponse.json(noticias[index])
@@ -159,44 +133,38 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
+// DELETE - Excluir uma notícia
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id
     const filePath = path.join(process.cwd(), "data", "noticias.json")
 
-    // Obter conteúdo atual do arquivo
-    const { content, sha } = await getFileContent(filePath)
-
-    let noticias = []
-    try {
-      noticias = JSON.parse(content)
-    } catch (e) {
-      console.error("Erro ao parsear JSON:", e)
-      return NextResponse.json({ error: "Erro ao ler arquivo de notícias" }, { status: 500 })
+    // Verificar se o arquivo existe
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json({ error: "Arquivo de notícias não encontrado" }, { status: 404 })
     }
 
-    const index = noticias.findIndex((n: any) => n.id === id)
+    // Ler arquivo
+    const fileContents = fs.readFileSync(filePath, "utf8")
+    const noticias = JSON.parse(fileContents)
 
-    if (index === -1) {
+    // Filtrar notícias, removendo a que tem o ID especificado
+    const noticiasAtualizadas = noticias.filter((n: any) => n.id !== id)
+
+    // Verificar se alguma notícia foi removida
+    if (noticiasAtualizadas.length === noticias.length) {
       return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
     }
 
-    // Remover notícia
-    noticias.splice(index, 1)
+    // Salvar no arquivo local
+    fs.writeFileSync(filePath, JSON.stringify(noticiasAtualizadas, null, 2))
 
-    // Salvar no GitHub
-    const updatedContent = JSON.stringify(noticias, null, 2)
-    const updated = await updateFileOnGitHub(updatedContent, sha)
-
-    if (!updated) {
-      return NextResponse.json({ error: "Erro ao excluir notícia no GitHub" }, { status: 500 })
-    }
-
-    // Salvar localmente também
+    // Salvar no GitHub se configurado
     try {
-      fs.writeFileSync(filePath, updatedContent)
-    } catch (e) {
-      console.error("Erro ao salvar arquivo localmente:", e)
+      await saveFileToGitHub(JSON.stringify(noticiasAtualizadas, null, 2))
+    } catch (githubError) {
+      console.error("Erro ao salvar no GitHub:", githubError)
+      // Continua mesmo com erro no GitHub, pois já salvou localmente
     }
 
     return NextResponse.json({ success: true })

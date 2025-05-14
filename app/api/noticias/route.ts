@@ -14,13 +14,11 @@ export async function GET() {
     const noticias = JSON.parse(fileContents)
 
     // Ordenar por data (mais recente primeiro)
-    noticias.sort((a: any, b: any) => {
-      return new Date(b.data).getTime() - new Date(a.data).getTime()
-    })
+    noticias.sort((a: any, b: any) => new Date(b.data).getTime() - new Date(a.data).getTime())
 
     return NextResponse.json(noticias)
   } catch (error) {
     console.error("Erro ao buscar notícias:", error)
-    return NextResponse.json([])
+    return NextResponse.json([], { status: 500 })
   }
 }

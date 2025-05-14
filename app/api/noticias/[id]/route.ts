@@ -8,7 +8,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const filePath = path.join(process.cwd(), "data", "noticias.json")
 
     if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
+      return NextResponse.json(null, { status: 404 })
     }
 
     const fileContents = fs.readFileSync(filePath, "utf8")
@@ -17,12 +17,12 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const noticia = noticias.find((n: any) => n.id === id)
 
     if (!noticia) {
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
+      return NextResponse.json(null, { status: 404 })
     }
 
     return NextResponse.json(noticia)
   } catch (error) {
     console.error(`Erro ao buscar notícia ${params.id}:`, error)
-    return NextResponse.json({ error: "Erro ao buscar notícia" }, { status: 500 })
+    return NextResponse.json(null, { status: 500 })
   }
 }

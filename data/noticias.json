@@ -2,10 +2,25 @@
   {
     "id": "1",
     "titulo": "Festa de São Sebastião 2024",
-    "resumo": "Confira a programação completa da Festa de São Sebastião 2024.",
-    "conteudo": "<p>A Paróquia São Sebastião tem a alegria de convidar toda a comunidade para participar da Festa de São Sebastião 2024.</p>",
-    "imagem": "/placeholder.svg?height=600&width=800",
-    "data": "2023-12-15T10:00:00Z",
+    "conteudo": "<p>A Paróquia São Sebastião convida todos os fiéis para a tradicional festa em honra ao nosso padroeiro.</p><p>Programação completa disponível em breve.</p>",
+    "imagem": "/images/sao-sebastiao.jpg",
+    "data": "2023-12-15T10:00:00.000Z",
     "destaque": true
+  },
+  {
+    "id": "2",
+    "titulo": "Campanha de arrecadação de alimentos",
+    "conteudo": "<p>Ajude-nos a ajudar quem precisa. Estamos arrecadando alimentos não perecíveis para as famílias carentes de nossa comunidade.</p><p>Pontos de coleta: secretaria paroquial e após as missas dominicais.</p>",
+    "imagem": "/images/campanha-alimentos.jpg",
+    "data": "2023-11-20T14:30:00.000Z",
+    "destaque": false
+  },
+  {
+    "id": "3",
+    "titulo": "Catequese: Inscrições abertas",
+    "conteudo": "<p>Estão abertas as inscrições para a catequese 2024. Inscreva seu filho para a preparação aos sacramentos da Eucaristia e Crisma.</p><p>Informações na secretaria paroquial.</p>",
+    "imagem": "/images/catequese.jpg",
+    "data": "2023-11-10T09:15:00.000Z",
+    "destaque": false
   }
 ]
