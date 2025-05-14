@@ -17,9 +17,9 @@
   },
   {
     "id": 3,
-    "titulo": "Missa de Páscoa",
-    "inicio": "2025-05-09T20:00:00",
-    "fim": "2025-05-09T21:20:00",
+    "titulo": "Missa",
+    "inicio": "2025-05-09T23:00:00.000Z",
+    "fim": "2025-05-10T00:20:00.000Z",
     "linkEmbed": "https://www.youtube.com/embed/xsT7yBHCz88?si=Av-TTsnizQjX7G2a",
     "descricao": "Santa Missa | 3ª Semana da Páscoa | Quinta - Feira"
   }
