@@ -3,6 +3,7 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import AppLoading from "@/components/app-loading"
+import InstallPwaPrompt from "@/components/install-pwa-prompt"
 
 export default function PageClient({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
@@ -52,6 +53,7 @@ export default function PageClient({ children }: { children: React.ReactNode }) 
   return (
     <>
       {isLoading && <AppLoading />}
+      <InstallPwaPrompt />
       {children}
     </>
   )
