@@ -38,15 +38,5 @@
     "hora": "20:30",
     "descricao": "Adoração do Santíssimo",
     "conteudo": "<h2>Adoração do Santíssimo</h2><p>Momento de adoração e louvor ao Santíssimo Sacramento.</p><p>Local: Igreja Matriz</p>"
-  },
-  {
-    "id": 5,
-    "titulo": "Evento teste",
-    "dia": "13",
-    "mes": "Maio",
-    "ano": "2025",
-    "hora": "20:00",
-    "descricao": "Teste",
-    "conteudo": "<p>teste teste </p><img class=\"rounded-lg max-w-full h-auto\" src=\"https://clfqamyjl0izug0j.public.blob.vercel-storage.com/1747170133837-maranata.jpg\">"
   }
 ]
