@@ -1,97 +1,123 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { X } from "lucide-react"
+import { Download, X, Share } from "lucide-react"
 
 export default function InstallPwaPrompt() {
-  const [showPrompt, setShowPrompt] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
-  const deferredPrompt = useRef<any>(null)
+  const deferredPromptRef = useRef<any>(null)
 
   useEffect(() => {
-    // Verificar se o usuário já fechou o prompt antes
-    const promptDismissed = localStorage.getItem("pwaPromptDismissed")
+    // Verificar se o usuário já fechou o aviso antes
+    const hasClosedPrompt = localStorage.getItem("pwa-prompt-closed")
+    if (hasClosedPrompt === "true") {
+      return
+    }
 
-    // Verificar se está sendo executado como PWA instalado
+    // Detectar se é iOS
+    const isIOSDevice =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    setIsIOS(isIOSDevice)
+
+    // Verificar se o app já está instalado
     const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone ||
-      document.referrer.includes("android-app://")
+      window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true
 
-    // Detectar iOS
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
-    setIsIOS(iOS)
+    if (isStandalone) {
+      return // App já está instalado, não mostrar o aviso
+    }
 
-    // Se o usuário não fechou o prompt e não está no modo standalone
-    if (!promptDismissed && !isStandalone) {
-      // Para Android/Chrome
-      window.addEventListener("beforeinstallprompt", (e) => {
+    // Capturar o evento beforeinstallprompt para Android/Chrome
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault()
+      deferredPromptRef.current = e
+      setIsVisible(true)
+
+      // Adicionar classe ao body quando o aviso estiver visível
+      document.body.classList.add("has-install-prompt")
+    })
+
+    // Para iOS, mostrar o aviso diretamente
+    if (isIOSDevice) {
+      setIsVisible(true)
+
+      // Adicionar classe ao body quando o aviso estiver visível
+      document.body.classList.add("has-install-prompt")
+    }
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", (e) => {
         e.preventDefault()
-        deferredPrompt.current = e
-        setShowPrompt(true)
       })
 
-      // Para iOS (sempre mostrar, pois não há evento de instalação)
-      if (iOS) {
-        setShowPrompt(true)
-      }
+      // Remover classe do body quando o componente for desmontado
+      document.body.classList.remove("has-install-prompt")
     }
   }, [])
 
+  const handleClose = () => {
+    setIsVisible(false)
+    localStorage.setItem("pwa-prompt-closed", "true")
+
+    // Remover classe do body quando o aviso for fechado
+    document.body.classList.remove("has-install-prompt")
+  }
+
   const handleInstall = async () => {
-    if (deferredPrompt.current) {
-      // Para Android/Chrome
-      deferredPrompt.current.prompt()
-      const { outcome } = await deferredPrompt.current.userChoice
-      console.log(`Resultado da instalação: ${outcome}`)
-      deferredPrompt.current = null
-      setShowPrompt(false)
+    if (isIOS) {
+      // No iOS, apenas mostrar instruções
+      return
+    }
+
+    if (deferredPromptRef.current) {
+      try {
+        await deferredPromptRef.current.prompt()
+        const choiceResult = await deferredPromptRef.current.userChoice
+
+        if (choiceResult.outcome === "accepted") {
+          console.log("Usuário aceitou a instalação do PWA")
+          setIsVisible(false)
+          localStorage.setItem("pwa-prompt-closed", "true")
+
+          // Remover classe do body quando o app for instalado
+          document.body.classList.remove("has-install-prompt")
+        }
+
+        deferredPromptRef.current = null
+      } catch (error) {
+        console.error("Erro ao tentar instalar o PWA:", error)
+      }
     }
   }
 
-  const dismissPrompt = () => {
-    localStorage.setItem("pwaPromptDismissed", "true")
-    setShowPrompt(false)
+  if (!isVisible) {
+    return null
   }
 
-  if (!showPrompt) return null
-
   return (
-    <div className="absolute top-0 left-0 right-0 z-50000 bg-blue-600 text-white p-3 flex items-center justify-between shadow-md">
-      <div className="flex-1">
-        {isIOS ? (
-          <p className="text-sm">
-            Instale nosso app: toque em{" "}
-            <span className="inline-block">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </span>{" "}
-            e depois "Adicionar à Tela de Início"
-          </p>
-        ) : (
-          <p className="text-sm">Instale nosso app para uma experiência melhor</p>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        {!isIOS && (
-          <button onClick={handleInstall} className="bg-white text-blue-600 px-3 py-1 rounded-md text-sm font-medium">
-            Instalar
+    <div className={`install-prompt bg-yellow-500 text-black px-4 py-3 shadow-md ${!isVisible ? "hidden" : ""}`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          {isIOS ? <Share className="mr-2 h-5 w-5" /> : <Download className="mr-2 h-5 w-5" />}
+          <span className="text-sm font-medium">
+            {isIOS ? "Adicione à tela inicial para melhor experiência" : "Instale nosso app para melhor experiência"}
+          </span>
+        </div>
+        <div className="flex items-center">
+          {!isIOS && (
+            <button
+              onClick={handleInstall}
+              className="mr-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded"
+            >
+              Instalar
+            </button>
+          )}
+          <button onClick={handleClose} className="text-gray-800 hover:text-black" aria-label="Fechar">
+            <X className="h-4 w-4" />
           </button>
-        )}
-        <button onClick={dismissPrompt} className="text-white p-1 rounded-full hover:bg-blue-700" aria-label="Fechar">
-          <X size={18} />
-        </button>
+        </div>
       </div>
     </div>
   )
