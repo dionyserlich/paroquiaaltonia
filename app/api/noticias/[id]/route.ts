@@ -12,7 +12,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
     }
 
     const fileContents = fs.readFileSync(filePath, "utf8")
-    const noticias = JSON.parse(fileContents)
+    let noticias = []
+
+    try {
+      noticias = JSON.parse(fileContents)
+    } catch (e) {
+      console.error("Erro ao parsear JSON de notícias:", e)
+      return NextResponse.json({ error: "Erro ao ler arquivo de notícias" }, { status: 500 })
+    }
 
     const noticia = noticias.find((n: any) => n.id === id)
 

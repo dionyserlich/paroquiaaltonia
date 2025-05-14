@@ -2,16 +2,24 @@ import { NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const filePath = path.join(process.cwd(), "data", "noticias.json")
 
+    // Se o arquivo não existir, retornar array vazio
     if (!fs.existsSync(filePath)) {
       return NextResponse.json([], { status: 200 })
     }
 
     const fileContents = fs.readFileSync(filePath, "utf8")
-    const noticias = JSON.parse(fileContents)
+    let noticias = []
+
+    try {
+      noticias = JSON.parse(fileContents)
+    } catch (e) {
+      console.error("Erro ao parsear JSON de notícias:", e)
+      return NextResponse.json([], { status: 200 })
+    }
 
     // Ordenar por data (mais recente primeiro)
     noticias.sort((a: any, b: any) => {
