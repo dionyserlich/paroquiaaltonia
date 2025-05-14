@@ -1,75 +1,99 @@
 import { NextResponse } from "next/server"
-import fs from "fs/promises"
-import path from "path"
+import { getGithubConfig, isGithubConfigured } from "@/app/utils/githubConfig"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+// Função para obter o conteúdo de um arquivo do GitHub
+async function getFileContent(path: string, config: ReturnType<typeof getGithubConfig>) {
   try {
-    const id = params.id
-    const filePath = path.join(process.cwd(), "data", "ultimasNoticias.json")
+    const response = await fetch(
+      `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}?ref=${config.branch}`,
+      {
+        headers: {
+          Authorization: `token ${config.token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    )
 
-    // Verificar se o arquivo existe
-    try {
-      await fs.access(filePath)
-    } catch (error) {
-      console.error(`Arquivo ultimasNoticias.json não encontrado: ${error}`)
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
+    if (!response.ok) {
+      console.error("Erro ao obter arquivo do GitHub:", await response.text())
+      throw new Error(`Erro ao obter arquivo: ${response.status}`)
     }
 
-    const fileContents = await fs.readFile(filePath, "utf8")
-    let noticias = []
-
-    try {
-      noticias = JSON.parse(fileContents)
-    } catch (e) {
-      console.error(`Erro ao parsear JSON de notícias: ${e}`)
-      return NextResponse.json({ error: "Erro ao ler arquivo de notícias" }, { status: 500 })
+    const data = await response.json()
+    return {
+      content: JSON.parse(Buffer.from(data.content, "base64").toString()),
+      sha: data.sha,
     }
-
-    // Melhorar a comparação de IDs convertendo ambos para string
-    const noticia = noticias.find((n: any) => String(n.id) === String(id))
-
-    if (!noticia) {
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
-    }
-
-    return NextResponse.json(noticia, { status: 200 })
   } catch (error) {
-    console.error(`Erro ao buscar notícia ${params.id}: ${error}`)
-    return NextResponse.json({ error: `Erro ao buscar notícia: ${error.message}` }, { status: 500 })
+    console.error("Erro ao obter conteúdo do arquivo:", error)
+    throw error
+  }
+}
+
+// Função para atualizar um arquivo no GitHub
+async function updateFile(
+  path: string,
+  content: any,
+  sha: string,
+  message: string,
+  config: ReturnType<typeof getGithubConfig>,
+) {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `token ${config.token}`,
+        Accept: "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message,
+        content: Buffer.from(JSON.stringify(content, null, 2)).toString("base64"),
+        sha,
+        branch: config.branch,
+      }),
+    })
+
+    if (!response.ok) {
+      console.error("Erro ao atualizar arquivo no GitHub:", await response.text())
+      throw new Error(`Erro ao atualizar arquivo: ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error("Erro ao atualizar arquivo:", error)
+    throw error
   }
 }
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
-    const id = params.id
+    // Obter configuração do GitHub
+    const config = getGithubConfig()
+
+    // Verificar se o GitHub está configurado
+    if (!isGithubConfigured(config)) {
+      return NextResponse.json(
+        {
+          error: "GitHub não configurado. Configure as variáveis de ambiente GITHUB_OWNER, GITHUB_REPO e GITHUB_TOKEN.",
+        },
+        { status: 500 },
+      )
+    }
+
+    const id = Number.parseInt(params.id)
     const data = await request.json()
-    const filePath = path.join(process.cwd(), "data", "ultimasNoticias.json")
 
     // Validar dados
     if (!data.titulo || !data.resumo || !data.conteudo) {
-      return NextResponse.json({ error: "Título, resumo e conteúdo são obrigatórios" }, { status: 400 })
+      return NextResponse.json({ error: "Dados incompletos" }, { status: 400 })
     }
 
-    // Verificar se o arquivo existe
-    try {
-      await fs.access(filePath)
-    } catch (error) {
-      console.error(`Arquivo ultimasNoticias.json não encontrado: ${error}`)
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
-    }
+    // Obter arquivo existente
+    const { content: noticias, sha } = await getFileContent("data/ultimasNoticias.json", config)
 
-    const fileContents = await fs.readFile(filePath, "utf8")
-    let noticias = []
-
-    try {
-      noticias = JSON.parse(fileContents)
-    } catch (e) {
-      console.error(`Erro ao parsear JSON de notícias: ${e}`)
-      return NextResponse.json({ error: "Erro ao ler arquivo de notícias" }, { status: 500 })
-    }
-
-    // Melhorar a comparação de IDs convertendo ambos para string
-    const index = noticias.findIndex((n: any) => String(n.id) === String(id))
+    // Encontrar índice da notícia a ser atualizada
+    const index = noticias.findIndex((n: any) => n.id === id)
 
     if (index === -1) {
       return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
@@ -77,67 +101,83 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
     // Atualizar notícia
     noticias[index] = {
-      ...noticias[index],
-      titulo: data.titulo,
-      resumo: data.resumo,
-      conteudo: data.conteudo,
-      imagem: data.imagem || noticias[index].imagem,
-      destaque: data.destaque !== undefined ? data.destaque : noticias[index].destaque,
+      ...data,
+      id,
+      data: data.data || noticias[index].data, // Manter a data original se não for fornecida
     }
 
-    // Salvar arquivo usando método mais seguro
-    const tempFile = `${filePath}.temp`
-    await fs.writeFile(tempFile, JSON.stringify(noticias, null, 2), "utf8")
-    await fs.rename(tempFile, filePath)
+    // Atualizar arquivo no GitHub
+    const updateResult = await updateFile(
+      "data/ultimasNoticias.json",
+      noticias,
+      sha,
+      `Atualizar notícia: ${data.titulo}`,
+      config,
+    )
 
-    return NextResponse.json(noticias[index], { status: 200 })
-  } catch (error) {
-    console.error(`Erro ao atualizar notícia ${params.id}: ${error}`)
-    return NextResponse.json({ error: `Erro ao atualizar notícia: ${error.message}` }, { status: 500 })
+    return NextResponse.json({
+      ...noticias[index],
+      _commit: {
+        sha: updateResult.commit.sha,
+        message: updateResult.commit.message,
+        url: updateResult.commit.html_url,
+      },
+    })
+  } catch (error: any) {
+    console.error("Erro ao atualizar notícia:", error)
+    return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 })
   }
 }
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
-    const id = params.id
-    const filePath = path.join(process.cwd(), "data", "ultimasNoticias.json")
+    // Obter configuração do GitHub
+    const config = getGithubConfig()
 
-    // Verificar se o arquivo existe
-    try {
-      await fs.access(filePath)
-    } catch (error) {
-      console.error(`Arquivo ultimasNoticias.json não encontrado: ${error}`)
+    // Verificar se o GitHub está configurado
+    if (!isGithubConfigured(config)) {
+      return NextResponse.json(
+        {
+          error: "GitHub não configurado. Configure as variáveis de ambiente GITHUB_OWNER, GITHUB_REPO e GITHUB_TOKEN.",
+        },
+        { status: 500 },
+      )
+    }
+
+    const id = Number.parseInt(params.id)
+
+    // Obter arquivo existente
+    const { content: noticias, sha } = await getFileContent("data/ultimasNoticias.json", config)
+
+    // Encontrar notícia a ser excluída
+    const noticia = noticias.find((n: any) => n.id === id)
+
+    if (!noticia) {
       return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
     }
 
-    const fileContents = await fs.readFile(filePath, "utf8")
-    let noticias = []
+    // Filtrar notícias, removendo a que tem o ID especificado
+    const novasNoticias = noticias.filter((n: any) => n.id !== id)
 
-    try {
-      noticias = JSON.parse(fileContents)
-    } catch (e) {
-      console.error(`Erro ao parsear JSON de notícias: ${e}`)
-      return NextResponse.json({ error: "Erro ao ler arquivo de notícias" }, { status: 500 })
-    }
+    // Atualizar arquivo no GitHub
+    const updateResult = await updateFile(
+      "data/ultimasNoticias.json",
+      novasNoticias,
+      sha,
+      `Excluir notícia: ${noticia.titulo}`,
+      config,
+    )
 
-    // Melhorar a comparação de IDs convertendo ambos para string
-    const index = noticias.findIndex((n: any) => String(n.id) === String(id))
-
-    if (index === -1) {
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
-    }
-
-    // Remover notícia
-    noticias.splice(index, 1)
-
-    // Salvar arquivo usando método mais seguro
-    const tempFile = `${filePath}.temp`
-    await fs.writeFile(tempFile, JSON.stringify(noticias, null, 2), "utf8")
-    await fs.rename(tempFile, filePath)
-
-    return NextResponse.json({ success: true }, { status: 200 })
-  } catch (error) {
-    console.error(`Erro ao excluir notícia ${params.id}: ${error}`)
-    return NextResponse.json({ error: `Erro ao excluir notícia: ${error.message}` }, { status: 500 })
+    return NextResponse.json({
+      success: true,
+      _commit: {
+        sha: updateResult.commit.sha,
+        message: updateResult.commit.message,
+        url: updateResult.commit.html_url,
+      },
+    })
+  } catch (error: any) {
+    console.error("Erro ao excluir notícia:", error)
+    return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 })
   }
 }

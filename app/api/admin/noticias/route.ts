@@ -1,105 +1,127 @@
 import { NextResponse } from "next/server"
-import fs from "fs/promises"
-import path from "path"
-import { v4 as uuidv4 } from "uuid"
+import { getGithubConfig, isGithubConfigured } from "@/app/utils/githubConfig"
 
-export async function GET() {
+// Função para obter o conteúdo de um arquivo do GitHub
+async function getFileContent(path: string, config: ReturnType<typeof getGithubConfig>) {
   try {
-    const filePath = path.join(process.cwd(), "data", "ultimasNoticias.json")
+    const response = await fetch(
+      `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}?ref=${config.branch}`,
+      {
+        headers: {
+          Authorization: `token ${config.token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    )
 
-    // Verificar se o arquivo existe
-    try {
-      await fs.access(filePath)
-    } catch (error) {
-      console.error(`Arquivo ultimasNoticias.json não encontrado: ${error}`)
-      // Se o arquivo não existir, criar um novo com array vazio
-      await fs.mkdir(path.dirname(filePath), { recursive: true })
-      await fs.writeFile(filePath, JSON.stringify([]), "utf8")
-      return NextResponse.json([], { status: 200 })
+    if (!response.ok) {
+      console.error("Erro ao obter arquivo do GitHub:", await response.text())
+      throw new Error(`Erro ao obter arquivo: ${response.status}`)
     }
 
-    const fileContents = await fs.readFile(filePath, "utf8")
-    let noticias = []
-
-    try {
-      noticias = JSON.parse(fileContents)
-    } catch (e) {
-      console.error(`Erro ao parsear JSON de notícias: ${e}`)
-      // Se o arquivo estiver corrompido, criar um novo
-      await fs.writeFile(filePath, JSON.stringify([]), "utf8")
-      noticias = []
+    const data = await response.json()
+    return {
+      content: JSON.parse(Buffer.from(data.content, "base64").toString()),
+      sha: data.sha,
     }
+  } catch (error) {
+    console.error("Erro ao obter conteúdo do arquivo:", error)
+    throw error
+  }
+}
 
-    // Ordenar por data (mais recente primeiro)
-    noticias.sort((a: any, b: any) => {
-      return new Date(b.data).getTime() - new Date(a.data).getTime()
+// Função para atualizar um arquivo no GitHub
+async function updateFile(
+  path: string,
+  content: any,
+  sha: string,
+  message: string,
+  config: ReturnType<typeof getGithubConfig>,
+) {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `token ${config.token}`,
+        Accept: "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message,
+        content: Buffer.from(JSON.stringify(content, null, 2)).toString("base64"),
+        sha,
+        branch: config.branch,
+      }),
     })
 
-    return NextResponse.json(noticias, { status: 200 })
+    if (!response.ok) {
+      console.error("Erro ao atualizar arquivo no GitHub:", await response.text())
+      throw new Error(`Erro ao atualizar arquivo: ${response.status}`)
+    }
+
+    return await response.json()
   } catch (error) {
-    console.error(`Erro ao buscar notícias: ${error}`)
-    return NextResponse.json({ error: `Erro ao buscar notícias: ${error.message}` }, { status: 500 })
+    console.error("Erro ao atualizar arquivo:", error)
+    throw error
   }
 }
 
 export async function POST(request: Request) {
   try {
+    // Obter configuração do GitHub
+    const config = getGithubConfig()
+
+    // Verificar se o GitHub está configurado
+    if (!isGithubConfigured(config)) {
+      return NextResponse.json(
+        {
+          error: "GitHub não configurado. Configure as variáveis de ambiente GITHUB_OWNER, GITHUB_REPO e GITHUB_TOKEN.",
+        },
+        { status: 500 },
+      )
+    }
+
     const data = await request.json()
-    const filePath = path.join(process.cwd(), "data", "ultimasNoticias.json")
 
     // Validar dados
     if (!data.titulo || !data.resumo || !data.conteudo) {
-      return NextResponse.json({ error: "Título, resumo e conteúdo são obrigatórios" }, { status: 400 })
+      return NextResponse.json({ error: "Dados incompletos" }, { status: 400 })
     }
 
-    // Verificar se o diretório existe e criar se não existir
-    const dirPath = path.dirname(filePath)
-    try {
-      await fs.access(dirPath)
-    } catch (error) {
-      await fs.mkdir(dirPath, { recursive: true })
-    }
+    // Obter arquivo existente
+    const { content: noticias, sha } = await getFileContent("data/ultimasNoticias.json", config)
 
-    let noticias = []
+    // Gerar novo ID
+    const newId = noticias.length > 0 ? Math.max(...noticias.map((n: any) => n.id)) + 1 : 1
 
-    // Verificar se o arquivo existe e criar se não existir
-    try {
-      await fs.access(filePath)
-      const fileContents = await fs.readFile(filePath, "utf8")
-      try {
-        noticias = JSON.parse(fileContents)
-      } catch (e) {
-        console.error(`Erro ao parsear JSON de notícias: ${e}`)
-        // Se o arquivo estiver corrompido, criar um novo
-        noticias = []
-      }
-    } catch (error) {
-      // Arquivo não existe, criar um novo
-      console.log("Arquivo de notícias não existe, criando novo arquivo")
-    }
-
-    // Criar nova notícia
+    // Adicionar nova notícia
     const novaNoticia = {
-      id: uuidv4(),
-      titulo: data.titulo,
-      resumo: data.resumo,
-      conteudo: data.conteudo,
-      imagem: data.imagem || "/placeholder.svg?height=600&width=800",
-      data: data.data || new Date().toISOString(),
-      destaque: data.destaque || false,
+      ...data,
+      id: newId,
+      data: data.data || new Date().toISOString(), // Usar data fornecida ou data atual
     }
 
-    // Adicionar à lista
     noticias.push(novaNoticia)
 
-    // Salvar arquivo usando método mais seguro
-    const tempFile = `${filePath}.temp`
-    await fs.writeFile(tempFile, JSON.stringify(noticias, null, 2), "utf8")
-    await fs.rename(tempFile, filePath)
+    // Atualizar arquivo no GitHub
+    const updateResult = await updateFile(
+      "data/ultimasNoticias.json",
+      noticias,
+      sha,
+      `Adicionar nova notícia: ${data.titulo}`,
+      config,
+    )
 
-    return NextResponse.json(novaNoticia, { status: 201 })
-  } catch (error) {
-    console.error(`Erro ao criar notícia: ${error}`)
-    return NextResponse.json({ error: `Erro ao criar notícia: ${error.message}` }, { status: 500 })
+    return NextResponse.json({
+      ...novaNoticia,
+      _commit: {
+        sha: updateResult.commit.sha,
+        message: updateResult.commit.message,
+        url: updateResult.commit.html_url,
+      },
+    })
+  } catch (error: any) {
+    console.error("Erro ao adicionar notícia:", error)
+    return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 })
   }
 }

@@ -71,33 +71,3 @@ export async function getUltimasNoticias() {
     return []
   }
 }
-
-export async function getNoticias() {
-  try {
-    const timestamp = new Date().getTime()
-    const res = await fetch(`/api/noticias?t=${timestamp}`, {
-      next: { revalidate: 0 },
-      cache: "no-store",
-    })
-    if (!res.ok) return []
-    return res.json()
-  } catch (error) {
-    console.error("Erro ao buscar notícias:", error)
-    return []
-  }
-}
-
-export async function getNoticia(id: string) {
-  try {
-    const timestamp = new Date().getTime()
-    const res = await fetch(`/api/noticias/${id}?t=${timestamp}`, {
-      next: { revalidate: 0 },
-      cache: "no-store",
-    })
-    if (!res.ok) return null
-    return res.json()
-  } catch (error) {
-    console.error(`Erro ao buscar notícia ${id}:`, error)
-    return null
-  }
-}
