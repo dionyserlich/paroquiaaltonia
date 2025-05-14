@@ -57,7 +57,7 @@ export default function InstallPwaPrompt() {
   if (!showPrompt) return null
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-500 bg-blue-600 text-white p-3 flex items-center justify-between shadow-md">
+    <div className="absolute top-0 left-0 right-0 z-500 bg-blue-600 text-white p-3 flex items-center justify-between shadow-md">
       <div className="flex-1">
         {isIOS ? (
           <p className="text-sm">
