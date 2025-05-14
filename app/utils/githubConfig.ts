@@ -20,3 +20,5 @@ export function getGithubConfig() {
 export function isGithubConfigured(config: ReturnType<typeof getGithubConfig>) {
   return config.owner !== "seu-usuario-github" && config.repo !== "paroquia-sao-sebastiao" && config.token !== ""
 }
+
+export const githubConfig = getGithubConfig()

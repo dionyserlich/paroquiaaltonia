@@ -2,27 +2,16 @@ import { NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
 
-// Caminho do arquivo de notícias
-const noticiasFilePath = path.join(process.cwd(), "data", "noticias.json")
-
-// Função para ler notícias
-function readNoticias() {
-  if (!fs.existsSync(noticiasFilePath)) {
-    return []
-  }
-
-  try {
-    const data = fs.readFileSync(noticiasFilePath, "utf8")
-    return JSON.parse(data)
-  } catch (error) {
-    console.error("Erro ao ler arquivo de notícias:", error)
-    return []
-  }
-}
-
 export async function GET() {
   try {
-    const noticias = readNoticias()
+    const filePath = path.join(process.cwd(), "data", "noticias.json")
+
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json([])
+    }
+
+    const fileContents = fs.readFileSync(filePath, "utf8")
+    const noticias = JSON.parse(fileContents)
 
     // Ordenar por data (mais recente primeiro)
     noticias.sort((a: any, b: any) => {
@@ -32,6 +21,6 @@ export async function GET() {
     return NextResponse.json(noticias)
   } catch (error) {
     console.error("Erro ao buscar notícias:", error)
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+    return NextResponse.json([])
   }
 }

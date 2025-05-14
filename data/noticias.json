@@ -2,28 +2,10 @@
   {
     "id": "1",
     "titulo": "Festa de São Sebastião 2024",
-    "resumo": "Confira a programação completa da Festa de São Sebastião 2024, que acontecerá de 11 a 20 de janeiro.",
-    "conteudo": "<p>A Paróquia São Sebastião tem a alegria de convidar toda a comunidade para participar da Festa de São Sebastião 2024, que acontecerá de 11 a 20 de janeiro.</p><p>A programação inclui novenas, missas solenes, quermesse e muito mais. Confira abaixo a programação completa:</p><h3>Programação:</h3><ul><li>11/01 - Abertura da Festa com Missa às 19h</li><li>12/01 a 19/01 - Novenas em honra a São Sebastião às 19h</li><li>20/01 - Dia de São Sebastião: Missas às 7h, 9h, 11h, 15h e 19h</li></ul><p>Após as missas e novenas, haverá quermesse com comidas típicas, música ao vivo e diversas atrações para toda a família.</p><p>Venha participar conosco deste momento de fé e devoção ao nosso padroeiro!</p>",
-    "imagem": "/images/noticias/festa-sao-sebastiao.jpg",
+    "resumo": "Confira a programação completa da Festa de São Sebastião 2024.",
+    "conteudo": "<p>A Paróquia São Sebastião tem a alegria de convidar toda a comunidade para participar da Festa de São Sebastião 2024.</p>",
+    "imagem": "/placeholder.svg?height=600&width=800",
     "data": "2023-12-15T10:00:00Z",
-    "destaque": true
-  },
-  {
-    "id": "2",
-    "titulo": "Campanha de Arrecadação de Alimentos",
-    "resumo": "Ajude-nos a arrecadar alimentos não perecíveis para as famílias carentes de nossa comunidade.",
-    "conteudo": "<p>A Paróquia São Sebastião está promovendo uma campanha de arrecadação de alimentos não perecíveis para ajudar as famílias carentes de nossa comunidade.</p><p>Os alimentos arrecadados serão distribuídos pela Pastoral da Caridade às famílias cadastradas em nosso programa de assistência social.</p><h3>Como participar:</h3><p>Você pode doar alimentos não perecíveis como arroz, feijão, óleo, macarrão, açúcar, café, entre outros. As doações podem ser entregues na secretaria paroquial de segunda a sexta-feira, das 8h às 17h, ou aos domingos após as missas.</p><p>Contamos com a sua generosidade para ajudar aqueles que mais precisam!</p><p>\"Quem é generoso será abençoado, pois reparte o seu pão com o pobre.\" (Provérbios 22:9)</p>",
-    "imagem": "/images/noticias/campanha-alimentos.jpg",
-    "data": "2023-12-10T14:30:00Z",
-    "destaque": false
-  },
-  {
-    "id": "3",
-    "titulo": "Retiro Espiritual para Jovens",
-    "resumo": "Inscrições abertas para o Retiro Espiritual para Jovens que acontecerá nos dias 25, 26 e 27 de janeiro de 2024.",
-    "conteudo": "<p>A Pastoral da Juventude da Paróquia São Sebastião convida todos os jovens para participar do Retiro Espiritual que acontecerá nos dias 25, 26 e 27 de janeiro de 2024.</p><p>O retiro terá como tema \"Jovens: Protagonistas da Fé\" e será realizado na Casa de Retiros Nossa Senhora Aparecida.</p><h3>Informações:</h3><ul><li>Data: 25, 26 e 27 de janeiro de 2024</li><li>Local: Casa de Retiros Nossa Senhora Aparecida</li><li>Valor: R$ 150,00 (inclui hospedagem e alimentação)</li><li>Idade: 15 a 30 anos</li></ul><p>As inscrições podem ser feitas na secretaria paroquial ou após as missas de domingo com os coordenadores da Pastoral da Juventude.</p><p>Não perca esta oportunidade de fortalecer sua fé e fazer novas amizades!</p>",
-    "imagem": "/images/noticias/retiro-jovens.jpg",
-    "data": "2023-12-05T09:15:00Z",
     "destaque": true
   }
 ]

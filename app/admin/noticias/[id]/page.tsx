@@ -95,13 +95,14 @@ export default function NoticiaForm({ params }: NoticiaFormProps) {
       })
 
       if (!res.ok) {
-        throw new Error("Erro ao salvar notícia")
+        const errorData = await res.json()
+        throw new Error(errorData.error || "Erro ao salvar notícia")
       }
 
       router.push("/admin/noticias")
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao salvar notícia:", error)
-      setErro("Erro ao salvar notícia. Tente novamente.")
+      setErro(error.message || "Erro ao salvar notícia. Tente novamente.")
     } finally {
       setSalvando(false)
     }
