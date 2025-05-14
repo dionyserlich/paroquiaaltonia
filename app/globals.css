@@ -180,3 +180,34 @@ header.fixed {
   right: auto !important;
   transform: translateX(-50%);
 }
+
+/* Animação circular para o spinner */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-border {
+  animation: spin 1.5s linear infinite;
+}
+
+/* Animação de pulso para o logo */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
