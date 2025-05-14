@@ -12,6 +12,7 @@ export default function AdminNoticias() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     loadNoticias()
@@ -20,13 +21,19 @@ export default function AdminNoticias() {
   async function loadNoticias() {
     try {
       setLoading(true)
-      const res = await fetch("/api/admin/noticias")
+      setError(null)
+
+      const res = await fetch("/api/admin/noticias", {
+        cache: "no-store",
+        next: { revalidate: 0 },
+      })
+
       if (!res.ok) {
         throw new Error(`Erro ao carregar notícias: ${res.status}`)
       }
+
       const data = await res.json()
       setNoticias(data)
-      setError(null)
     } catch (err: any) {
       console.error("Erro ao carregar notícias:", err)
       setError(err.message || "Erro ao carregar notícias")
@@ -37,12 +44,15 @@ export default function AdminNoticias() {
 
   async function handleDelete(id: string) {
     try {
+      setDeleting(true)
+
       const res = await fetch(`/api/admin/noticias/${id}`, {
         method: "DELETE",
       })
 
       if (!res.ok) {
-        throw new Error(`Erro ao excluir notícia: ${res.status}`)
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || `Erro ao excluir notícia: ${res.status}`)
       }
 
       await loadNoticias()
@@ -50,16 +60,22 @@ export default function AdminNoticias() {
     } catch (err: any) {
       console.error("Erro ao excluir notícia:", err)
       alert(err.message || "Erro ao excluir notícia")
+    } finally {
+      setDeleting(false)
     }
   }
 
   function formatDate(dateString: string) {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    })
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    } catch (error) {
+      return dateString
+    }
   }
 
   return (
@@ -154,11 +170,15 @@ export default function AdminNoticias() {
               <h2 className="text-xl font-bold mb-4">Confirmar exclusão</h2>
               <p className="mb-4">Tem certeza que deseja excluir esta notícia?</p>
               <div className="flex justify-end space-x-2">
-                <button onClick={() => setDeleteId(null)} className="admin-btn admin-btn-secondary">
+                <button onClick={() => setDeleteId(null)} className="admin-btn admin-btn-secondary" disabled={deleting}>
                   Cancelar
                 </button>
-                <button onClick={() => handleDelete(deleteId)} className="admin-btn admin-btn-danger">
-                  Excluir
+                <button
+                  onClick={() => handleDelete(deleteId)}
+                  className="admin-btn admin-btn-danger"
+                  disabled={deleting}
+                >
+                  {deleting ? "Excluindo..." : "Excluir"}
                 </button>
               </div>
             </div>

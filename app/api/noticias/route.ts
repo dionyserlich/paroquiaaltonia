@@ -19,6 +19,6 @@ export async function GET() {
     return NextResponse.json(noticias)
   } catch (error) {
     console.error("Erro ao buscar notícias:", error)
-    return NextResponse.json([], { status: 500 })
+    return NextResponse.json([])
   }
 }

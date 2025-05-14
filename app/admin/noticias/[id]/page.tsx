@@ -17,32 +17,44 @@ interface PageProps {
 export default function EditarNoticia({ params }: PageProps) {
   const router = useRouter()
   const { id } = params
-  const [noticia, setNoticia] = useState<any>(null)
+  const isNovo = id === "nova"
+
   const [titulo, setTitulo] = useState("")
   const [conteudo, setConteudo] = useState("")
   const [imagem, setImagem] = useState("")
   const [data, setData] = useState("")
   const [destaque, setDestaque] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!isNovo)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
+    if (isNovo) {
+      setData(new Date().toISOString().split("T")[0])
+      return
+    }
+
     async function loadNoticia() {
       try {
-        const res = await fetch(`/api/admin/noticias/${id}`)
+        setLoading(true)
+        setError(null)
+
+        const res = await fetch(`/api/admin/noticias/${id}`, {
+          cache: "no-store",
+          next: { revalidate: 0 },
+        })
+
         if (!res.ok) {
           throw new Error(`Erro ao carregar notícia: ${res.status}`)
         }
+
         const data = await res.json()
-        setNoticia(data)
-        setTitulo(data.titulo)
-        setConteudo(data.conteudo)
+        setTitulo(data.titulo || "")
+        setConteudo(data.conteudo || "")
         setImagem(data.imagem || "")
-        setData(formatDateForInput(data.data))
+        setData(formatDateForInput(data.data) || new Date().toISOString().split("T")[0])
         setDestaque(data.destaque || false)
-        setError(null)
       } catch (err: any) {
         console.error("Erro ao carregar notícia:", err)
         setError(err.message || "Erro ao carregar notícia")
@@ -52,39 +64,58 @@ export default function EditarNoticia({ params }: PageProps) {
     }
 
     loadNoticia()
-  }, [id])
+  }, [id, isNovo])
 
   function formatDateForInput(dateString: string) {
-    const date = new Date(dateString)
-    return date.toISOString().split("T")[0]
+    try {
+      const date = new Date(dateString)
+      return date.toISOString().split("T")[0]
+    } catch (error) {
+      return new Date().toISOString().split("T")[0]
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (!titulo || !conteudo) {
+      setError("Título e conteúdo são obrigatórios")
+      return
+    }
+
     try {
       setSaving(true)
-      const res = await fetch(`/api/admin/noticias/${id}`, {
-        method: "PUT",
+      setError(null)
+
+      const noticiaData = {
+        titulo,
+        conteudo,
+        imagem,
+        data: new Date(data).toISOString(),
+        destaque,
+      }
+
+      const url = isNovo ? "/api/admin/noticias" : `/api/admin/noticias/${id}`
+      const method = isNovo ? "POST" : "PUT"
+
+      const res = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          titulo,
-          conteudo,
-          imagem,
-          data: new Date(data).toISOString(),
-          destaque,
-        }),
+        body: JSON.stringify(noticiaData),
       })
 
       if (!res.ok) {
-        throw new Error(`Erro ao atualizar notícia: ${res.status}`)
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || `Erro ao ${isNovo ? "criar" : "atualizar"} notícia: ${res.status}`)
       }
 
       router.push("/admin/noticias")
     } catch (err: any) {
-      console.error("Erro ao atualizar notícia:", err)
-      setError(err.message || "Erro ao atualizar notícia")
+      console.error(`Erro ao ${isNovo ? "criar" : "atualizar"} notícia:`, err)
+      setError(err.message || `Erro ao ${isNovo ? "criar" : "atualizar"} notícia`)
+    } finally {
       setSaving(false)
     }
   }
@@ -95,6 +126,8 @@ export default function EditarNoticia({ params }: PageProps) {
 
     try {
       setUploadingImage(true)
+      setError(null)
+
       const formData = new FormData()
       formData.append("file", file)
 
@@ -137,7 +170,7 @@ export default function EditarNoticia({ params }: PageProps) {
             <Link href="/admin/noticias" className="mr-4">
               ← Voltar
             </Link>
-            <h1 className="text-xl font-bold">Editar Notícia</h1>
+            <h1 className="text-xl font-bold">{isNovo ? "Nova Notícia" : "Editar Notícia"}</h1>
           </div>
         </div>
       </header>
@@ -152,7 +185,7 @@ export default function EditarNoticia({ params }: PageProps) {
         <form onSubmit={handleSubmit} className="admin-form">
           <div className="admin-form-group">
             <label htmlFor="titulo" className="admin-form-label">
-              Título
+              Título <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -166,7 +199,7 @@ export default function EditarNoticia({ params }: PageProps) {
 
           <div className="admin-form-group">
             <label htmlFor="data" className="admin-form-label">
-              Data
+              Data <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -225,7 +258,7 @@ export default function EditarNoticia({ params }: PageProps) {
 
           <div className="admin-form-group">
             <label htmlFor="conteudo" className="admin-form-label">
-              Conteúdo
+              Conteúdo <span className="text-red-500">*</span>
             </label>
             <RichTextEditor value={conteudo} onChange={setConteudo} />
           </div>
