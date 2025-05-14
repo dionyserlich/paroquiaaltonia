@@ -1,31 +1,25 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import Image from "next/image"
+import Link from "next/link"
 import { getNoticias } from "@/lib/api"
 import { formatarData } from "@/lib/utils"
 
-interface Noticia {
-  id: string
-  titulo: string
-  resumo: string
-  imagem: string
-  data: string
-  destaque: boolean
-}
-
 export default function NoticiasLista() {
-  const [noticias, setNoticias] = useState<Noticia[]>([])
+  const [noticias, setNoticias] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function carregarNoticias() {
       try {
+        setLoading(true)
         const data = await getNoticias()
         setNoticias(data)
       } catch (error) {
         console.error("Erro ao carregar notícias:", error)
+        setError("Não foi possível carregar as notícias")
       } finally {
         setLoading(false)
       }
@@ -36,15 +30,16 @@ export default function NoticiasLista() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
-            <div className="h-48 bg-gray-200"></div>
+      <div className="space-y-6">
+        {[1, 2, 3].map((item) => (
+          <div key={item} className="bg-gray-800 rounded-lg overflow-hidden animate-pulse">
+            <div className="h-48 bg-gray-700"></div>
             <div className="p-4">
-              <div className="h-6 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-6 bg-gray-700 rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
+              <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
+              <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
+              <div className="h-4 bg-gray-700 rounded w-2/3"></div>
             </div>
           </div>
         ))}
@@ -52,37 +47,34 @@ export default function NoticiasLista() {
     )
   }
 
-  if (noticias.length === 0) {
+  if (error || noticias.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-xl text-gray-600">Nenhuma notícia encontrada.</p>
+      <div className="bg-gray-800 rounded-lg p-6 text-center">
+        <p className="text-white/70">{error || "Nenhuma notícia disponível no momento."}</p>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="space-y-6">
       {noticias.map((noticia) => (
-        <Link href={`/noticias/${noticia.id}`} key={noticia.id} className="block">
-          <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="relative h-48">
-              <Image
-                src={noticia.imagem || "/placeholder.svg?height=300&width=400"}
-                alt={noticia.titulo}
-                fill
-                className="object-cover"
-              />
-              {noticia.destaque && (
-                <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">
-                  Destaque
-                </div>
-              )}
-            </div>
-            <div className="p-4">
-              <h2 className="text-xl font-bold mb-2 line-clamp-2">{noticia.titulo}</h2>
-              <p className="text-gray-600 mb-3 line-clamp-3">{noticia.resumo}</p>
-              <p className="text-sm text-gray-500">{formatarData(noticia.data)}</p>
-            </div>
+        <Link
+          href={`/noticias/${noticia.id}`}
+          key={noticia.id}
+          className="block bg-gray-800 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+        >
+          <div className="relative h-48 md:h-64">
+            <Image
+              src={noticia.imagem || "/placeholder.svg?height=400&width=800"}
+              alt={noticia.titulo}
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div className="p-4">
+            <h2 className="text-xl font-bold text-white mb-2">{noticia.titulo}</h2>
+            <p className="text-gray-400 text-sm mb-3">{formatarData(noticia.data)}</p>
+            <p className="text-gray-300">{noticia.resumo}</p>
           </div>
         </Link>
       ))}

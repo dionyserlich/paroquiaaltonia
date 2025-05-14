@@ -3,30 +3,20 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { getNoticias } from "@/lib/api"
 
 export default function NewsList() {
   const [noticias, setNoticias] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadNoticias() {
       try {
-        setLoading(true)
-        // Usar a API de notícias em vez de ultimasNoticias
-        const response = await fetch("/api/noticias")
-
-        if (!response.ok) {
-          throw new Error("Falha ao carregar notícias")
-        }
-
-        const noticiasData = await response.json()
-
+        const noticiasData = await getNoticias()
         // Limitar a 3 notícias para a home
         setNoticias(noticiasData.slice(0, 3))
       } catch (error) {
         console.error("Erro ao carregar notícias:", error)
-        setError("Não foi possível carregar as notícias")
       } finally {
         setLoading(false)
       }
@@ -47,7 +37,7 @@ export default function NewsList() {
     )
   }
 
-  if (error || noticias.length === 0) {
+  if (noticias.length === 0) {
     return (
       <div className="space-y-4">
         <div className="h-48 bg-gray-700/30 rounded-lg flex items-center justify-center">

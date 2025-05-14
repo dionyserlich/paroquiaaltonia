@@ -1,28 +1,39 @@
 import { NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
-import { v4 as uuidv4 } from "uuid"
+
+// Função para ler o arquivo de notícias
+function readNoticiasFile() {
+  const filePath = path.join(process.cwd(), "data", "noticias.json")
+
+  if (!fs.existsSync(filePath)) {
+    return []
+  }
+
+  try {
+    const fileContents = fs.readFileSync(filePath, "utf8")
+    return JSON.parse(fileContents)
+  } catch (error) {
+    console.error("Erro ao ler arquivo de notícias:", error)
+    return []
+  }
+}
+
+// Função para salvar o arquivo de notícias
+function saveNoticiasFile(noticias: any[]) {
+  const filePath = path.join(process.cwd(), "data", "noticias.json")
+  const dirPath = path.dirname(filePath)
+
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true })
+  }
+
+  fs.writeFileSync(filePath, JSON.stringify(noticias, null, 2))
+}
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), "data", "noticias.json")
-
-    // Se o arquivo não existir, criar um arquivo vazio
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify([]), "utf8")
-      return NextResponse.json([], { status: 200 })
-    }
-
-    const fileContents = fs.readFileSync(filePath, "utf8")
-    let noticias = []
-
-    try {
-      noticias = JSON.parse(fileContents)
-    } catch (e) {
-      console.error("Erro ao parsear JSON de notícias:", e)
-      // Se o arquivo estiver corrompido, criar um novo
-      fs.writeFileSync(filePath, JSON.stringify([]), "utf8")
-    }
+    const noticias = readNoticiasFile()
 
     // Ordenar por data (mais recente primeiro)
     noticias.sort((a: any, b: any) => {
@@ -39,34 +50,25 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json()
-    const filePath = path.join(process.cwd(), "data", "noticias.json")
 
     // Validar dados
     if (!data.titulo || !data.resumo || !data.conteudo) {
       return NextResponse.json({ error: "Título, resumo e conteúdo são obrigatórios" }, { status: 400 })
     }
 
-    let noticias = []
+    const noticias = readNoticiasFile()
 
-    // Verificar se o arquivo existe e criar se não existir
-    if (!fs.existsSync(path.dirname(filePath))) {
-      fs.mkdirSync(path.dirname(filePath), { recursive: true })
-    }
+    // Gerar ID único
+    const maxId = noticias.reduce((max: number, noticia: any) => {
+      const id = Number.parseInt(noticia.id)
+      return isNaN(id) ? max : Math.max(max, id)
+    }, 0)
 
-    if (fs.existsSync(filePath)) {
-      const fileContents = fs.readFileSync(filePath, "utf8")
-      try {
-        noticias = JSON.parse(fileContents)
-      } catch (e) {
-        console.error("Erro ao parsear JSON de notícias:", e)
-        // Se o arquivo estiver corrompido, criar um novo
-        noticias = []
-      }
-    }
+    const newId = (maxId + 1).toString()
 
     // Criar nova notícia
     const novaNoticia = {
-      id: uuidv4(),
+      id: newId,
       titulo: data.titulo,
       resumo: data.resumo,
       conteudo: data.conteudo,
@@ -79,7 +81,7 @@ export async function POST(request: Request) {
     noticias.push(novaNoticia)
 
     // Salvar arquivo
-    fs.writeFileSync(filePath, JSON.stringify(noticias, null, 2))
+    saveNoticiasFile(noticias)
 
     return NextResponse.json(novaNoticia, { status: 201 })
   } catch (error) {

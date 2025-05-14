@@ -2,24 +2,33 @@ import { NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
 
+// Função para ler o arquivo de notícias
+function readNoticiasFile() {
+  const filePath = path.join(process.cwd(), "data", "noticias.json")
+
+  if (!fs.existsSync(filePath)) {
+    return []
+  }
+
+  try {
+    const fileContents = fs.readFileSync(filePath, "utf8")
+    return JSON.parse(fileContents)
+  } catch (error) {
+    console.error("Erro ao ler arquivo de notícias:", error)
+    return []
+  }
+}
+
+// Função para salvar o arquivo de notícias
+function saveNoticiasFile(noticias: any[]) {
+  const filePath = path.join(process.cwd(), "data", "noticias.json")
+  fs.writeFileSync(filePath, JSON.stringify(noticias, null, 2))
+}
+
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id
-    const filePath = path.join(process.cwd(), "data", "noticias.json")
-
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
-    }
-
-    const fileContents = fs.readFileSync(filePath, "utf8")
-    let noticias = []
-
-    try {
-      noticias = JSON.parse(fileContents)
-    } catch (e) {
-      console.error("Erro ao parsear JSON de notícias:", e)
-      return NextResponse.json({ error: "Erro ao ler arquivo de notícias" }, { status: 500 })
-    }
+    const noticias = readNoticiasFile()
 
     const noticia = noticias.find((n: any) => n.id === id)
 
@@ -38,26 +47,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   try {
     const id = params.id
     const data = await request.json()
-    const filePath = path.join(process.cwd(), "data", "noticias.json")
 
     // Validar dados
     if (!data.titulo || !data.resumo || !data.conteudo) {
       return NextResponse.json({ error: "Título, resumo e conteúdo são obrigatórios" }, { status: 400 })
     }
 
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
-    }
-
-    const fileContents = fs.readFileSync(filePath, "utf8")
-    let noticias = []
-
-    try {
-      noticias = JSON.parse(fileContents)
-    } catch (e) {
-      console.error("Erro ao parsear JSON de notícias:", e)
-      return NextResponse.json({ error: "Erro ao ler arquivo de notícias" }, { status: 500 })
-    }
+    const noticias = readNoticiasFile()
 
     const index = noticias.findIndex((n: any) => n.id === id)
 
@@ -76,7 +72,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 
     // Salvar arquivo
-    fs.writeFileSync(filePath, JSON.stringify(noticias, null, 2))
+    saveNoticiasFile(noticias)
 
     return NextResponse.json(noticias[index], { status: 200 })
   } catch (error) {
@@ -88,21 +84,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id
-    const filePath = path.join(process.cwd(), "data", "noticias.json")
-
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
-    }
-
-    const fileContents = fs.readFileSync(filePath, "utf8")
-    let noticias = []
-
-    try {
-      noticias = JSON.parse(fileContents)
-    } catch (e) {
-      console.error("Erro ao parsear JSON de notícias:", e)
-      return NextResponse.json({ error: "Erro ao ler arquivo de notícias" }, { status: 500 })
-    }
+    const noticias = readNoticiasFile()
 
     const index = noticias.findIndex((n: any) => n.id === id)
 
@@ -114,7 +96,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     noticias.splice(index, 1)
 
     // Salvar arquivo
-    fs.writeFileSync(filePath, JSON.stringify(noticias, null, 2))
+    saveNoticiasFile(noticias)
 
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {

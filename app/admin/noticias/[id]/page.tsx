@@ -39,6 +39,8 @@ export default function NoticiaForm({ params }: NoticiaFormProps) {
   async function carregarNoticia() {
     try {
       setLoading(true)
+      setErro(null)
+
       const res = await fetch(`/api/admin/noticias/${id}`)
 
       if (!res.ok) {
@@ -71,6 +73,7 @@ export default function NoticiaForm({ params }: NoticiaFormProps) {
 
     try {
       setSalvando(true)
+      setErro(null)
 
       const noticia = {
         titulo,

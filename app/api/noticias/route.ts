@@ -6,20 +6,12 @@ export async function GET() {
   try {
     const filePath = path.join(process.cwd(), "data", "noticias.json")
 
-    // Se o arquivo não existir, retornar array vazio
     if (!fs.existsSync(filePath)) {
       return NextResponse.json([], { status: 200 })
     }
 
     const fileContents = fs.readFileSync(filePath, "utf8")
-    let noticias = []
-
-    try {
-      noticias = JSON.parse(fileContents)
-    } catch (e) {
-      console.error("Erro ao parsear JSON de notícias:", e)
-      return NextResponse.json([], { status: 200 })
-    }
+    const noticias = JSON.parse(fileContents)
 
     // Ordenar por data (mais recente primeiro)
     noticias.sort((a: any, b: any) => {
@@ -29,6 +21,6 @@ export async function GET() {
     return NextResponse.json(noticias, { status: 200 })
   } catch (error) {
     console.error("Erro ao buscar notícias:", error)
-    return NextResponse.json({ error: "Erro ao buscar notícias" }, { status: 500 })
+    return NextResponse.json([], { status: 200 })
   }
 }

@@ -20,6 +20,7 @@ export default function AdminNoticias() {
   const [loading, setLoading] = useState(true)
   const [busca, setBusca] = useState("")
   const [showConfirmDelete, setShowConfirmDelete] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     carregarNoticias()
@@ -28,12 +29,19 @@ export default function AdminNoticias() {
   async function carregarNoticias() {
     try {
       setLoading(true)
+      setError(null)
+
       const res = await fetch("/api/admin/noticias")
-      if (!res.ok) throw new Error("Falha ao carregar notícias")
+
+      if (!res.ok) {
+        throw new Error("Falha ao carregar notícias")
+      }
+
       const data = await res.json()
       setNoticias(data)
     } catch (error) {
       console.error("Erro ao carregar notícias:", error)
+      setError("Erro ao carregar notícias. Tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -45,7 +53,9 @@ export default function AdminNoticias() {
         method: "DELETE",
       })
 
-      if (!res.ok) throw new Error("Falha ao excluir notícia")
+      if (!res.ok) {
+        throw new Error("Falha ao excluir notícia")
+      }
 
       // Atualizar lista
       setNoticias(noticias.filter((noticia) => noticia.id !== id))
@@ -74,6 +84,15 @@ export default function AdminNoticias() {
       </header>
 
       <main className="container mx-auto p-4">
+        {error && (
+          <div className="admin-alert admin-alert-danger mb-4">
+            <p>{error}</p>
+            <button onClick={carregarNoticias} className="underline ml-2">
+              Tentar novamente
+            </button>
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <div className="relative w-full md:w-auto">
             <input
@@ -100,7 +119,9 @@ export default function AdminNoticias() {
           </div>
         ) : noticiasFiltradas.length === 0 ? (
           <div className="admin-card text-center py-12">
-            <p className="text-xl text-gray-600 mb-4">Nenhuma notícia encontrada.</p>
+            <p className="text-xl text-gray-600 mb-4">
+              {busca ? "Nenhuma notícia encontrada para esta busca." : "Nenhuma notícia cadastrada."}
+            </p>
             <Link href="/admin/noticias/nova" className="admin-btn admin-btn-primary">
               <Plus className="h-5 w-5 mr-2" />
               Criar Nova Notícia

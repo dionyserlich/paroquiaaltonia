@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Share2 } from "lucide-react"
+import { getNoticia } from "@/lib/api"
 import { formatarData } from "@/lib/utils"
 
 interface NoticiaDetalhesProps {
@@ -27,14 +28,13 @@ export default function NoticiaDetalhes({ id }: NoticiaDetalhesProps) {
   useEffect(() => {
     async function carregarNoticia() {
       try {
-        const response = await fetch(`/api/noticias/${id}`)
-
-        if (!response.ok) {
-          throw new Error("Notícia não encontrada")
+        setLoading(true)
+        const data = await getNoticia(id)
+        if (!data) {
+          setError("Notícia não encontrada")
+        } else {
+          setNoticia(data)
         }
-
-        const data = await response.json()
-        setNoticia(data)
       } catch (error) {
         console.error(`Erro ao carregar notícia ${id}:`, error)
         setError("Erro ao carregar notícia")
@@ -71,15 +71,15 @@ export default function NoticiaDetalhes({ id }: NoticiaDetalhesProps) {
 
   if (loading) {
     return (
-      <div className="px-4 py-6">
+      <div className="max-w-4xl mx-auto">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-700/50 rounded w-3/4 mb-6"></div>
-          <div className="h-64 bg-gray-700/50 rounded mb-6"></div>
-          <div className="h-4 bg-gray-700/50 rounded mb-2"></div>
-          <div className="h-4 bg-gray-700/50 rounded mb-2"></div>
-          <div className="h-4 bg-gray-700/50 rounded mb-2"></div>
-          <div className="h-4 bg-gray-700/50 rounded mb-2"></div>
-          <div className="h-4 bg-gray-700/50 rounded w-2/3"></div>
+          <div className="h-8 bg-gray-700 rounded w-3/4 mb-6"></div>
+          <div className="h-64 bg-gray-700 rounded mb-6"></div>
+          <div className="h-4 bg-gray-700 rounded mb-2"></div>
+          <div className="h-4 bg-gray-700 rounded mb-2"></div>
+          <div className="h-4 bg-gray-700 rounded mb-2"></div>
+          <div className="h-4 bg-gray-700 rounded mb-2"></div>
+          <div className="h-4 bg-gray-700 rounded w-2/3"></div>
         </div>
       </div>
     )
@@ -87,7 +87,7 @@ export default function NoticiaDetalhes({ id }: NoticiaDetalhesProps) {
 
   if (error || !noticia) {
     return (
-      <div className="px-4 py-6">
+      <div className="max-w-4xl mx-auto">
         <div className="bg-gray-800 rounded-lg p-6 text-center">
           <h1 className="text-2xl font-bold text-red-400 mb-4">Notícia não encontrada</h1>
           <p className="text-white/70 mb-6">A notícia que você está procurando não existe ou foi removida.</p>
@@ -101,7 +101,7 @@ export default function NoticiaDetalhes({ id }: NoticiaDetalhesProps) {
   }
 
   return (
-    <div className="px-4 py-6">
+    <div className="max-w-4xl mx-auto">
       <div className="mb-6">
         <Link href="/noticias" className="inline-flex items-center text-yellow-500 hover:text-yellow-400">
           <ArrowLeft className="mr-2 h-4 w-4" />
