@@ -7,14 +7,11 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import RichTextEditor from "@/components/rich-text-editor"
 import DeployStatus from "@/components/deploy-status"
-import { useVercelDeploy } from "@/contexts/vercel-deploy-context"
-import AdminLayout from "@/app/admin/admin-layout"
 import "@/app/admin/admin.css"
 
 export default function EditarEvento({ params }: { params: { id: string } }) {
   const isNew = params.id === "novo"
   const router = useRouter()
-  const { setDeployId } = useVercelDeploy()
   const [formData, setFormData] = useState({
     id: 0,
     titulo: "",
@@ -87,19 +84,6 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
         // Se a resposta incluir informações do commit, mostrar o status do deploy
         if (data._commit && data._commit.sha) {
           setCommitSha(data._commit.sha)
-
-          // Buscar o ID do deploy mais recente da Vercel
-          try {
-            const deployRes = await fetch("/api/admin/get-latest-deploy")
-            if (deployRes.ok) {
-              const deployData = await deployRes.json()
-              if (deployData.deployId) {
-                setDeployId(deployData.deployId)
-              }
-            }
-          } catch (deployErr) {
-            console.error("Erro ao buscar deploy da Vercel:", deployErr)
-          }
         } else {
           // Se não houver informações do commit, redirecionar imediatamente
           router.push("/admin/eventos")
@@ -124,33 +108,49 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
   if (loading) return <div className="admin-page p-4">Carregando...</div>
 
   return (
-    <AdminLayout>
-      <div className="admin-page">
-        <header className="admin-header">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-xl font-bold">{isNew ? "Novo Evento" : "Editar Evento"}</h1>
-            <Link href="/admin/eventos" className="admin-btn admin-btn-primary">
-              Voltar
-            </Link>
-          </div>
-        </header>
+    <div className="admin-page">
+      <header className="admin-header">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold">{isNew ? "Novo Evento" : "Editar Evento"}</h1>
+          <Link href="/admin/eventos" className="admin-btn admin-btn-primary">
+            Voltar
+          </Link>
+        </div>
+      </header>
 
-        <main className="container mx-auto p-4">
-          {error && <div className="admin-alert admin-alert-error">{error}</div>}
+      <main className="container mx-auto p-4">
+        {error && <div className="admin-alert admin-alert-error">{error}</div>}
 
-          {commitSha && <DeployStatus commitSha={commitSha} onDeployComplete={handleDeployComplete} />}
+        {commitSha && <DeployStatus commitSha={commitSha} onDeployComplete={handleDeployComplete} />}
 
-          <div className="admin-card">
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label htmlFor="titulo" className="admin-label">
-                  Título
+        <div className="admin-card">
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label htmlFor="titulo" className="admin-label">
+                Título
+              </label>
+              <input
+                type="text"
+                id="titulo"
+                name="titulo"
+                value={formData.titulo}
+                onChange={handleChange}
+                className="admin-input"
+                required
+                disabled={saving}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              <div>
+                <label htmlFor="dia" className="admin-label">
+                  Dia
                 </label>
                 <input
                   type="text"
-                  id="titulo"
-                  name="titulo"
-                  value={formData.titulo}
+                  id="dia"
+                  name="dia"
+                  value={formData.dia}
                   onChange={handleChange}
                   className="admin-input"
                   required
@@ -158,121 +158,103 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <label htmlFor="dia" className="admin-label">
-                    Dia
-                  </label>
-                  <input
-                    type="text"
-                    id="dia"
-                    name="dia"
-                    value={formData.dia}
-                    onChange={handleChange}
-                    className="admin-input"
-                    required
-                    disabled={saving}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="mes" className="admin-label">
-                    Mês
-                  </label>
-                  <select
-                    id="mes"
-                    name="mes"
-                    value={formData.mes}
-                    onChange={handleChange}
-                    className="admin-input"
-                    required
-                    disabled={saving}
-                  >
-                    <option value="">Selecione...</option>
-                    <option value="Janeiro">Janeiro</option>
-                    <option value="Fevereiro">Fevereiro</option>
-                    <option value="Março">Março</option>
-                    <option value="Abril">Abril</option>
-                    <option value="Maio">Maio</option>
-                    <option value="Junho">Junho</option>
-                    <option value="Julho">Julho</option>
-                    <option value="Agosto">Agosto</option>
-                    <option value="Setembro">Setembro</option>
-                    <option value="Outubro">Outubro</option>
-                    <option value="Novembro">Novembro</option>
-                    <option value="Dezembro">Dezembro</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="ano" className="admin-label">
-                    Ano
-                  </label>
-                  <input
-                    type="text"
-                    id="ano"
-                    name="ano"
-                    value={formData.ano}
-                    onChange={handleChange}
-                    className="admin-input"
-                    required
-                    disabled={saving}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="hora" className="admin-label">
-                    Hora
-                  </label>
-                  <input
-                    type="text"
-                    id="hora"
-                    name="hora"
-                    value={formData.hora}
-                    onChange={handleChange}
-                    className="admin-input"
-                    required
-                    placeholder="Ex: 20:30"
-                    disabled={saving}
-                  />
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label htmlFor="descricao" className="admin-label">
-                  Descrição Curta
+              <div>
+                <label htmlFor="mes" className="admin-label">
+                  Mês
                 </label>
-                <textarea
-                  id="descricao"
-                  name="descricao"
-                  value={formData.descricao}
+                <select
+                  id="mes"
+                  name="mes"
+                  value={formData.mes}
                   onChange={handleChange}
                   className="admin-input"
-                  rows={2}
+                  required
+                  disabled={saving}
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Janeiro">Janeiro</option>
+                  <option value="Fevereiro">Fevereiro</option>
+                  <option value="Março">Março</option>
+                  <option value="Abril">Abril</option>
+                  <option value="Maio">Maio</option>
+                  <option value="Junho">Junho</option>
+                  <option value="Julho">Julho</option>
+                  <option value="Agosto">Agosto</option>
+                  <option value="Setembro">Setembro</option>
+                  <option value="Outubro">Outubro</option>
+                  <option value="Novembro">Novembro</option>
+                  <option value="Dezembro">Dezembro</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="ano" className="admin-label">
+                  Ano
+                </label>
+                <input
+                  type="text"
+                  id="ano"
+                  name="ano"
+                  value={formData.ano}
+                  onChange={handleChange}
+                  className="admin-input"
+                  required
                   disabled={saving}
                 />
               </div>
 
-              <div className="mb-4">
-                <label htmlFor="conteudo" className="admin-label">
-                  Conteúdo Completo
+              <div>
+                <label htmlFor="hora" className="admin-label">
+                  Hora
                 </label>
-                <RichTextEditor
-                  value={formData.conteudo}
-                  onChange={handleRichTextChange}
-                  placeholder="Descreva o evento em detalhes..."
+                <input
+                  type="text"
+                  id="hora"
+                  name="hora"
+                  value={formData.hora}
+                  onChange={handleChange}
+                  className="admin-input"
+                  required
+                  placeholder="Ex: 20:30"
+                  disabled={saving}
                 />
               </div>
+            </div>
 
-              <div className="flex justify-end">
-                <button type="submit" disabled={saving} className="admin-btn admin-btn-success disabled:opacity-50">
-                  {saving ? (commitSha ? "Salvando..." : "Processando...") : "Salvar"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </main>
-      </div>
-    </AdminLayout>
+            <div className="mb-4">
+              <label htmlFor="descricao" className="admin-label">
+                Descrição Curta
+              </label>
+              <textarea
+                id="descricao"
+                name="descricao"
+                value={formData.descricao}
+                onChange={handleChange}
+                className="admin-input"
+                rows={2}
+                disabled={saving}
+              />
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="conteudo" className="admin-label">
+                Conteúdo Completo
+              </label>
+              <RichTextEditor
+                value={formData.conteudo}
+                onChange={handleRichTextChange}
+                placeholder="Descreva o evento em detalhes..."
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <button type="submit" disabled={saving} className="admin-btn admin-btn-success disabled:opacity-50">
+                {saving ? (commitSha ? "Salvando..." : "Processando...") : "Salvar"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
   )
 }
