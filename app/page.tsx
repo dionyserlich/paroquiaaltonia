@@ -95,7 +95,7 @@ export default function Home() {
           {/* Footer */}
           <footer className="w-full px-4 py-8 mt-auto text-center text-white/70 text-sm">
             <p>Paróquia São Sebastião de Altônia</p>
-            <p>Site mantido por Dionys Erlich</p>
+            <p>Desenvolvido e mantido voluntariamente por Dionys Erlich – <a href="https://wa.me/5544999625033">@dionyserlich</a></p>
             <div className="mt-4 flex justify-center">
               <Image src="/images/logo-icone.png" alt="Logo São Sebastião" width={60} height={60} />
             </div>
