@@ -41,7 +41,7 @@ export default function BannerSlider() {
   }
 
   return (
-    <div className="relative w-full h-48 rounded-xl overflow-hidden">
+    <div className="relative w-full h-48 rounded-xl overflow-hidden bg-white">
       {banners.map((banner, index) => (
         <div
           key={banner.id}

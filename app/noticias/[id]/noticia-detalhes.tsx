@@ -69,7 +69,7 @@ export default function NoticiaDetalhes({ id }: { id: string }) {
       </Link>
 
       <h1 className="text-3xl font-bold mb-2">{noticia.titulo}</h1>
-      <p className="text-gray-500 mb-6">{formatarData(noticia.data)}</p>
+      <p className="text-yellow-500 mb-6">{formatarData(noticia.data)}</p>
 
       {noticia.imagem && (
         <div className="relative w-full h-64 md:h-96 mb-6 rounded-lg overflow-hidden">
@@ -77,7 +77,7 @@ export default function NoticiaDetalhes({ id }: { id: string }) {
         </div>
       )}
 
-      <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: noticia.conteudo }} />
+      <div className="prose max-w-none text-white" dangerouslySetInnerHTML={{ __html: noticia.conteudo }} />
     </article>
   )
 }

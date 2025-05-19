@@ -56,7 +56,7 @@ export default function NoticiasLista() {
         <Link
           href={`/noticias/${noticia.id}`}
           key={noticia.id}
-          className="block bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+          className="block bg-[#0c2657] rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
         >
           <div className="md:flex">
             <div className="md:w-1/3 relative">
@@ -72,8 +72,8 @@ export default function NoticiasLista() {
             </div>
             <div className="p-4 md:w-2/3">
               <h2 className="text-xl font-semibold mb-2">{noticia.titulo}</h2>
-              <p className="text-sm text-gray-500 mb-2">{formatarData(noticia.data)}</p>
-              <p className="text-gray-600 line-clamp-3">
+              <p className="text-sm text-yellow-500 mb-2">{formatarData(noticia.data)}</p>
+              <p className="text-gray-300 line-clamp-3">
                 {noticia.resumo || "Clique para ler mais sobre esta notícia."}
               </p>
             </div>

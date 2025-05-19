@@ -74,7 +74,7 @@ export default function QuickLinks() {
     <div className="w-full ">
       <div className="flex justify-between min-w-full px-4 overflow-x-auto scrollbar-hide max-w-0">
         {links.map((link, index) => (
-          <Link key={index} href={link.href} className="flex flex-col items-center justify-center px-4">
+          <Link key={index} href={link.href} className="flex flex-col items-center justify-center px-3">
             <div className="mb-2 text-white">{link.icon}</div>
             <span className="text-sm font-medium text-white whitespace-nowrap">{link.label}</span>
           </Link>

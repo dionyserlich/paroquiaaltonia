@@ -118,9 +118,9 @@ export default function EventsList() {
       {eventos.map((evento) => (
         <Link href={`/eventos/${evento.id}`} key={evento.id} className="block bg-[#0c2657] p-3 rounded-lg">
           <div className="flex items-start">
-            <div className="text-yellow-500 font-bold mr-3 text-right min-w-[60px]">
-              <div>{evento.dia}</div>
-              <div>de {evento.mes}</div>
+            <div className="text-yellow-500 font-bold mr-3 text-center min-w-[60px]">
+              <div className="text-[16pt]">{evento.dia}</div>
+              <div className="text-[8pt]">{evento.mes}</div>
             </div>
             <div>
               <div className="text-white text-sm">{evento.hora}</div>

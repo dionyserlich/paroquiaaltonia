@@ -35,7 +35,7 @@ header.bg-transparent {
   min-height: 170px;
   background-image: url("/images/imagem-principal-hero.png");
   background-size: cover;
-  background-position: center;
+  background-position-y: 60%;
   background-repeat: no-repeat;
   z-index: 1;
 }

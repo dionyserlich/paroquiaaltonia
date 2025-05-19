@@ -1,6 +1,9 @@
+import Header from "@/components/header"
+import BottomNavbar from "@/components/bottom-navbar"
 import type { Metadata } from "next"
 import { getNoticia } from "@/lib/api"
 import NoticiaDetalhes from "./noticia-detalhes"
+import PageClient from "../../page-client"
 
 type Props = {
   params: { id: string }
@@ -23,8 +26,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default function NoticiaPage({ params }: Props) {
   return (
-    <main className="flex-1 container mx-auto px-4 py-8">
-      <NoticiaDetalhes id={params.id} />
-    </main>
+    <PageClient>
+      <main className="flex min-h-screen flex-col bg-[#00143d]">
+        <Header />
+        
+        <div className="page-no-hero z-20">
+          <div className="container mx-auto px-4 py-6">
+            <NoticiaDetalhes id={params.id} />
+          </div>
+        </div>
+
+        <BottomNavbar />
+      </main>
+    </PageClient>
   )
 }
