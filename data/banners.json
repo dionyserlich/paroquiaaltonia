@@ -1,14 +1,8 @@
 [
   {
     "id": 1,
-    "titulo": "Festa de São Sebastião",
-    "imagem": "/placeholder.svg?height=128&width=400",
-    "link": "/eventos/festa-sao-sebastiao"
-  },
-  {
-    "id": 2,
-    "titulo": "Campanha do Dízimo",
-    "imagem": "/placeholder.svg?height=128&width=400",
-    "link": "/dizimo"
+    "titulo": "Segundo Luau Jovens Maranata",
+    "imagem": "/images/maranata.jpg",
+    "link": "/eventos/5"
   }
 ]
