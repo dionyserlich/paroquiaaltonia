@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Book, Calendar, Menu, MessageCircle, X } from "lucide-react"
 import Image from "next/image"
@@ -12,23 +12,45 @@ export default function BottomNavbar() {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
-    // Prevenir rolagem quando o menu estiver aberto
-    if (!isMenuOpen) {
+  }
+
+  // Gerenciar overflow do body baseado no estado do menu
+  useEffect(() => {
+    if (isMenuOpen) {
       document.body.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
     }
+
+    // Cleanup: sempre restaurar o overflow quando o componente for desmontado
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [isMenuOpen])
+
+  // Garantir que o overflow seja restaurado quando a página mudar
+  useEffect(() => {
+    const handleRouteChange = () => {
+      document.body.style.overflow = ""
+      setIsMenuOpen(false)
+    }
+
+    // Escutar mudanças de rota
+    window.addEventListener("beforeunload", handleRouteChange)
+
+    return () => {
+      window.removeEventListener("beforeunload", handleRouteChange)
+      document.body.style.overflow = ""
+    }
+  }, [])
+
+  const closeMenu = () => {
+    setIsMenuOpen(false)
   }
 
   return (
     <>
-      <SideMenu
-        isOpen={isMenuOpen}
-        onClose={() => {
-          setIsMenuOpen(false)
-          document.body.style.overflow = ""
-        }}
-      />
+      <SideMenu isOpen={isMenuOpen} onClose={closeMenu} />
 
       <nav className="fixed bottom-0 bg-[#0a1e42] border-t border-blue-900 z-40 w-full shadow-[0_0_30px_rgba(0,23,63,0.9)]">
         <div className="flex justify-between items-center px-2 py-2 md:py-3 w-full max-w-[650px] mx-auto">
@@ -53,7 +75,11 @@ export default function BottomNavbar() {
           </Link>
 
           <NavItem href="/horarios" icon={<Calendar size={20} />} label="Horários" />
-          <NavItem href="http://api.whatsapp.com/send/?phone=%2B5544998680244" icon={<MessageCircle size={20} />} label="WhatsApp" />
+          <NavItem
+            href="http://api.whatsapp.com/send/?phone=%2B5544998680244"
+            icon={<MessageCircle size={20} />}
+            label="WhatsApp"
+          />
         </div>
       </nav>
     </>

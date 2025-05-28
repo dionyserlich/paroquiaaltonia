@@ -7,7 +7,6 @@ import {
   BookOpen,
   Church,
   DollarSign,
-  Heart,
   HelpCircle,
   PenSquare,
   Share2,
@@ -32,9 +31,19 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
       if (e.key === "Escape") onClose()
     }
 
-    window.addEventListener("keydown", handleEsc)
-    return () => window.removeEventListener("keydown", handleEsc)
-  }, [onClose])
+    if (isOpen) {
+      window.addEventListener("keydown", handleEsc)
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc)
+    }
+  }, [onClose, isOpen])
+
+  // Garantir que links internos fechem o menu e restaurem o scroll
+  const handleInternalLinkClick = () => {
+    onClose()
+  }
 
   return (
     <>
@@ -61,21 +70,51 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
 
         <div className="py-2">
           <MenuSection title="Espiritual">
-            <MenuItem href="/liturgia" icon={<BookOpen size={20} />} label="Liturgia do Dia" />
-            <MenuItem href="https://www.bibliaonline.com.br/" icon={<Bible size={20} />} label="Bíblia" />
+            <MenuItem
+              href="/liturgia"
+              icon={<BookOpen size={20} />}
+              label="Liturgia do Dia"
+              onClick={handleInternalLinkClick}
+            />
+            <MenuItem href="https://www.bibliaonline.com.br/" icon={<Bible size={20} />} label="Bíblia" external />
           </MenuSection>
 
           <MenuSection title="Serviços">
-            <MenuItem href="/eventos" icon={<PenSquare size={20} />} label="Próximos Eventos" />
-            <MenuItem href="/intencoes" icon={<PenSquare size={20} />} label="Pedidos de Intenções" />
-            <MenuItem href="/ofertas" icon={<DollarSign size={20} />} label="Ofertas" />
-            <MenuItem href="/dizimo" icon={<DollarSign size={20} />} label="Dízimo" />
+            <MenuItem
+              href="/eventos"
+              icon={<PenSquare size={20} />}
+              label="Próximos Eventos"
+              onClick={handleInternalLinkClick}
+            />
+            <MenuItem
+              href="/intencoes"
+              icon={<PenSquare size={20} />}
+              label="Pedidos de Intenções"
+              onClick={handleInternalLinkClick}
+            />
+            <MenuItem
+              href="/ofertas"
+              icon={<DollarSign size={20} />}
+              label="Ofertas"
+              onClick={handleInternalLinkClick}
+            />
+            <MenuItem href="/dizimo" icon={<DollarSign size={20} />} label="Dízimo" onClick={handleInternalLinkClick} />
           </MenuSection>
 
           <MenuSection title="Comunidade">
-            <MenuItem href="/sobre" icon={<Church size={20} />} label="Sobre a Paróquia" />
-            <MenuItem href="/pastorais" icon={<Users size={20} />} label="Pastorais" />
-            <MenuItem href="/ajuda" icon={<HelpCircle size={20} />} label="Ajuda" />
+            <MenuItem
+              href="/sobre"
+              icon={<Church size={20} />}
+              label="Sobre a Paróquia"
+              onClick={handleInternalLinkClick}
+            />
+            <MenuItem
+              href="/pastorais"
+              icon={<Users size={20} />}
+              label="Pastorais"
+              onClick={handleInternalLinkClick}
+            />
+            <MenuItem href="/ajuda" icon={<HelpCircle size={20} />} label="Ajuda" onClick={handleInternalLinkClick} />
           </MenuSection>
 
           <MenuSection title="Redes Sociais">
@@ -137,11 +176,13 @@ function MenuItem({
   icon,
   label,
   external = false,
+  onClick,
 }: {
   href: string
   icon: React.ReactNode
   label: string
   external?: boolean
+  onClick?: () => void
 }) {
   const content = (
     <>
@@ -150,17 +191,25 @@ function MenuItem({
     </>
   )
 
-  return external ? (
-    <a
+  if (external) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center space-x-3 px-4 py-3 hover:bg-blue-900 transition-colors"
+      >
+        {content}
+      </a>
+    )
+  }
+
+  return (
+    <Link
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
       className="flex items-center space-x-3 px-4 py-3 hover:bg-blue-900 transition-colors"
+      onClick={onClick}
     >
-      {content}
-    </a>
-  ) : (
-    <Link href={href} className="flex items-center space-x-3 px-4 py-3 hover:bg-blue-900 transition-colors">
       {content}
     </Link>
   )
