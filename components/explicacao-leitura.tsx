@@ -1,8 +1,25 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { MessageCircle, Loader2, X, Volume2, Pause } from 'lucide-react'
+import { MessageCircle, Loader2, X, Volume2, Pause } from "lucide-react"
+
+// Adicionar interface para Wake Lock API
+interface WakeLock {
+  request(type: "screen"): Promise<WakeLockSentinel>
+}
+
+interface WakeLockSentinel {
+  release(): Promise<void>
+  released: boolean
+  type: "screen"
+}
+
+declare global {
+  interface Navigator {
+    wakeLock?: WakeLock
+  }
+}
 
 interface ExplicacaoLeituraProps {
   tipo: string
@@ -18,6 +35,7 @@ export default function ExplicacaoLeitura({ tipo, referencia, titulo, texto }: E
   const [mostrarExplicacao, setMostrarExplicacao] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const synthRef = useRef<SpeechSynthesis | null>(null)
+  const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null)
 
   const buscarExplicacao = async () => {
     try {
@@ -56,34 +74,52 @@ export default function ExplicacaoLeitura({ tipo, referencia, titulo, texto }: E
     stopSpeaking()
   }
 
-  const startSpeaking = () => {
+  const startSpeaking = async () => {
     if (!explicacao) return
 
     // Verificar se a API de síntese de voz está disponível
     if ("speechSynthesis" in window) {
-      const synth = window.speechSynthesis
-      synthRef.current = synth
+      try {
+        // Solicitar Wake Lock para manter a tela ligada
+        if ("wakeLock" in navigator) {
+          try {
+            const wakeLockSentinel = await navigator.wakeLock!.request("screen")
+            setWakeLock(wakeLockSentinel)
+            console.log("Wake Lock ativado - tela permanecerá ligada")
+          } catch (err) {
+            console.warn("Não foi possível ativar o Wake Lock:", err)
+          }
+        }
 
-      // Configurar a fala
-      const utterance = new SpeechSynthesisUtterance(explicacao)
-      utterance.lang = "pt-BR" // Definir o idioma para português brasileiro
-      utterance.rate = 0.9 // Ajustar a velocidade da fala
+        const synth = window.speechSynthesis
+        synthRef.current = synth
 
-      utterance.onstart = () => {
-        setIsSpeaking(true)
-      }
+        // Configurar a fala
+        const utterance = new SpeechSynthesisUtterance(explicacao)
+        utterance.lang = "pt-BR" // Definir o idioma para português brasileiro
+        utterance.rate = 0.9 // Ajustar a velocidade da fala
 
-      utterance.onend = () => {
-        setIsSpeaking(false)
-      }
+        utterance.onstart = () => {
+          setIsSpeaking(true)
+        }
 
-      utterance.onerror = (event) => {
-        console.error("Erro na síntese de voz:", event.error)
+        utterance.onend = () => {
+          setIsSpeaking(false)
+          releaseWakeLock()
+        }
+
+        utterance.onerror = (event) => {
+          console.error("Erro na síntese de voz:", event.error)
+          setError("Erro ao iniciar a reprodução de áudio")
+          setIsSpeaking(false)
+          releaseWakeLock()
+        }
+
+        synth.speak(utterance)
+      } catch (err) {
+        console.error("Erro ao iniciar reprodução:", err)
         setError("Erro ao iniciar a reprodução de áudio")
-        setIsSpeaking(false)
       }
-
-      synth.speak(utterance)
     } else {
       setError("A API de síntese de voz não é suportada neste navegador")
     }
@@ -94,7 +130,52 @@ export default function ExplicacaoLeitura({ tipo, referencia, titulo, texto }: E
       synthRef.current.cancel()
       setIsSpeaking(false)
     }
+    releaseWakeLock()
   }
+
+  const releaseWakeLock = async () => {
+    if (wakeLock && !wakeLock.released) {
+      try {
+        await wakeLock.release()
+        setWakeLock(null)
+        console.log("Wake Lock liberado")
+      } catch (err) {
+        console.warn("Erro ao liberar Wake Lock:", err)
+      }
+    }
+  }
+
+  // Cleanup quando o componente for desmontado ou quando sair da página
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      stopSpeaking()
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && isSpeaking) {
+        // Página ficou oculta, mas mantém a reprodução
+        console.log("Página oculta, mas mantendo reprodução de áudio")
+      }
+    }
+
+    // Adicionar listeners
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    // Cleanup quando o componente for desmontado
+    return () => {
+      stopSpeaking()
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [isSpeaking])
+
+  // Cleanup do Wake Lock quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      releaseWakeLock()
+    }
+  }, [wakeLock])
 
   return (
     <div className="mt-4">
@@ -136,7 +217,7 @@ export default function ExplicacaoLeitura({ tipo, referencia, titulo, texto }: E
               <X size={16} />
             </Button>
           </div>
-          
+
           {/* Botão de ouvir ANTES do texto */}
           <div className="flex justify-center mb-4">
             <Button
