@@ -15,12 +15,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!noticia) {
     return {
       title: "Notícia não encontrada - Paróquia São Sebastião",
+      description: "Notícia não encontrada na Paróquia São Sebastião",
+      robots: {
+        index: false,
+        follow: false,
+      },
     }
   }
 
   return {
     title: `${noticia.titulo} - Paróquia São Sebastião`,
-    description: noticia.resumo || "Detalhes da notícia da Paróquia São Sebastião",
+    description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
+    openGraph: {
+      title: `${noticia.titulo} - Paróquia São Sebastião`,
+      description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
+      images: [noticia.imagem || "/placeholder.svg"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${noticia.titulo} - Paróquia São Sebastião`,
+      description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
+      images: [noticia.imagem || "/placeholder.svg"],
+    },
   }
 }
 
