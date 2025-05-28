@@ -15,6 +15,9 @@ import {
   Facebook,
   Instagram,
   Youtube,
+  HandHeart,
+  Heart,
+  Calendar,
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect } from "react"
@@ -82,7 +85,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
           <MenuSection title="Serviços">
             <MenuItem
               href="/eventos"
-              icon={<PenSquare size={20} />}
+              icon={<Calendar size={20} />}
               label="Próximos Eventos"
               onClick={handleInternalLinkClick}
             />
@@ -94,11 +97,11 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
             />
             <MenuItem
               href="/ofertas"
-              icon={<DollarSign size={20} />}
+              icon={<HandHeart size={20} />}
               label="Ofertas"
               onClick={handleInternalLinkClick}
             />
-            <MenuItem href="/dizimo" icon={<DollarSign size={20} />} label="Dízimo" onClick={handleInternalLinkClick} />
+            <MenuItem href="/dizimo" icon={<Heart size={20} />} label="Dízimo" onClick={handleInternalLinkClick} />
           </MenuSection>
 
           <MenuSection title="Comunidade">

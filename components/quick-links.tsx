@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Book, BookOpen } from "lucide-react"
+import { Book, BookOpen, Church, DollarSign, HandHeart } from "lucide-react"
 
 export default function QuickLinks() {
   // Ícone personalizado para "Intenção" (mãos em oração)
@@ -64,9 +64,9 @@ export default function QuickLinks() {
 
   const links = [
     { icon: <Book className="h-7 w-7" />, label: "Liturgia", href: "/liturgia" },
-    { icon: <BookOpen className="h-7 w-7" />, label: "Folhetos", href: "/folhetos" },
-    { icon: <PrayingHandsIcon className="h-7 w-7" />, label: "Intenção", href: "/intencao" },
-    { icon: <DonationIcon className="h-7 w-7" />, label: "Ofertas", href: "/ofertas" },
+    { icon: <Church className="h-7 w-7" />, label: "Missas", href: "/missas" },
+    { icon: <PrayingHandsIcon className="h-7 w-7" />, label: "Intenções", href: "/intencoes" },
+    { icon: <HandHeart className="h-7 w-7" />, label: "Ofertas", href: "/ofertas" },
     { icon: <HeartIcon className="h-7 w-7" />, label: "Dízimo", href: "/dizimo" },
   ]
 

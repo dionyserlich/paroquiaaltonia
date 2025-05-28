@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Book, Calendar, Menu, MessageCircle, X } from "lucide-react"
+import { Book, Clock, Menu, MessageCircle, X } from "lucide-react"
 import Image from "next/image"
 import SideMenu from "./side-menu"
 
@@ -74,7 +74,7 @@ export default function BottomNavbar() {
             </div>
           </Link>
 
-          <NavItem href="/horarios" icon={<Calendar size={20} />} label="Horários" />
+          <NavItem href="/horarios" icon={<Clock size={20} />} label="Horários" />
           <NavItem
             href="http://api.whatsapp.com/send/?phone=%2B5544998680244"
             icon={<MessageCircle size={20} />}
