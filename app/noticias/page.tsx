@@ -5,7 +5,17 @@ import PageClient from "../page-client"
 
 export const metadata = {
   title: "Notícias - Paróquia São Sebastião",
-  description: "Confira as últimas notícias da Paróquia São Sebastião",
+  description: "Confira as últimas notícias e novidades da Paróquia São Sebastião de Altônia",
+  openGraph: {
+    title: "Notícias - Paróquia São Sebastião",
+    description: "Confira as últimas notícias e novidades da Paróquia São Sebastião de Altônia",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Notícias - Paróquia São Sebastião",
+    description: "Confira as últimas notícias e novidades da Paróquia São Sebastião de Altônia",
+  },
 }
 
 export default function NoticiasPage() {

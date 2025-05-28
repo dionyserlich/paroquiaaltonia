@@ -5,7 +5,17 @@ import PageClient from "../page-client"
 
 export const metadata = {
   title: "Liturgia Diária - Paróquia São Sebastião",
-  description: "Confira a liturgia diária com as leituras e o evangelho do dia",
+  description: "Confira a liturgia diária com as leituras, evangelho e orações do dia na Paróquia São Sebastião",
+  openGraph: {
+    title: "Liturgia Diária - Paróquia São Sebastião",
+    description: "Confira a liturgia diária com as leituras, evangelho e orações do dia na Paróquia São Sebastião",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Liturgia Diária - Paróquia São Sebastião",
+    description: "Confira a liturgia diária com as leituras, evangelho e orações do dia na Paróquia São Sebastião",
+  },
 }
 
 export default function LiturgiaPage() {

@@ -10,33 +10,46 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const noticia = await getNoticia(params.id)
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/noticias/${params.id}`, {
+      cache: 'no-store'
+    })
+    
+    if (!res.ok) {
+      return {
+        title: "Notícia não encontrada - Paróquia São Sebastião",
+        description: "Notícia não encontrada na Paróquia São Sebastião",
+        robots: {
+          index: false,
+          follow: false,
+        },
+      }
+    }
 
-  if (!noticia) {
+    const noticia = await res.json()
+
     return {
-      title: "Notícia não encontrada - Paróquia São Sebastião",
-      description: "Notícia não encontrada na Paróquia São Sebastião",
-      robots: {
-        index: false,
-        follow: false,
+      title: `${noticia.titulo} - Paróquia São Sebastião`,
+      description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
+      openGraph: {
+        title: `${noticia.titulo} - Paróquia São Sebastião`,
+        description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
+        images: [noticia.imagem || "/images/logo-icone.png"],
+        type: "article",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${noticia.titulo} - Paróquia São Sebastião`,
+        description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
+        images: [noticia.imagem || "/images/logo-icone.png"],
       },
     }
-  }
-
-  return {
-    title: `${noticia.titulo} - Paróquia São Sebastião`,
-    description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
-    openGraph: {
-      title: `${noticia.titulo} - Paróquia São Sebastião`,
-      description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
-      images: [noticia.imagem || "/placeholder.svg"],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${noticia.titulo} - Paróquia São Sebastião`,
-      description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
-      images: [noticia.imagem || "/placeholder.svg"],
-    },
+  } catch (error) {
+    console.error("Erro ao gerar metadata da notícia:", error)
+    return {
+      title: "Notícia - Paróquia São Sebastião",
+      description: "Notícia da Paróquia São Sebastião",
+    }
   }
 }
 
