@@ -61,12 +61,12 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
 
         <div className="py-2">
           <MenuSection title="Espiritual">
-            <MenuItem href="/liturgia" icon={<BookOpen size={20} />} label="Liturgia Diária" />
-            <MenuItem href="/oracoes" icon={<Heart size={20} />} label="Orações" />
-            <MenuItem href="/biblia" icon={<Bible size={20} />} label="Bíblia" />
+            <MenuItem href="/liturgia" icon={<BookOpen size={20} />} label="Liturgia do Dia" />
+            <MenuItem href="https://www.bibliaonline.com.br/" icon={<Bible size={20} />} label="Bíblia" />
           </MenuSection>
 
           <MenuSection title="Serviços">
+            <MenuItem href="/eventos" icon={<PenSquare size={20} />} label="Próximos Eventos" />
             <MenuItem href="/intencoes" icon={<PenSquare size={20} />} label="Pedidos de Intenções" />
             <MenuItem href="/ofertas" icon={<DollarSign size={20} />} label="Ofertas" />
             <MenuItem href="/dizimo" icon={<DollarSign size={20} />} label="Dízimo" />
@@ -80,19 +80,19 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
 
           <MenuSection title="Redes Sociais">
             <MenuItem
-              href="https://facebook.com/paroquiasaosebastiao"
+              href="https://facebook.com/paroquiaaltonia"
               icon={<Facebook size={20} />}
               label="Facebook"
               external
             />
             <MenuItem
-              href="https://instagram.com/paroquiasaosebastiao"
+              href="https://instagram.com/paroquiaaltonia"
               icon={<Instagram size={20} />}
               label="Instagram"
               external
             />
             <MenuItem
-              href="https://youtube.com/paroquiasaosebastiao"
+              href="https://youtube.com/paroquiaaltonia"
               icon={<Youtube size={20} />}
               label="YouTube"
               external
