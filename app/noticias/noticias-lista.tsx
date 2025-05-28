@@ -16,7 +16,15 @@ export default function NoticiasLista() {
       try {
         setLoading(true)
         const noticiasData = await getNoticias()
-        setNoticias(noticiasData)
+
+        // Sort news from most recent to oldest
+        const sortedNoticias = noticiasData.sort((a: any, b: any) => {
+          const dateA = new Date(a.data).getTime()
+          const dateB = new Date(b.data).getTime()
+          return dateB - dateA // Descending order (most recent first)
+        })
+
+        setNoticias(sortedNoticias)
       } catch (error) {
         console.error("Erro ao carregar notícias:", error)
         setError("Não foi possível carregar as notícias")
