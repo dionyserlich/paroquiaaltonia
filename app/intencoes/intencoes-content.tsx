@@ -43,8 +43,7 @@ export default function IntencoesContent() {
   ]
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0c2657] to-[#1a3a7a] text-white">
-      <div className="container mx-auto px-6 py-8 space-y-8">
+      <div className="container mx-auto space-y-8">
         {/* Hero Section */}
         <div className="text-center space-y-4">
           <div className="flex justify-center mb-4">
@@ -98,13 +97,11 @@ export default function IntencoesContent() {
         <div className="bg-white/5 rounded-lg p-6">
           <h3 className="text-xl font-semibold mb-4 text-yellow-500">Como Funciona</h3>
           <div className="space-y-3 text-gray-300">
-            <p>• As intenções são lembradas durante a oração eucarística</p>
+            <p>• As intenções são lembradas durante a missa</p>
             <p>• Podem ser enviadas para missas específicas ou gerais</p>
             <p>• Todas as intenções são tratadas com carinho e respeito</p>
-            <p>• O valor da oferta é livre e consciente</p>
           </div>
         </div>
       </div>
-    </main>
   )
 }

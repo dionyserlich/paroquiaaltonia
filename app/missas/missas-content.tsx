@@ -83,8 +83,7 @@ export default function MissasContent() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0c2657] to-[#1a3a7a] text-white">
-      <div className="container mx-auto px-6 py-8 space-y-8">
+      <div className="container mx-auto space-y-8">
         {/* Hero Section */}
         <div className="text-center space-y-4">
           <div className="flex justify-center mb-4">
@@ -211,6 +210,5 @@ export default function MissasContent() {
           </div>
         </div>
       </div>
-    </main>
   )
 }
