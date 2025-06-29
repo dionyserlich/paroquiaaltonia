@@ -1,13 +1,5 @@
 [
   {
-    "id": 1,
-    "titulo": "Missa Dominical",
-    "inicio": "2025-03-09T19:00:00",
-    "fim": "2025-03-09T21:30:00",
-    "linkEmbed": "https://www.youtube.com/embed/xxxxxxxxxxx",
-    "descricao": "Missa dominical celebrada pelo Padre João"
-  },
-  {
     "id": 2,
     "titulo": "Missa de Páscoa",
     "inicio": "2025-04-20T10:00:00",
