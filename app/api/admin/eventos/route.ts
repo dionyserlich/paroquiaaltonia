@@ -1,126 +1,29 @@
 import { NextResponse } from "next/server"
-import { getGithubConfig, isGithubConfigured } from "@/app/utils/githubConfig"
-
-// Função para obter o conteúdo de um arquivo do GitHub
-async function getFileContent(path: string, config: ReturnType<typeof getGithubConfig>) {
-  try {
-    const response = await fetch(
-      `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}?ref=${config.branch}`,
-      {
-        headers: {
-          Authorization: `token ${config.token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      },
-    )
-
-    if (!response.ok) {
-      console.error("Erro ao obter arquivo do GitHub:", await response.text())
-      throw new Error(`Erro ao obter arquivo: ${response.status}`)
-    }
-
-    const data = await response.json()
-    return {
-      content: JSON.parse(Buffer.from(data.content, "base64").toString()),
-      sha: data.sha,
-    }
-  } catch (error) {
-    console.error("Erro ao obter conteúdo do arquivo:", error)
-    throw error
-  }
-}
-
-// Função para atualizar um arquivo no GitHub
-async function updateFile(
-  path: string,
-  content: any,
-  sha: string,
-  message: string,
-  config: ReturnType<typeof getGithubConfig>,
-) {
-  try {
-    const response = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `token ${config.token}`,
-        Accept: "application/vnd.github.v3+json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message,
-        content: Buffer.from(JSON.stringify(content, null, 2)).toString("base64"),
-        sha,
-        branch: config.branch,
-      }),
-    })
-
-    if (!response.ok) {
-      console.error("Erro ao atualizar arquivo no GitHub:", await response.text())
-      throw new Error(`Erro ao atualizar arquivo: ${response.status}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Erro ao atualizar arquivo:", error)
-    throw error
-  }
-}
+import { query } from "@/app/lib/db"
 
 export async function POST(request: Request) {
   try {
-    // Obter configuração do GitHub
-    const config = getGithubConfig()
-
-    // Verificar se o GitHub está configurado
-    if (!isGithubConfigured(config)) {
-      return NextResponse.json(
-        {
-          error: "GitHub não configurado. Configure as variáveis de ambiente GITHUB_OWNER, GITHUB_REPO e GITHUB_TOKEN.",
-        },
-        { status: 500 },
-      )
-    }
-
     const data = await request.json()
-
-    // Validar dados
     if (!data.titulo || !data.dia || !data.mes || !data.ano || !data.hora) {
       return NextResponse.json({ error: "Dados incompletos" }, { status: 400 })
     }
-
-    // Obter arquivo existente
-    const { content: eventos, sha } = await getFileContent("data/proximosEventos.json", config)
-
-    // Gerar novo ID
-    const newId = eventos.length > 0 ? Math.max(...eventos.map((e: any) => e.id)) + 1 : 1
-
-    // Adicionar novo evento
-    const novoEvento = {
-      ...data,
-      id: newId,
-    }
-
-    eventos.push(novoEvento)
-
-    // Atualizar arquivo no GitHub
-    const updateResult = await updateFile(
-      "data/proximosEventos.json",
-      eventos,
-      sha,
-      `Adicionar novo evento: ${data.titulo}`,
-      config,
+    const { rows } = await query(
+      `INSERT INTO eventos (titulo, dia, mes, ano, hora, descricao, conteudo)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING id, titulo, dia, mes, ano, hora, descricao, conteudo`,
+      [
+        data.titulo,
+        String(data.dia),
+        String(data.mes),
+        String(data.ano),
+        String(data.hora),
+        data.descricao || null,
+        data.conteudo || null,
+      ]
     )
-
-    return NextResponse.json({
-      ...novoEvento,
-      _commit: {
-        sha: updateResult.commit.sha,
-        message: updateResult.commit.message,
-        url: updateResult.commit.html_url,
-      },
-    })
+    return NextResponse.json(rows[0])
   } catch (error: any) {
     console.error("Erro ao adicionar evento:", error)
-    return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 })
+    return NextResponse.json({ error: error.message || "Erro interno" }, { status: 500 })
   }
 }

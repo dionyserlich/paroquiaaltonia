@@ -2,26 +2,10 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { useState, useEffect } from "react"
 import "@/app/admin/admin.css"
 
 export default function AdminPanel() {
   const router = useRouter()
-  const [isConfigured, setIsConfigured] = useState(true)
-
-  useEffect(() => {
-    async function checkConfig() {
-      try {
-        const res = await fetch("/api/admin/config/status")
-        const data = await res.json()
-        setIsConfigured(data.configured)
-      } catch (error) {
-        console.error("Erro ao verificar configuração:", error)
-      }
-    }
-
-    checkConfig()
-  }, [])
 
   async function handleLogout() {
     try {
@@ -49,35 +33,10 @@ export default function AdminPanel() {
       </header>
 
       <main className="container mx-auto p-4">
-        {!isConfigured && (
-          <div className="admin-alert admin-alert-warning">
-            <p className="font-bold">Atenção!</p>
-            <p>
-              A integração com o GitHub não está configurada. Isso é necessário para que as alterações feitas no painel
-              sejam salvas.{" "}
-              <Link href="/admin/configuracao" className="admin-link font-medium">
-                Clique aqui para configurar
-              </Link>
-              .
-            </p>
-          </div>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <AdminCard title="Missas" description="Gerenciar missas e transmissões ao vivo" link="/admin/missas" />
-          <AdminCard title="Banners" description="Gerenciar banners da página inicial" link="/admin/banners" />
           <AdminCard title="Eventos" description="Gerenciar próximos eventos" link="/admin/eventos" />
           <AdminCard title="Notícias" description="Gerenciar últimas notícias" link="/admin/noticias" />
-          <AdminCard
-            title="Configuração do GitHub"
-            description="Configurar integração com o GitHub"
-            link="/admin/configuracao"
-          />
-          <AdminCard
-            title="Status de Deploy da Vercel"
-            description="Visualizar status dos deploys na Vercel"
-            link="/admin/vercel-status"
-          />
         </div>
       </main>
     </div>

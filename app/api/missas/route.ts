@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server"
-import fs from "fs/promises"
-import path from "path"
+import { query } from "@/app/lib/db"
+
+export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), "data", "missas.json")
-    const fileData = await fs.readFile(filePath, "utf8")
-    const missas = JSON.parse(fileData)
-
-    // Ordenar por data de início (mais recente primeiro)
-    missas.sort((a: any, b: any) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime())
-
-    return NextResponse.json(missas)
+    const { rows } = await query(
+      `SELECT id, titulo, inicio, fim, link_embed AS "linkEmbed", descricao
+       FROM missas ORDER BY inicio DESC`
+    )
+    return NextResponse.json(rows)
   } catch (error) {
-    console.error("Erro ao ler missas.json:", error)
+    console.error("Erro ao listar missas:", error)
     return NextResponse.json([], { status: 500 })
   }
 }

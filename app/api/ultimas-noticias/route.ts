@@ -1,22 +1,17 @@
 import { NextResponse } from "next/server"
-import fs from "fs/promises"
-import path from "path"
+import { query } from "@/app/lib/db"
+
+export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), "data", "ultimasNoticias.json")
-    const fileData = await fs.readFile(filePath, "utf8")
-    const noticias = JSON.parse(fileData)
-
-    // Ordenar por data (mais recente primeiro)
-    noticias.sort((a: any, b: any) => new Date(b.data).getTime() - new Date(a.data).getTime())
-
-    // Limitar a 5 notícias
-    const ultimasNoticias = noticias.slice(0, 5)
-
-    return NextResponse.json(ultimasNoticias)
+    const { rows } = await query(
+      `SELECT id, titulo, resumo, conteudo, imagem, data
+       FROM noticias ORDER BY data DESC LIMIT 5`
+    )
+    return NextResponse.json(rows)
   } catch (error) {
-    console.error("Erro ao ler ultimasNoticias.json:", error)
+    console.error("Erro ao listar últimas notícias:", error)
     return NextResponse.json([], { status: 500 })
   }
 }

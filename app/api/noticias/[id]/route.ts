@@ -1,26 +1,19 @@
 import { NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
+import { query } from "@/app/lib/db"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export const dynamic = "force-dynamic"
+
+export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const id = Number.parseInt(params.id)
-    const filePath = path.join(process.cwd(), "data", "ultimasNoticias.json")
-
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: "Arquivo de notícias não encontrado" }, { status: 404 })
-    }
-
-    const fileContent = fs.readFileSync(filePath, "utf8")
-    const noticias = JSON.parse(fileContent)
-
-    const noticia = noticias.find((n: any) => n.id === id)
-
-    if (!noticia) {
-      return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
-    }
-
-    return NextResponse.json(noticia)
+    const { id: rawId } = await context.params
+    const id = Number.parseInt(rawId)
+    const { rows } = await query(
+      `SELECT id, titulo, resumo, conteudo, imagem, data
+       FROM noticias WHERE id=$1`,
+      [id]
+    )
+    if (rows.length === 0) return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
+    return NextResponse.json(rows[0])
   } catch (error) {
     console.error("Erro ao obter notícia:", error)
     return NextResponse.json({ error: "Erro ao obter notícia" }, { status: 500 })

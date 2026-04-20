@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server"
-import fs from "fs/promises"
-import path from "path"
+import { query } from "@/app/lib/db"
+
+export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), "data", "banners.json")
-    const fileData = await fs.readFile(filePath, "utf8")
-    const data = JSON.parse(fileData)
-
-    return NextResponse.json(data)
+    const { rows } = await query(
+      `SELECT id, titulo, imagem, link FROM banners ORDER BY ordem ASC, id ASC`
+    )
+    return NextResponse.json(rows)
   } catch (error) {
-    console.error("Erro ao ler banners.json:", error)
+    console.error("Erro ao listar banners:", error)
     return NextResponse.json([], { status: 500 })
   }
 }
