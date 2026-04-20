@@ -1,11 +1,16 @@
 "use client"
 
 import type React from "react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import AppLoading from "@/components/app-loading"
 import InstallPwaPrompt from "@/components/install-pwa-prompt"
 
 export default function PageClient({ children }: { children: React.ReactNode }) {
+  const [isLoading, setIsLoading] = useState(true)
+
   useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600)
+
     const checkUpdates = async () => {
       try {
         await fetch("/api/check-updates")
@@ -13,7 +18,6 @@ export default function PageClient({ children }: { children: React.ReactNode }) 
         console.error("Erro ao verificar atualizações:", error)
       }
     }
-
     checkUpdates()
     const interval = setInterval(checkUpdates, 5 * 60 * 1000)
 
@@ -34,12 +38,14 @@ export default function PageClient({ children }: { children: React.ReactNode }) 
     }
 
     return () => {
+      clearTimeout(timer)
       clearInterval(interval)
     }
   }, [])
 
   return (
     <>
+      {isLoading && <AppLoading />}
       <InstallPwaPrompt />
       {children}
     </>
