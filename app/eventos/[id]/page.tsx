@@ -7,12 +7,13 @@ import PageClient from "../../page-client"
 import type { Metadata } from "next"
 
 type Props = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/proximos-eventos/${params.id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/proximos-eventos/${id}`, {
       cache: 'no-store'
     })
     
@@ -53,7 +54,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 // Atualizar a interface Props para o componente
-export default function EventoPage({ params }: Props) {
+export default async function EventoPage({ params }: Props) {
+  const { id } = await params
   return (
     <PageClient>
       <main className="flex min-h-screen flex-col bg-[#00143d]">
@@ -66,7 +68,7 @@ export default function EventoPage({ params }: Props) {
               <span>Voltar para eventos</span>
             </Link>
 
-            <EventoDetalhes id={params.id} />
+            <EventoDetalhes id={id} />
           </div>
         </div>
 

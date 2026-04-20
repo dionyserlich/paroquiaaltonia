@@ -6,12 +6,13 @@ import NoticiaDetalhes from "./noticia-detalhes"
 import PageClient from "../../page-client"
 
 type Props = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/noticias/${params.id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/noticias/${id}`, {
       cache: 'no-store'
     })
     
@@ -53,7 +54,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function NoticiaPage({ params }: Props) {
+export default async function NoticiaPage({ params }: Props) {
+  const { id } = await params
   return (
     <PageClient>
       <main className="flex min-h-screen flex-col bg-[#00143d]">
@@ -61,7 +63,7 @@ export default function NoticiaPage({ params }: Props) {
         
         <div className="page-no-hero z-20">
           <div className="container mx-auto px-4 py-6">
-            <NoticiaDetalhes id={params.id} />
+            <NoticiaDetalhes id={id} />
           </div>
         </div>
 
