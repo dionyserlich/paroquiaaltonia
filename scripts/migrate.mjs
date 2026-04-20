@@ -2,7 +2,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import pkg from 'pg';
 const { Pool } = pkg;
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
+const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
 
 async function readJson(p) { try { return JSON.parse(await fs.readFile(path.join(process.cwd(), p), 'utf8')); } catch { return null; } }
 

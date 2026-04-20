@@ -1,6 +1,6 @@
 "use server"
 
-import webpush from "web-push"
+import webpush, { type PushSubscription as WebPushSubscription, type WebPushError } from "web-push"
 import { query } from "@/app/lib/db"
 
 webpush.setVapidDetails(
@@ -47,19 +47,23 @@ export async function sendNotificationToAll(title: string, body: string, url = "
     const payload = JSON.stringify({ title, body, url })
 
     const results = await Promise.allSettled(
-      rows.map((s) =>
-        webpush.sendNotification(
-          { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } } as any,
-          payload
-        )
-      )
+      rows.map((s) => {
+        const subscription: WebPushSubscription = {
+          endpoint: s.endpoint,
+          keys: { p256dh: s.p256dh, auth: s.auth },
+        }
+        return webpush.sendNotification(subscription, payload)
+      })
     )
 
     // Limpar inscrições com 410 Gone
     const expiredEndpoints: string[] = []
     results.forEach((r, i) => {
-      if (r.status === "rejected" && (r.reason as any)?.statusCode === 410) {
-        expiredEndpoints.push(rows[i].endpoint)
+      if (r.status === "rejected") {
+        const reason = r.reason as Partial<WebPushError> | undefined
+        if (reason?.statusCode === 410 || reason?.statusCode === 404) {
+          expiredEndpoints.push(rows[i].endpoint)
+        }
       }
     })
     if (expiredEndpoints.length) {

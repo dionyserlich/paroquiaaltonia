@@ -2,7 +2,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import pkg from 'pg';
 const { Pool } = pkg;
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
+const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
 
 async function main() {
   await fs.mkdir('data', { recursive: true });

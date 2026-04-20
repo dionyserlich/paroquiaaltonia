@@ -2,8 +2,11 @@ import { Pool, PoolConfig } from "pg"
 
 const globalForPg = globalThis as unknown as { pgPool?: Pool }
 
+const connectionString =
+  process.env.NEON_DATABASE_URL || process.env.DATABASE_URL
+
 const config: PoolConfig = {
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
   ssl: process.env.PGSSLMODE === "disable" ? false : { rejectUnauthorized: false },
   max: 5,
 }
