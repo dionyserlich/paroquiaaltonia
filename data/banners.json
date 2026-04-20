@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "titulo": "Segundo Luau Jovens Maranata",
+    "imagem": "/images/maranata.jpg",
+    "link": "/eventos/5"
+  },
+  {
+    "id": 2,
+    "titulo": "Inscrições para novos coroinhas",
+    "imagem": "/images/novos-coroinhas.jpg",
+    "link": "https://www.paroquiaaltonia.com.br/noticias/4"
+  }
+]

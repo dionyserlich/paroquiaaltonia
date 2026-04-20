@@ -37,3 +37,4 @@ externalPort = 80
 
 [userenv.shared]
 NEXT_PUBLIC_BASE_URL = "https://c8acb386-719e-4d41-aada-97c600cd7a59-00-18i0itbi5ea3m.picard.replit.dev"
+NEON_DATABASE_URL = "postgresql://neondb_owner:npg_eo0JYuZty2UH@ep-lively-art-achl17m8-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
