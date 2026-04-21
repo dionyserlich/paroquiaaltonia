@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from 'next/font/google'
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -16,13 +16,11 @@ export const metadata: Metadata = {
   authors: [{ name: "Paróquia São Sebastião" }],
   creator: "Dionys Erlich",
   manifest: "/manifest.json",
-  themeColor: "#0a1e42",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Paróquia São Sebastião",
   },
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   generator: 'v0.dev',
   openGraph: {
     type: "website",
@@ -57,6 +55,13 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#0a1e42",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 }
 
 export default function RootLayout({
