@@ -11,7 +11,10 @@ const TIPOS_VALIDOS = [
   "Outros",
 ]
 
-const DESTINATARIO = "paroquia_altonia@hotmail.com"
+// Destinatário provisório de teste enquanto não há domínio próprio
+// configurado na Resend. Trocar de volta para paroquia_altonia@hotmail.com
+// quando o domínio estiver validado e a entregabilidade confirmada.
+const DESTINATARIO = "dionyserlich@gmail.com"
 
 function escapeHtml(s: string) {
   return s
