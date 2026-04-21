@@ -37,6 +37,7 @@ export default function AdminPanel() {
           <AdminCard title="Missas" description="Gerenciar missas e transmissões ao vivo" link="/admin/missas" />
           <AdminCard title="Eventos" description="Gerenciar próximos eventos" link="/admin/eventos" />
           <AdminCard title="Notícias" description="Gerenciar últimas notícias" link="/admin/noticias" />
+          <AdminCard title="Intenções de Missa" description="Visualizar e gerenciar pedidos de intenção" link="/admin/intencoes" />
           <AdminCard title="Bot Missa ao Vivo" description="Status e execução do bot do YouTube" link="/admin/missa-bot" />
         </div>
       </main>

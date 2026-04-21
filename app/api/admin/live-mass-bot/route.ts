@@ -8,7 +8,7 @@ export const runtime = "nodejs"
 
 async function isAuthed() {
   const c = await cookies()
-  return c.get("admin_session")?.value === "1"
+  return c.get("admin_auth")?.value === "true"
 }
 
 export async function GET() {
