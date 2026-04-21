@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url)
   const status = url.searchParams.get("status")
   const limit = Math.min(Number(url.searchParams.get("limit") ?? "100"), 500)
-  const rows = status
+  const result = status
     ? await query(
         `SELECT id, nome, email, telefone, tipo, intencao, data_preferida, status, created_at
          FROM intencoes WHERE status = $1 ORDER BY created_at DESC LIMIT $2`,
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
          FROM intencoes ORDER BY created_at DESC LIMIT $1`,
         [limit],
       )
-  return NextResponse.json({ intencoes: rows })
+  return NextResponse.json({ intencoes: result.rows })
 }
 
 export async function PATCH(req: NextRequest) {
