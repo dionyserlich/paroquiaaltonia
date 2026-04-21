@@ -3,11 +3,16 @@
 import webpush, { type PushSubscription as WebPushSubscription, type WebPushError } from "web-push"
 import { query } from "@/app/lib/db"
 
-webpush.setVapidDetails(
-  "mailto:contato@paroquiasaosebastiao.com.br",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "",
-  process.env.VAPID_PRIVATE_KEY || "",
-)
+let vapidConfigured = false
+function ensureVapid() {
+  if (vapidConfigured) return true
+  const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+  const priv = process.env.VAPID_PRIVATE_KEY
+  if (!pub || !priv) return false
+  webpush.setVapidDetails("mailto:contato@paroquiasaosebastiao.com.br", pub, priv)
+  vapidConfigured = true
+  return true
+}
 
 type Sub = { endpoint: string; keys: { p256dh: string; auth: string } }
 
@@ -41,6 +46,9 @@ export async function unsubscribe(endpoint: string) {
 
 export async function sendNotificationToAll(title: string, body: string, url = "/") {
   try {
+    if (!ensureVapid()) {
+      return { success: false, error: "VAPID keys não configuradas" }
+    }
     const { rows } = await query<{ endpoint: string; p256dh: string; auth: string }>(
       `SELECT endpoint, p256dh, auth FROM push_subscriptions`
     )
