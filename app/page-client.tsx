@@ -21,20 +21,23 @@ export default function PageClient({ children }: { children: React.ReactNode }) 
     checkUpdates()
     const interval = setInterval(checkUpdates, 5 * 60 * 1000)
 
-    if (
-      "serviceWorker" in navigator &&
-      (window.location.protocol === "https:" ||
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1")
-    ) {
+    if ("serviceWorker" in navigator) {
       navigator.serviceWorker
-        .register("/sw.js")
-        .then((registration) => {
-          console.log("Service Worker registrado com sucesso:", registration)
+        .getRegistrations()
+        .then(async (registrations) => {
+          for (const registration of registrations) {
+            try {
+              await registration.unregister()
+            } catch {}
+          }
+          if ("caches" in window) {
+            try {
+              const keys = await caches.keys()
+              await Promise.all(keys.map((k) => caches.delete(k)))
+            } catch {}
+          }
         })
-        .catch((error) => {
-          console.error("Falha ao registrar Service Worker:", error)
-        })
+        .catch(() => {})
     }
 
     return () => {
