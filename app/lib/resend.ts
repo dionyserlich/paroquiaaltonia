@@ -45,6 +45,11 @@ async function getCreds(): Promise<ResendCreds> {
   if (!fromReplit) {
     throw new Error("Resend não está configurado (RESEND_API_KEY ausente).")
   }
+  // Permite sobrescrever o remetente (útil enquanto o domínio próprio não
+  // está verificado na Resend — usar onboarding@resend.dev como fallback).
+  if (process.env.RESEND_FROM_EMAIL) {
+    fromReplit.fromEmail = process.env.RESEND_FROM_EMAIL
+  }
   cachedCreds = fromReplit
   cacheExpiresAt = now + 5 * 60 * 1000
   return cachedCreds
@@ -57,12 +62,22 @@ export async function sendEmail(opts: {
   replyTo?: string
 }) {
   const { apiKey, fromEmail } = await getCreds()
+  const usingOwnKey = !!process.env.RESEND_API_KEY
   const client = new Resend(apiKey)
-  return client.emails.send({
+  const result = await client.emails.send({
     from: fromEmail,
     to: opts.to,
     subject: opts.subject,
     html: opts.html,
     replyTo: opts.replyTo,
   })
+  console.log(
+    `[resend] sent via ${usingOwnKey ? "own RESEND_API_KEY" : "Replit-managed connector"} from=${fromEmail} to=${Array.isArray(opts.to) ? opts.to.join(",") : opts.to} id=${(result as any)?.data?.id ?? "?"} error=${JSON.stringify((result as any)?.error ?? null)}`,
+  )
+  if ((result as any)?.error) {
+    throw new Error(
+      `Resend rejeitou o envio: ${JSON.stringify((result as any).error)}`,
+    )
+  }
+  return result
 }
