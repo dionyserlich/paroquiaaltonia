@@ -2,14 +2,15 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import RichTextEditor from "@/components/rich-text-editor"
 import DeployStatus from "@/components/deploy-status"
 import "@/app/admin/admin.css"
 
-export default function EditarNoticia({ params }: { params: { id: string } }) {
+export default function EditarNoticia({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const [formData, setFormData] = useState({
     id: 0,
@@ -27,7 +28,7 @@ export default function EditarNoticia({ params }: { params: { id: string } }) {
   useEffect(() => {
     async function loadNoticia() {
       try {
-        const res = await fetch(`/api/noticias/${params.id}`)
+        const res = await fetch(`/api/noticias/${id}`)
         if (!res.ok) throw new Error("Falha ao carregar notícia")
 
         const data = await res.json()
@@ -49,7 +50,7 @@ export default function EditarNoticia({ params }: { params: { id: string } }) {
     }
 
     loadNoticia()
-  }, [params.id])
+  }, [id])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target
@@ -73,7 +74,7 @@ export default function EditarNoticia({ params }: { params: { id: string } }) {
         data: new Date(formData.data).toISOString(),
       }
 
-      const res = await fetch(`/api/admin/noticias/${params.id}`, {
+      const res = await fetch(`/api/admin/noticias/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

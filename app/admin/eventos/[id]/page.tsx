@@ -2,15 +2,16 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import RichTextEditor from "@/components/rich-text-editor"
 import DeployStatus from "@/components/deploy-status"
 import "@/app/admin/admin.css"
 
-export default function EditarEvento({ params }: { params: { id: string } }) {
-  const isNew = params.id === "novo"
+export default function EditarEvento({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const isNew = id === "novo"
   const router = useRouter()
   const [formData, setFormData] = useState({
     id: 0,
@@ -32,7 +33,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
 
     async function loadEvento() {
       try {
-        const res = await fetch(`/api/proximos-eventos/${params.id}`)
+        const res = await fetch(`/api/proximos-eventos/${id}`)
         if (!res.ok) throw new Error("Falha ao carregar evento")
 
         const data = await res.json()
@@ -49,7 +50,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
     }
 
     loadEvento()
-  }, [isNew, params.id])
+  }, [isNew, id])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target
@@ -67,7 +68,7 @@ export default function EditarEvento({ params }: { params: { id: string } }) {
     setCommitSha(undefined)
 
     try {
-      const url = isNew ? "/api/admin/eventos" : `/api/admin/eventos/${params.id}`
+      const url = isNew ? "/api/admin/eventos" : `/api/admin/eventos/${id}`
       const method = isNew ? "POST" : "PUT"
 
       const res = await fetch(url, {

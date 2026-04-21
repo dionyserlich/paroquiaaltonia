@@ -2,14 +2,15 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import DeployStatus from "@/components/deploy-status"
 import "@/app/admin/admin.css"
 
-export default function EditarMissa({ params }: { params: { id: string } }) {
-  const isNew = params.id === "nova"
+export default function EditarMissa({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const isNew = id === "nova"
   const router = useRouter()
   const [formData, setFormData] = useState({
     id: 0,
@@ -29,7 +30,7 @@ export default function EditarMissa({ params }: { params: { id: string } }) {
 
     async function loadMissa() {
       try {
-        const res = await fetch(`/api/missas/${params.id}`)
+        const res = await fetch(`/api/missas/${id}`)
         if (!res.ok) throw new Error("Falha ao carregar missa")
 
         const data = await res.json()
@@ -52,7 +53,7 @@ export default function EditarMissa({ params }: { params: { id: string } }) {
     }
 
     loadMissa()
-  }, [isNew, params.id])
+  }, [isNew, id])
 
   function formatDateForInput(date: Date) {
     return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
@@ -77,7 +78,7 @@ export default function EditarMissa({ params }: { params: { id: string } }) {
         fim: new Date(formData.fim).toISOString(),
       }
 
-      const url = isNew ? "/api/admin/missas" : `/api/admin/missas/${params.id}`
+      const url = isNew ? "/api/admin/missas" : `/api/admin/missas/${id}`
       const method = isNew ? "POST" : "PUT"
 
       const res = await fetch(url, {
