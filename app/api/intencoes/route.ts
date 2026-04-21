@@ -11,8 +11,6 @@ const TIPOS_VALIDOS = [
   "Outros",
 ]
 
-// Destinatário provisório de teste enquanto valida-se a entregabilidade
-// pela Resend. Voltar para o email da paróquia quando confirmado.
 const DESTINATARIO = "paroquia_altonia@hotmail.com"
 
 function escapeHtml(s: string) {
