@@ -14,22 +14,36 @@ export default function LiveMassButton() {
 
   useEffect(() => {
     async function loadData() {
-      const missasData = await getMissas()
+      const [missasData, botLive] = await Promise.all([
+        getMissas(),
+        fetch(`/api/missa-ao-vivo?t=${Date.now()}`, { cache: "no-store" })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ])
 
       if (!Array.isArray(missasData) || missasData.length === 0) {
         setMissas([])
-        setMissaAoVivo(null)
-        setUltimaMissa(null)
-        setIsLive(false)
+        if (botLive?.linkEmbed) {
+          setMissaAoVivo(botLive)
+          setIsLive(true)
+          setUltimaMissa(null)
+        } else {
+          setMissaAoVivo(null)
+          setUltimaMissa(null)
+          setIsLive(false)
+        }
         return
       }
 
       setMissas(missasData)
-
-      // Verificar se tem missa ao vivo agora
       const agora = new Date()
 
-      // Procurar por uma missa que esteja acontecendo agora
+      if (botLive?.linkEmbed) {
+        setMissaAoVivo(botLive)
+        setIsLive(true)
+        return
+      }
+
       const missaAtual = missasData.find((missa) => {
         const inicio = new Date(missa.inicio)
         const fim = new Date(missa.fim)
@@ -42,9 +56,7 @@ export default function LiveMassButton() {
       } else {
         setMissaAoVivo(null)
         setIsLive(false)
-
-        // Se não tiver missa ao vivo, pegar a última missa
-        setUltimaMissa(missasData[0]) // A lista já vem ordenada pela API
+        setUltimaMissa(missasData[0])
       }
     }
 

@@ -52,6 +52,18 @@ CREATE TABLE IF NOT EXISTS missa_ao_vivo (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS live_check_log (
+  id SERIAL PRIMARY KEY,
+  ran_at TIMESTAMPTZ DEFAULT NOW(),
+  trigger TEXT NOT NULL,
+  in_window BOOLEAN NOT NULL DEFAULT FALSE,
+  status TEXT NOT NULL,
+  video_id TEXT,
+  video_title TEXT,
+  message TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_live_check_log_ran_at ON live_check_log (ran_at DESC);
+
 CREATE TABLE IF NOT EXISTS push_subscriptions (
   endpoint TEXT PRIMARY KEY,
   p256dh TEXT NOT NULL,
