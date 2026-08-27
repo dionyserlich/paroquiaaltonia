@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter } from 'next/font/google'
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import ServiceWorkerCleanup from "@/components/service-worker-cleanup"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -74,6 +75,7 @@ export default function RootLayout({
       <head />
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+          <ServiceWorkerCleanup />
           {children}
         </ThemeProvider>
       </body>

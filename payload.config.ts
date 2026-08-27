@@ -19,6 +19,7 @@ import { Sobre } from "./globals/Sobre"
 import { Dizimo } from "./globals/Dizimo"
 import { Ofertas } from "./globals/Ofertas"
 import { ContactInfo } from "./globals/ContactInfo"
+import { Horarios } from "./globals/Horarios"
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -40,7 +41,7 @@ export default buildConfig({
     disable: true,
   },
   collections: [Users, Media, Noticias, Eventos, Missas, Banners, Pastorais, Intencoes],
-  globals: [MassSchedule, Sobre, Dizimo, Ofertas, ContactInfo],
+  globals: [MassSchedule, Sobre, Dizimo, Ofertas, ContactInfo, Horarios],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {

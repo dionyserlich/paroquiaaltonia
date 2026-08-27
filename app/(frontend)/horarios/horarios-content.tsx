@@ -1,28 +1,32 @@
-"use client"
-
 import { Clock, Calendar, Users, Phone, Mail, MapPin, MessageCircle } from "lucide-react"
+import { groupMassScheduleForDisplay } from "@/app/lib/mass-schedule-display"
 
-export default function HorariosContent() {
-  const handleWhatsAppClick = () => {
-    const phoneNumber = "5544998680244"
-    const message = "Olá! Gostaria de mais informações sobre a paróquia."
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, "_blank")
-  }
+type Props = {
+  horariosMissas: { diaSemana: string; hora: number; minuto: number; label?: string | null }[]
+  missasEspeciais: { descricao: string; horario: string }[]
+  horarioSecretaria?: string | null
+  atendimentoPadres?: string | null
+  confissoes?: string | null
+  observacao?: string | null
+  contato: { telefone?: string | null; whatsapp?: string | null; email?: string | null; endereco?: string | null }
+}
 
-  const handlePhoneClick = () => {
-    window.open("tel:+554436591110", "_self")
-  }
-
-  const handleEmailClick = () => {
-    window.open("mailto:paroquia_altonia@hotmail.com", "_self")
-  }
-
-  const handleAddressClick = () => {
-    const address = "Rua da Bandeira, 426 – Centro, Altônia – PR, CEP: 87550-000"
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
-    window.open(mapsUrl, "_blank")
-  }
+export default function HorariosContent({
+  horariosMissas,
+  missasEspeciais,
+  horarioSecretaria,
+  atendimentoPadres,
+  confissoes,
+  observacao,
+  contato,
+}: Props) {
+  const linhasMissas = groupMassScheduleForDisplay(horariosMissas)
+  const whatsappUrl = contato.whatsapp
+    ? `https://wa.me/${contato.whatsapp}?text=${encodeURIComponent("Olá! Gostaria de mais informações sobre a paróquia.")}`
+    : null
+  const mapsUrl = contato.endereco
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contato.endereco)}`
+    : null
 
   return (
     <div className="space-y-6">
@@ -34,99 +38,61 @@ export default function HorariosContent() {
         </div>
 
         <div className="space-y-3">
-          <div className="flex justify-between items-center py-2 border-b border-blue-800/30">
-            <span className="text-white font-medium">Segunda à sexta-feira:</span>
-            <span className="text-yellow-500">07h30 | 20h00</span>
-          </div>
-
-          <div className="flex justify-between items-center py-2 border-b border-blue-800/30">
-            <span className="text-white font-medium">Sábado:</span>
-            <span className="text-yellow-500">20h00</span>
-          </div>
-
-          <div className="flex justify-between items-center py-2 border-b border-blue-800/30">
-            <span className="text-white font-medium">Domingo:</span>
-            <span className="text-yellow-500">08h30 | 10h30 | 18h00</span>
-          </div>
+          {linhasMissas.map((linha) => (
+            <div key={linha.label} className="flex justify-between items-center py-2 border-b border-blue-800/30">
+              <span className="text-white font-medium">{linha.label}:</span>
+              <span className="text-yellow-500">{linha.horarios}</span>
+            </div>
+          ))}
         </div>
 
-        <div className="mt-6">
-          <h4 className="text-white font-medium mb-3">Missas Especiais:</h4>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center py-1">
-              <span className="text-gray-300 text-sm">1ª Sexta-feira do mês (Apostolado da Oração):</span>
-              <span className="text-yellow-500 text-sm">20h00</span>
-            </div>
-
-            <div className="flex justify-between items-center py-1">
-              <span className="text-gray-300 text-sm">3ª Quarta-feira do mês (RCC):</span>
-              <span className="text-yellow-500 text-sm">20h00</span>
-            </div>
-
-            <div className="flex justify-between items-center py-1">
-              <span className="text-gray-300 text-sm">4ª Sexta-feira do mês (Enfermos):</span>
-              <span className="text-yellow-500 text-sm">15h00</span>
+        {missasEspeciais.length > 0 && (
+          <div className="mt-6">
+            <h4 className="text-white font-medium mb-3">Missas Especiais:</h4>
+            <div className="space-y-2">
+              {missasEspeciais.map((m, i) => (
+                <div key={i} className="flex justify-between items-center py-1">
+                  <span className="text-gray-300 text-sm">{m.descricao}:</span>
+                  <span className="text-yellow-500 text-sm">{m.horario}</span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Horário da Secretaria */}
-      <div className="bg-[#0c2657] p-6 rounded-lg">
-        <div className="flex items-center mb-4 text-yellow-500">
-          <Calendar className="mr-2" size={20} />
-          <h3 className="text-lg font-bold">Horário da Secretaria</h3>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-center py-2">
-            <span className="text-white font-medium">Segunda à sexta-feira:</span>
-            <div className="text-right">
-              <div className="text-yellow-500">08h00 às 12h00</div>
-              <div className="text-yellow-500">13h30 às 18h00</div>
-            </div>
+      {horarioSecretaria && (
+        <div className="bg-[#0c2657] p-6 rounded-lg">
+          <div className="flex items-center mb-4 text-yellow-500">
+            <Calendar className="mr-2" size={20} />
+            <h3 className="text-lg font-bold">Horário da Secretaria</h3>
           </div>
+          <p className="text-yellow-500 whitespace-pre-line">{horarioSecretaria}</p>
         </div>
-      </div>
+      )}
 
       {/* Atendimento dos Padres */}
-      <div className="bg-[#0c2657] p-6 rounded-lg">
-        <div className="flex items-center mb-4 text-yellow-500">
-          <Users className="mr-2" size={20} />
-          <h3 className="text-lg font-bold">Atendimento dos Padres</h3>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-center py-2 border-b border-blue-800/30">
-            <span className="text-white font-medium">Segunda, quarta e sexta-feira:</span>
-            <span className="text-yellow-500">08h30 às 12h00</span>
+      {atendimentoPadres && (
+        <div className="bg-[#0c2657] p-6 rounded-lg">
+          <div className="flex items-center mb-4 text-yellow-500">
+            <Users className="mr-2" size={20} />
+            <h3 className="text-lg font-bold">Atendimento dos Padres</h3>
           </div>
-
-          <div className="flex justify-between items-center py-2">
-            <span className="text-white font-medium">Quinta-feira:</span>
-            <div className="text-right">
-              <div className="text-yellow-500">08h30 às 12h00</div>
-              <div className="text-yellow-500">19h30 às 21h00</div>
-            </div>
-          </div>
+          <p className="text-yellow-500 whitespace-pre-line">{atendimentoPadres}</p>
         </div>
-      </div>
+      )}
 
       {/* Confissões */}
-      <div className="bg-[#0c2657] p-6 rounded-lg">
-        <div className="flex items-center mb-4 text-yellow-500">
-          <Users className="mr-2" size={20} />
-          <h3 className="text-lg font-bold">Confissões</h3>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-center py-2">
-            <span className="text-white font-medium">Segunda-feira:</span>
-            <span className="text-yellow-500">15h00 às 18h00</span>
+      {confissoes && (
+        <div className="bg-[#0c2657] p-6 rounded-lg">
+          <div className="flex items-center mb-4 text-yellow-500">
+            <Users className="mr-2" size={20} />
+            <h3 className="text-lg font-bold">Confissões</h3>
           </div>
-          <p className="text-gray-300 text-sm italic">Local: Igreja Matriz</p>
+          <p className="text-yellow-500 whitespace-pre-line">{confissoes}</p>
         </div>
-      </div>
+      )}
 
       {/* Contatos */}
       <div className="bg-[#0c2657] p-6 rounded-lg">
@@ -136,68 +102,76 @@ export default function HorariosContent() {
         </div>
 
         <div className="space-y-4">
-          <button
-            onClick={handleEmailClick}
-            className="flex items-center w-full p-3 bg-blue-800/30 rounded-lg hover:bg-blue-700/30 transition-colors"
-          >
-            <Mail className="mr-3 text-yellow-500" size={20} />
-            <div className="text-left">
-              <div className="text-white font-medium">E-mail</div>
-              <div className="text-gray-300 text-sm">paroquia_altonia@hotmail.com</div>
-            </div>
-          </button>
+          {contato.email && (
+            <a
+              href={`mailto:${contato.email}`}
+              className="flex items-center w-full p-3 bg-blue-800/30 rounded-lg hover:bg-blue-700/30 transition-colors"
+            >
+              <Mail className="mr-3 text-yellow-500" size={20} />
+              <div className="text-left">
+                <div className="text-white font-medium">E-mail</div>
+                <div className="text-gray-300 text-sm">{contato.email}</div>
+              </div>
+            </a>
+          )}
 
-          <button
-            onClick={handlePhoneClick}
-            className="flex items-center w-full p-3 bg-blue-800/30 rounded-lg hover:bg-blue-700/30 transition-colors"
-          >
-            <Phone className="mr-3 text-yellow-500" size={20} />
-            <div className="text-left">
-              <div className="text-white font-medium">Telefone</div>
-              <div className="text-gray-300 text-sm">(44) 3659-1110</div>
-            </div>
-          </button>
+          {contato.telefone && (
+            <a
+              href={`tel:${contato.telefone}`}
+              className="flex items-center w-full p-3 bg-blue-800/30 rounded-lg hover:bg-blue-700/30 transition-colors"
+            >
+              <Phone className="mr-3 text-yellow-500" size={20} />
+              <div className="text-left">
+                <div className="text-white font-medium">Telefone</div>
+                <div className="text-gray-300 text-sm">{contato.telefone}</div>
+              </div>
+            </a>
+          )}
 
-          <button
-            onClick={handleWhatsAppClick}
-            className="flex items-center w-full p-3 bg-green-800/30 rounded-lg hover:bg-green-700/30 transition-colors"
-          >
-            <MessageCircle className="mr-3 text-green-400" size={20} />
-            <div className="text-left">
-              <div className="text-white font-medium">WhatsApp</div>
-              <div className="text-gray-300 text-sm">(44) 99868-0244</div>
-            </div>
-          </button>
+          {whatsappUrl && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center w-full p-3 bg-green-800/30 rounded-lg hover:bg-green-700/30 transition-colors"
+            >
+              <MessageCircle className="mr-3 text-green-400" size={20} />
+              <div className="text-left">
+                <div className="text-white font-medium">WhatsApp</div>
+                <div className="text-gray-300 text-sm">{contato.whatsapp}</div>
+              </div>
+            </a>
+          )}
         </div>
       </div>
 
       {/* Endereço */}
-      <div className="bg-[#0c2657] p-6 rounded-lg">
-        <div className="flex items-center mb-4 text-yellow-500">
-          <MapPin className="mr-2" size={20} />
-          <h3 className="text-lg font-bold">Endereço</h3>
-        </div>
-
-        <button
-          onClick={handleAddressClick}
-          className="w-full p-3 bg-blue-800/30 rounded-lg hover:bg-blue-700/30 transition-colors text-left"
-        >
-          <div className="text-white">
-            <div className="font-medium">Rua da Bandeira, 426 – Centro</div>
-            <div className="text-gray-300 text-sm mt-1">Caixa Postal 42</div>
-            <div className="text-gray-300 text-sm">CEP: 87550-000 – Altônia – PR</div>
-            <div className="text-yellow-500 text-sm mt-2">Decanato de Pérola</div>
+      {contato.endereco && (
+        <div className="bg-[#0c2657] p-6 rounded-lg">
+          <div className="flex items-center mb-4 text-yellow-500">
+            <MapPin className="mr-2" size={20} />
+            <h3 className="text-lg font-bold">Endereço</h3>
           </div>
-        </button>
-      </div>
+
+          <a
+            href={mapsUrl!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full p-3 bg-blue-800/30 rounded-lg hover:bg-blue-700/30 transition-colors text-left"
+          >
+            <div className="text-white">{contato.endereco}</div>
+          </a>
+        </div>
+      )}
 
       {/* Observação */}
-      <div className="bg-yellow-500/10 p-4 rounded-lg border border-yellow-500/30">
-        <p className="text-yellow-500 text-sm text-center">
-          <strong>Observação:</strong> Os horários podem sofrer alterações em datas especiais. Consulte nossos canais de
-          comunicação para confirmações.
-        </p>
-      </div>
+      {observacao && (
+        <div className="bg-yellow-500/10 p-4 rounded-lg border border-yellow-500/30">
+          <p className="text-yellow-500 text-sm text-center">
+            <strong>Observação:</strong> {observacao}
+          </p>
+        </div>
+      )}
     </div>
   )
 }

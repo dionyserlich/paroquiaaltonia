@@ -22,7 +22,7 @@ export async function subscribe(subscription: Sub) {
       return { success: false, error: "Inscrição inválida" }
     }
     await query(
-      `INSERT INTO push_subscriptions (endpoint, p256dh, auth)
+      `INSERT INTO bot.push_subscriptions (endpoint, p256dh, auth)
        VALUES ($1,$2,$3)
        ON CONFLICT (endpoint) DO NOTHING`,
       [subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth]
@@ -36,7 +36,7 @@ export async function subscribe(subscription: Sub) {
 
 export async function unsubscribe(endpoint: string) {
   try {
-    await query(`DELETE FROM push_subscriptions WHERE endpoint=$1`, [endpoint])
+    await query(`DELETE FROM bot.push_subscriptions WHERE endpoint=$1`, [endpoint])
     return { success: true }
   } catch (error) {
     console.error("Erro ao cancelar inscrição:", error)
@@ -50,7 +50,7 @@ export async function sendNotificationToAll(title: string, body: string, url = "
       return { success: false, error: "VAPID keys não configuradas" }
     }
     const { rows } = await query<{ endpoint: string; p256dh: string; auth: string }>(
-      `SELECT endpoint, p256dh, auth FROM push_subscriptions`
+      `SELECT endpoint, p256dh, auth FROM bot.push_subscriptions`
     )
     const payload = JSON.stringify({ title, body, url })
 
@@ -75,7 +75,7 @@ export async function sendNotificationToAll(title: string, body: string, url = "
       }
     })
     if (expiredEndpoints.length) {
-      await query(`DELETE FROM push_subscriptions WHERE endpoint = ANY($1::text[])`, [expiredEndpoints])
+      await query(`DELETE FROM bot.push_subscriptions WHERE endpoint = ANY($1::text[])`, [expiredEndpoints])
     }
 
     return {

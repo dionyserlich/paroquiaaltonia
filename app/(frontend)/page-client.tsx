@@ -21,24 +21,9 @@ export default function PageClient({ children }: { children: React.ReactNode }) 
     checkUpdates()
     const interval = setInterval(checkUpdates, 5 * 60 * 1000)
 
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .getRegistrations()
-        .then(async (registrations) => {
-          for (const registration of registrations) {
-            try {
-              await registration.unregister()
-            } catch {}
-          }
-          if ("caches" in window) {
-            try {
-              const keys = await caches.keys()
-              await Promise.all(keys.map((k) => caches.delete(k)))
-            } catch {}
-          }
-        })
-        .catch(() => {})
-    }
+    // Limpeza do service worker antigo agora roda em app/(frontend)/layout.tsx
+    // (via ServiceWorkerCleanup), pra valer em toda página, não só nas que
+    // usam PageClient.
 
     return () => {
       clearTimeout(timer)

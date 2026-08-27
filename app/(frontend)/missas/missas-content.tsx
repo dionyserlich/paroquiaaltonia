@@ -18,7 +18,7 @@ export default function MissasContent() {
   useEffect(() => {
     async function carregarMissas() {
       try {
-        const response = await fetch("/api/missas")
+        const response = await fetch("/api/missas/publicas")
         if (response.ok) {
           const data = await response.json()
           // Filtrar apenas os campos necessários

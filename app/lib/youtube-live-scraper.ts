@@ -1,56 +1,57 @@
+// Detecção de live via YouTube Data API v3 (search.list), não mais scraping
+// de HTML — contrato estável, não quebra quando o YouTube muda o layout do
+// site. Precisa de YOUTUBE_API_KEY e YOUTUBE_CHANNEL_ID (o id real do canal,
+// não o @handle — obtido uma vez via channels.list(forHandle=...) ou pela
+// página "Sobre" do canal no YouTube).
+//
+// Cota: search.list custa 100 unidades por chamada; cota gratuita padrão é
+// 10.000/dia (100 chamadas/dia). O cron só chama isto dentro da janela de
+// missa (30 min antes a 90 min depois, a cada 5 min) — média de ~48
+// chamadas/dia, dentro da cota com folga.
 export type LiveVideo = {
   videoId: string
   title: string
   embedUrl: string
 }
 
-const LIVE_URL = "https://www.youtube.com/@ParoquiaAlt%C3%B4nia/live"
-
 export async function fetchLiveVideo(): Promise<LiveVideo | null> {
-  const res = await fetch(LIVE_URL, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      "Accept-Language": "pt-BR,pt;q=0.9",
-    },
-    cache: "no-store",
-    redirect: "follow",
-  })
+  const apiKey = process.env.YOUTUBE_API_KEY
+  const channelId = process.env.YOUTUBE_CHANNEL_ID
+  if (!apiKey || !channelId) {
+    throw new Error("YOUTUBE_API_KEY ou YOUTUBE_CHANNEL_ID não configurados")
+  }
+
+  const url = new URL("https://www.googleapis.com/youtube/v3/search")
+  url.searchParams.set("part", "snippet")
+  url.searchParams.set("channelId", channelId)
+  url.searchParams.set("eventType", "live")
+  url.searchParams.set("type", "video")
+  url.searchParams.set("key", apiKey)
+
+  const res = await fetch(url.toString(), { cache: "no-store" })
+
+  if (res.status === 403) {
+    const body = await res.text().catch(() => "")
+    if (body.includes("quotaExceeded")) {
+      throw new Error("YouTube Data API: cota diária excedida (quotaExceeded)")
+    }
+    throw new Error(`YouTube Data API respondeu 403: ${body.slice(0, 200)}`)
+  }
   if (!res.ok) {
-    throw new Error(`YouTube respondeu ${res.status}`)
-  }
-  const html = await res.text()
-
-  const canonMatch = html.match(/<link\s+rel="canonical"\s+href="([^"]+)"\s*\/?>/i)
-  const canonical = canonMatch?.[1] ?? ""
-  const videoIdMatch = canonical.match(/[?&]v=([a-zA-Z0-9_-]{11})/)
-  if (!videoIdMatch) {
-    return null
-  }
-  const videoId = videoIdMatch[1]
-
-  const isLive = /"isLive"\s*:\s*true/.test(html) || /"isLiveBroadcast"\s*:\s*"True"/.test(html)
-  if (!isLive) {
-    return null
+    throw new Error(`YouTube Data API respondeu ${res.status}`)
   }
 
-  let title = "Transmissão ao vivo"
-  const ogTitle = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i)
-  if (ogTitle?.[1]) title = decodeHtmlEntities(ogTitle[1])
+  const data = (await res.json()) as {
+    items?: { id?: { videoId?: string }; snippet?: { title?: string } }[]
+  }
+
+  const item = data.items?.[0]
+  const videoId = item?.id?.videoId
+  if (!videoId) return null
 
   return {
     videoId,
-    title,
+    title: item?.snippet?.title || "Transmissão ao vivo",
     embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1`,
   }
-}
-
-function decodeHtmlEntities(s: string): string {
-  return s
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
 }

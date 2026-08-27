@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { query } from "@/app/lib/db"
+import { payloadClient } from "@/app/lib/payload"
 import { sendEmail } from "@/app/lib/resend"
 
 const TIPOS_VALIDOS = [
@@ -51,18 +51,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "E-mail inválido." }, { status: 400 })
     }
 
-    const { rows } = await query<{ id: number; created_at: string }>(
-      `INSERT INTO intencoes (nome, email, telefone, tipo, intencao, data_preferida)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       RETURNING id, created_at`,
-      [nome, email, telefone, tipo, intencao, dataPreferida],
-    )
-    const created = rows[0]
+    const payload = await payloadClient()
+    const created = await payload.create({
+      collection: "intencoes",
+      data: { nome, email: email || undefined, telefone, tipo, intencao, dataPreferida, status: "pendente" },
+    })
 
     const html = `
       <h2>Nova intenção de missa</h2>
       <p><strong>Recebida em:</strong> ${escapeHtml(
-        new Date(created.created_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
+        new Date(created.createdAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
       )}</p>
       <p><strong>Nome:</strong> ${escapeHtml(nome)}</p>
       ${email ? `<p><strong>E-mail:</strong> ${escapeHtml(email)}</p>` : ""}

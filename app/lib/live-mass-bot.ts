@@ -1,6 +1,29 @@
 import { query } from "@/app/lib/db"
-import { findActiveMassWindow } from "@/app/lib/mass-schedule"
+import { findActiveMassWindow, type MassSlot } from "@/app/lib/mass-schedule"
 import { fetchLiveVideo } from "@/app/lib/youtube-live-scraper"
+import { payloadClient } from "@/app/lib/payload"
+
+// Busca o horário semanal no Global do Payload (fonte única — também usada
+// por /horarios) em vez da constante fixa. Cai no fallback hardcoded só se o
+// Global vier vazio por algum motivo.
+async function loadSchedule(): Promise<MassSlot[]> {
+  try {
+    const payload = await payloadClient()
+    const global = await payload.findGlobal({ slug: "mass-schedule" })
+    const horarios = (global.horarios || []) as { diaSemana: string; hora: number; minuto: number; label?: string | null }[]
+    if (horarios.length === 0) throw new Error("Global mass-schedule vazio")
+    return horarios.map((h) => ({
+      day: Number(h.diaSemana) as MassSlot["day"],
+      hour: h.hora,
+      minute: h.minuto,
+      label: h.label || `Missa ${h.diaSemana} ${h.hora}h${h.minuto}`,
+    }))
+  } catch (err) {
+    console.error("[live-mass-bot] falha ao buscar mass-schedule do Payload, usando fallback:", err)
+    const { MASS_SCHEDULE } = await import("@/app/lib/mass-schedule")
+    return MASS_SCHEDULE
+  }
+}
 
 export type RunResult = {
   ranAt: string
@@ -13,7 +36,8 @@ export type RunResult = {
 
 export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunResult> {
   const now = new Date()
-  const win = findActiveMassWindow(now)
+  const schedule = await loadSchedule()
+  const win = findActiveMassWindow(now, schedule)
 
   if (!win.inWindow) {
     await clearExpiredLive(now)
@@ -32,8 +56,27 @@ export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunR
   try {
     const live = await fetchLiveVideo()
     if (live) {
+      // Só cria um registro permanente em `missas` na primeira detecção deste
+      // vídeo (não a cada tick de 5 min enquanto a mesma live continuar) —
+      // compara com o que já está salvo como "ao vivo agora".
+      const { rows: atuais } = await query<{ linkEmbed: string | null }>(
+        `SELECT link_embed AS "linkEmbed" FROM bot.missa_ao_vivo WHERE id = 1`
+      )
+      const jaRegistrada = atuais[0]?.linkEmbed === live.embedUrl
+      if (!jaRegistrada && win.startsAt && win.endsAt) {
+        try {
+          const payload = await payloadClient()
+          await payload.create({
+            collection: "missas",
+            data: { titulo: live.title, inicio: win.startsAt.toISOString(), fim: win.endsAt.toISOString(), linkEmbed: live.embedUrl },
+          })
+        } catch (err) {
+          console.error("[live-mass-bot] falha ao criar registro em missas:", err)
+        }
+      }
+
       await query(
-        `INSERT INTO missa_ao_vivo (id, titulo, inicio, fim, link_embed, updated_at)
+        `INSERT INTO bot.missa_ao_vivo (id, titulo, inicio, fim, link_embed, updated_at)
          VALUES (1, $1, $2, $3, $4, NOW())
          ON CONFLICT (id) DO UPDATE
            SET titulo=EXCLUDED.titulo, inicio=EXCLUDED.inicio, fim=EXCLUDED.fim,
@@ -75,7 +118,7 @@ export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunR
 
 async function clearExpiredLive(now: Date) {
   await query(
-    `UPDATE missa_ao_vivo
+    `UPDATE bot.missa_ao_vivo
      SET link_embed = NULL, updated_at = NOW()
      WHERE id = 1 AND (fim IS NULL OR fim < $1)`,
     [now]
@@ -85,7 +128,7 @@ async function clearExpiredLive(now: Date) {
 async function logRun(trigger: string, r: RunResult) {
   try {
     await query(
-      `INSERT INTO live_check_log (trigger, in_window, status, video_id, video_title, message)
+      `INSERT INTO bot.live_check_log (trigger, in_window, status, video_id, video_title, message)
        VALUES ($1,$2,$3,$4,$5,$6)`,
       [trigger, r.inWindow, r.status, r.videoId ?? null, r.videoTitle ?? null, r.message ?? null]
     )
@@ -103,7 +146,7 @@ export async function getCurrentLiveMass() {
     updatedAt: string | null
   }>(
     `SELECT titulo, inicio, fim, link_embed AS "linkEmbed", updated_at AS "updatedAt"
-     FROM missa_ao_vivo WHERE id = 1`
+     FROM bot.missa_ao_vivo WHERE id = 1`
   )
   const row = rows[0]
   if (!row || !row.linkEmbed) return null
@@ -116,7 +159,7 @@ export async function getRecentLogs(limit = 20) {
   const { rows } = await query(
     `SELECT id, ran_at AS "ranAt", trigger, in_window AS "inWindow",
             status, video_id AS "videoId", video_title AS "videoTitle", message
-     FROM live_check_log ORDER BY ran_at DESC LIMIT $1`,
+     FROM bot.live_check_log ORDER BY ran_at DESC LIMIT $1`,
     [limit]
   )
   return rows

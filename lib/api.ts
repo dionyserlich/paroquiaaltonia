@@ -3,7 +3,7 @@
 export async function getMissas() {
   try {
     const timestamp = new Date().getTime()
-    const res = await fetch(`/api/missas?t=${timestamp}`, {
+    const res = await fetch(`/api/missas/publicas?t=${timestamp}`, {
       next: { revalidate: 0 },
       cache: "no-store",
     })

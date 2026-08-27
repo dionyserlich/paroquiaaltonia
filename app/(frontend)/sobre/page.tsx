@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
 import SobreContent from "./sobre-content"
+import { payloadClient } from "@/app/lib/payload"
 
 export const metadata: Metadata = {
   title: "Sobre a Paróquia",
@@ -29,13 +30,24 @@ export const metadata: Metadata = {
   },
 }
 
-export default function SobrePage() {
+export default async function SobrePage() {
+  const payload = await payloadClient()
+  const [sobre, contactInfo] = await Promise.all([
+    payload.findGlobal({ slug: "sobre" }),
+    payload.findGlobal({ slug: "contact-info" }),
+  ])
+
   return (
     <>
       <Header />
       <main className="min-h-screen">
         <div className="page-no-hero p-6">
-          <SobreContent />
+          <SobreContent
+            introducao={sobre.introducao}
+            timeline={(sobre.timeline || []) as any}
+            legado={sobre.legado}
+            whatsapp={contactInfo.whatsapp}
+          />
         </div>
       </main>
       <BottomNavbar />

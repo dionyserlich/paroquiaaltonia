@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
 import DizimoContent from "./dizimo-content"
+import { payloadClient } from "@/app/lib/payload"
 
 export const metadata: Metadata = {
   title: "Dízimo",
@@ -20,13 +21,16 @@ export const metadata: Metadata = {
   },
 }
 
-export default function DizimoPage() {
+export default async function DizimoPage() {
+  const payload = await payloadClient()
+  const dizimo = await payload.findGlobal({ slug: "dizimo" })
+
   return (
     <>
       <Header />
       <main className="min-h-screen">
         <div className="page-no-hero p-6">
-          <DizimoContent />
+          <DizimoContent conteudo={dizimo.conteudo} chavePix={dizimo.chavePix} />
         </div>
       </main>
       <BottomNavbar />

@@ -1,8 +1,16 @@
-"use client"
-
 import { Heart, Calendar, Shield, Users, Gift, Repeat } from "lucide-react"
+import { RichText as RichTextBase } from "@payloadcms/richtext-lexical/react"
 
-export default function DizimoContent() {
+// Cast: o tipo de retorno do RichText (ReactNode) não bate com o que a
+// versão do @types/react instalada aceita como componente JSX.
+const RichText: (props: { data: unknown; className?: string }) => any = RichTextBase as any
+
+type Props = {
+  conteudo?: unknown
+  chavePix?: string | null
+}
+
+export default function DizimoContent({ conteudo, chavePix }: Props) {
   const beneficios = [
     {
       titulo: "Contribuição Regular",
@@ -49,12 +57,19 @@ export default function DizimoContent() {
         {/* O que é o Dízimo */}
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
           <h2 className="text-2xl font-bold mb-4 text-yellow-500">O que é o Dízimo?</h2>
-          <p className="text-gray-300 leading-relaxed">
-            O dízimo é uma contribuição mensal voluntária que representa nossa gratidão a Deus e nosso compromisso com a
-            comunidade paroquial. Tradicionalmente corresponde a 10% da renda, mas o valor pode ser ajustado conforme a
-            possibilidade de cada família.
-          </p>
+          {conteudo ? (
+            <div className="prose prose-invert max-w-none text-gray-300">
+              <RichText data={conteudo} />
+            </div>
+          ) : null}
         </div>
+
+        {chavePix && (
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-center">
+            <h2 className="text-xl font-bold mb-2 text-yellow-500">Chave PIX</h2>
+            <p className="text-gray-300 text-lg font-mono">{chavePix}</p>
+          </div>
+        )}
 
         {/* Benefícios */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
