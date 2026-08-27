@@ -66,22 +66,14 @@ export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunR
       if (!jaRegistrada && win.startsAt && win.endsAt) {
         try {
           const payload = await payloadClient()
+          // O afterChange de missas (collections/Missas.ts) dispara a
+          // notificação push a partir deste create — não duplicar aqui.
           await payload.create({
             collection: "missas",
             data: { titulo: live.title, inicio: win.startsAt.toISOString(), fim: win.endsAt.toISOString(), linkEmbed: live.embedUrl },
           })
         } catch (err) {
           console.error("[live-mass-bot] falha ao criar registro em missas:", err)
-        }
-      }
-      // Notifica só na transição pra "ao vivo" (mesma checagem acima), não a
-      // cada tick de 5 min enquanto a mesma live continuar no ar.
-      if (!jaRegistrada) {
-        try {
-          const { sendNotificationToAll } = await import("@/app/actions")
-          await sendNotificationToAll("Missa ao vivo agora!", live.title, "/")
-        } catch (err) {
-          console.error("[live-mass-bot] falha ao enviar notificação push:", err)
         }
       }
 

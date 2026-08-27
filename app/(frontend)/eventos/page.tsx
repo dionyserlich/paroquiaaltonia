@@ -20,6 +20,11 @@ export const metadata = {
   },
 }
 
+// Sem isso, Next trata esta página como estática (nenhuma API dinâmica é
+// chamada aqui) e congela o resultado do payload.find no build — conteúdo
+// publicado depois via CMS nunca aparece até o próximo deploy.
+export const dynamic = "force-dynamic"
+
 export default async function EventosPage() {
   const payload = await payloadClient()
   const { docs } = await payload.find({

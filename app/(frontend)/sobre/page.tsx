@@ -30,6 +30,11 @@ export const metadata: Metadata = {
   },
 }
 
+// Sem isso, Next trata esta página como estática (nenhuma API dinâmica é
+// chamada aqui) e congela o resultado dos payload.findGlobal no build —
+// edições feitas depois via CMS nunca aparecem até o próximo deploy.
+export const dynamic = "force-dynamic"
+
 export default async function SobrePage() {
   const payload = await payloadClient()
   const [sobre, contactInfo] = await Promise.all([
