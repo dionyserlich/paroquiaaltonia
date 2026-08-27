@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
-  try {
-    const { tipo, referencia, titulo, texto } = await request.json()
+  const { tipo, referencia, titulo, texto } = await request.json()
 
+  try {
     const apiKey = process.env.GROQ_API_KEY
 
     if (!apiKey) {
@@ -70,8 +70,7 @@ Mantenha a explicação acessível para fiéis de todos os níveis de conhecimen
     console.error("Erro ao gerar explicação:", error)
 
     // Fallback com explicação básica
-    const { tipo, referencia } = await request.json()
-    const explicacaoFallback = `Esta é uma ${tipo.toLowerCase()} da liturgia de hoje. 
+    const explicacaoFallback = `Esta é uma ${tipo.toLowerCase()} da liturgia de hoje.
   
 Referência: ${referencia}
 

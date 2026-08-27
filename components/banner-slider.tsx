@@ -122,11 +122,12 @@ export default function BannerSlider() {
 
       {banners.length > 1 && (
         <>
-          {/* Botões de navegação - aparecem no hover */}
+          {/* Sempre visíveis — opacity-0/group-hover não funciona em touch,
+              que é a maioria do público deste site. */}
           <button
             onClick={goToPrevious}
             disabled={isTransitioning}
-            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-20 transition-all duration-200 opacity-0 group-hover:opacity-100 disabled:opacity-50"
+            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-20 transition-all duration-200 disabled:opacity-50"
             aria-label="Banner anterior"
           >
             <ChevronLeft size={20} />
@@ -135,7 +136,7 @@ export default function BannerSlider() {
           <button
             onClick={goToNext}
             disabled={isTransitioning}
-            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-20 transition-all duration-200 opacity-0 group-hover:opacity-100 disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-20 transition-all duration-200 disabled:opacity-50"
             aria-label="Próximo banner"
           >
             <ChevronRight size={20} />

@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
 import { payloadClient } from "@/app/lib/payload"
 import { sendEmail } from "@/app/lib/resend"
+import { query } from "@/app/lib/db"
+
+const RATE_LIMIT_MAX = 3
+const RATE_LIMIT_WINDOW_MIN = 10
+// Preenchido só por bots (campo escondido via CSS, fora do fluxo de tab) —
+// humano nunca digita nada aqui.
+const HONEYPOT_FIELD = "empresa"
+// Formulário enviado rápido demais pra ter sido preenchido por uma pessoa.
+const MIN_FILL_TIME_MS = 2500
+
+function getClientIp(request: NextRequest) {
+  const forwardedFor = request.headers.get("x-forwarded-for")
+  return forwardedFor?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown"
+}
 
 const TIPOS_VALIDOS = [
   "Aniversário e Nascimento",
@@ -28,6 +42,33 @@ function escapeHtml(s: string) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+
+    // Honeypot preenchido, ou formulário enviado rápido demais pra ter sido
+    // digitado por uma pessoa: finge sucesso sem gravar nada, pra não
+    // sinalizar a um bot que foi bloqueado (ele tende a insistir se souber).
+    const honeypot = body?.[HONEYPOT_FIELD]
+    const renderedAt = Number(body?.renderedAt)
+    const tooFast = Number.isFinite(renderedAt) && Date.now() - renderedAt < MIN_FILL_TIME_MS
+    if (honeypot || tooFast) {
+      return NextResponse.json({ success: true, id: 0, emailEnviado: true, emailErro: null })
+    }
+
+    const ip = getClientIp(request)
+    const { rows: recentRows } = await query<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM bot.intencoes_rate_limit
+       WHERE ip = $1 AND created_at > NOW() - INTERVAL '${RATE_LIMIT_WINDOW_MIN} minutes'`,
+      [ip],
+    )
+    if (Number(recentRows[0]?.count ?? 0) >= RATE_LIMIT_MAX) {
+      return NextResponse.json(
+        { error: "Muitos envios em pouco tempo. Tente novamente mais tarde." },
+        { status: 429 },
+      )
+    }
+    // Conta essa tentativa já aqui (mesmo que a validação abaixo rejeite),
+    // pra um bot não conseguir só variar o payload e escapar do limite.
+    await query(`INSERT INTO bot.intencoes_rate_limit (ip) VALUES ($1)`, [ip])
+
     const stripCtl = (s: string) => s.replace(/[\r\n\t\0]+/g, " ").trim()
     const nome = stripCtl(String(body?.nome ?? ""))
     const email = body?.email ? stripCtl(String(body.email)) : null

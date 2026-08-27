@@ -7,7 +7,10 @@ import ServiceWorkerRegister from "@/components/service-worker-register"
 
 const inter = Inter({ subsets: ["latin"] })
 
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.paroquiaaltonia.com.br"
+
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: {
     default: "Paróquia São Sebastião de Altônia",
     template: "%s - Paróquia São Sebastião"
@@ -16,7 +19,9 @@ export const metadata: Metadata = {
   keywords: ["paróquia", "são sebastião", "altônia", "igreja católica", "missa", "liturgia", "eventos"],
   authors: [{ name: "Paróquia São Sebastião" }],
   creator: "Dionys Erlich",
-  manifest: "/manifest.json",
+  // Gerado por app/manifest.ts — a rota real é /manifest.webmanifest, não
+  // /manifest.json (esse caminho nunca existiu, quebrava o link do manifest).
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -26,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    url: "https://paroquiasaosebastiao.com.br",
+    url: baseUrl,
     siteName: "Paróquia São Sebastião",
     title: "Paróquia São Sebastião de Altônia",
     description: "Site oficial da Paróquia São Sebastião de Altônia - Missas, eventos, notícias e liturgia diária",

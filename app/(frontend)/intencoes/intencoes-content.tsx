@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Heart, Calendar, Users, Cross, Gift, Plus, Send, CheckCircle2, AlertCircle } from "lucide-react"
 
 const tiposIntencoes = [
@@ -64,6 +64,10 @@ export default function IntencoesContent() {
   const [form, setForm] = useState<FormState>(INITIAL)
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle")
   const [message, setMessage] = useState<string>("")
+  const [honeypot, setHoneypot] = useState("")
+  // Marca quando o formulário apareceu na tela — usado no servidor pra
+  // rejeitar envios rápidos demais pra terem sido preenchidos por alguém.
+  const renderedAtRef = useRef(Date.now())
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -77,7 +81,7 @@ export default function IntencoesContent() {
       const res = await fetch("/api/intencoes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, empresa: honeypot, renderedAt: renderedAtRef.current }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -134,6 +138,19 @@ export default function IntencoesContent() {
         className="bg-white/5 rounded-lg p-6 space-y-4 border border-white/10"
       >
         <h2 className="text-xl font-semibold text-yellow-500">Enviar intenção</h2>
+
+        {/* Honeypot anti-spam: invisível e fora do fluxo de tab — só um bot
+            preenche isso. */}
+        <input
+          type="text"
+          name="empresa"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          className="hidden"
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">

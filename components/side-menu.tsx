@@ -117,7 +117,12 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
               label="Pastorais"
               onClick={handleInternalLinkClick}
             />
-            <MenuItem href="/ajuda" icon={<HelpCircle size={20} />} label="Ajuda" onClick={handleInternalLinkClick} />
+            <MenuItem
+              href="/horarios"
+              icon={<HelpCircle size={20} />}
+              label="Ajuda"
+              onClick={handleInternalLinkClick}
+            />
           </MenuSection>
 
           <MenuSection title="Redes Sociais">

@@ -13,9 +13,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  images: {
-    unoptimized: true,
-  },
   devIndicators: false,
   agentRules: false,
   webpack: (webpackConfig) => {
