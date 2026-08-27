@@ -22,6 +22,14 @@ yarn-error.log*
 # vercel
 .vercel
 
+# payload — uploads locais (storage de dev; produção usa Vercel Blob)
+/media
+payload-types.ts
+
+# arquivos de agente auto-gerados pelo Next 16 (next.config: agentRules)
+/AGENTS.md
+/CLAUDE.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

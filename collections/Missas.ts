@@ -10,6 +10,14 @@ export const Missas: CollectionConfig = {
     read: () => true,
   },
   fields: [
+    // Id do registro no banco antigo, só para redirecionar links antigos
+    // (ver Noticias.ts para a explicação completa).
+    {
+      name: "legacyId",
+      type: "number",
+      unique: true,
+      admin: { readOnly: true },
+    },
     {
       name: "titulo",
       type: "text",

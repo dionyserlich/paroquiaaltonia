@@ -17,6 +17,7 @@ const nextConfig = {
     unoptimized: true,
   },
   devIndicators: false,
+  agentRules: false,
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       ".cjs": [".cts", ".cjs"],

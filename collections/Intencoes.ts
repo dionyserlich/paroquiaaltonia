@@ -17,6 +17,14 @@ export const Intencoes: CollectionConfig = {
     delete: ({ req }) => Boolean(req.user),
   },
   fields: [
+    // Id do registro no banco antigo (só continuidade de auditoria — a
+    // rota pública de intenções não expõe URL por id individual).
+    {
+      name: "legacyId",
+      type: "number",
+      unique: true,
+      admin: { readOnly: true },
+    },
     {
       name: "nome",
       type: "text",
@@ -31,14 +39,19 @@ export const Intencoes: CollectionConfig = {
       type: "text",
     },
     {
+      // Valores idênticos ao que o formulário público em /intencoes já envia
+      // (app/(frontend)/intencoes/intencoes-content.tsx) — strings em português,
+      // sem slug, para não exigir tradução na migração nem na rota pública.
       name: "tipo",
       type: "select",
       required: true,
       options: [
-        { label: "Ação de Graças", value: "acao_de_gracas" },
-        { label: "Falecimento", value: "falecimento" },
-        { label: "Saúde", value: "saude" },
-        { label: "Outra", value: "outra" },
+        "Aniversário e Nascimento",
+        "Aniversário de Casamento",
+        "Ação de Graças",
+        "Enfermos",
+        "Falecimento",
+        "Outros",
       ],
     },
     {
