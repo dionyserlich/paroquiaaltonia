@@ -68,9 +68,12 @@ export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunR
           const payload = await payloadClient()
           // O afterChange de missas (collections/Missas.ts) dispara a
           // notificação push a partir deste create — não duplicar aqui.
+          // context.fromBot avisa o hook pra notificar incondicionalmente
+          // (a API do YouTube já confirmou que está ao vivo agora).
           await payload.create({
             collection: "missas",
             data: { titulo: live.title, inicio: win.startsAt.toISOString(), fim: win.endsAt.toISOString(), linkEmbed: live.embedUrl },
+            context: { fromBot: true },
           })
         } catch (err) {
           console.error("[live-mass-bot] falha ao criar registro em missas:", err)
@@ -155,6 +158,38 @@ export async function getCurrentLiveMass() {
   const now = new Date()
   if (row.fim && new Date(row.fim) < now) return null
   return row
+}
+
+// Cobre missas cadastradas manualmente pelo /cms com `inicio` no futuro
+// (ex.: live já agendada no YouTube com antecedência) — o hook de
+// collections/Missas.ts só notifica no cadastro se a missa já estiver
+// dentro da janela "ao vivo" (inicio <= agora <= fim); esta função, chamada
+// a cada tick do cron (ver app/api/cron/check-live-mass/route.ts), cobre o
+// caso contrário assim que a janela realmente começa.
+export async function notifyDueManualMissas() {
+  const payload = await payloadClient()
+  const nowIso = new Date().toISOString()
+  const { docs } = await payload.find({
+    collection: "missas",
+    where: {
+      and: [
+        { notificado: { not_equals: true } },
+        { inicio: { less_than_equal: nowIso } },
+        { fim: { greater_than_equal: nowIso } },
+      ],
+    },
+    limit: 20,
+  })
+
+  for (const doc of docs) {
+    try {
+      const { sendNotificationToAll } = await import("@/app/actions")
+      await sendNotificationToAll("Missa ao vivo agora!", String(doc.titulo), "/")
+      await payload.update({ collection: "missas", id: doc.id, data: { notificado: true } })
+    } catch (err) {
+      console.error("[live-mass-bot] falha ao notificar missa agendada manualmente:", doc.id, err)
+    }
+  }
 }
 
 export async function getRecentLogs(limit = 20) {

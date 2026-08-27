@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { runLiveMassCheck } from "@/app/lib/live-mass-bot"
+import { runLiveMassCheck, notifyDueManualMissas } from "@/app/lib/live-mass-bot"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -21,5 +21,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }
   const result = await runLiveMassCheck("cron")
+  // Best-effort: nunca deve afetar o resultado principal do bot.
+  await notifyDueManualMissas().catch((err) =>
+    console.error("[cron] notifyDueManualMissas falhou:", err)
+  )
   return NextResponse.json(result)
 }
