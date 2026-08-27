@@ -1,27 +1,46 @@
-// Kill-switch service worker.
-// O service worker antigo cacheava HTML/chunks de forma agressiva e estava
-// causando loops de reload e navegação travada após cada deploy.
-// Esta versão se autodestrói: limpa todos os caches, desregistra o SW e
-// recarrega as páginas controladas para soltar qualquer cliente preso.
+// Service worker real — recebe notificações push e as exibe. Substitui o
+// antigo kill-switch que se autodesregistrava (necessário à época para
+// corrigir um loop de reload); a limpeza que ele fazia já rodou em todo
+// visitante ativo, então agora este arquivo pode assumir o papel de verdade.
+const NOTIFICATION_ICON = "/images/logo-icone.png"
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", () => {
   self.skipWaiting()
 })
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    (async () => {
-      try {
-        const keys = await caches.keys()
-        await Promise.all(keys.map((k) => caches.delete(k)))
-      } catch {}
-      try {
-        await self.registration.unregister()
-      } catch {}
-    })()
-  )
+  event.waitUntil(self.clients.claim())
 })
 
-self.addEventListener("fetch", () => {
-  // Sem interceptação: deixa o navegador buscar tudo direto da rede.
+self.addEventListener("push", (event) => {
+  let data = {}
+  try {
+    data = event.data ? event.data.json() : {}
+  } catch {
+    data = { body: event.data ? event.data.text() : "" }
+  }
+
+  const title = data.title || "Paróquia São Sebastião"
+  const options = {
+    body: data.body || "",
+    icon: NOTIFICATION_ICON,
+    badge: NOTIFICATION_ICON,
+    data: { url: data.url || "/" },
+  }
+
+  event.waitUntil(self.registration.showNotification(title, options))
+})
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close()
+  const url = event.notification.data?.url || "/"
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientsList) => {
+      for (const client of clientsList) {
+        if (client.url === url && "focus" in client) return client.focus()
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url)
+    })
+  )
 })

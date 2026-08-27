@@ -13,6 +13,26 @@ export const Noticias: CollectionConfig = {
   versions: {
     drafts: true,
   },
+  hooks: {
+    afterChange: [
+      async ({ doc, previousDoc, operation }) => {
+        // Notifica só na transição pra publicado (não a cada autosave de
+        // rascunho) — cobre tanto "criar já publicado" quanto "publicar um
+        // rascunho existente".
+        const isNewPublish =
+          doc._status === "published" &&
+          (operation === "create" || previousDoc?._status !== "published")
+        if (!isNewPublish) return doc
+        try {
+          const { sendNotificationToAll } = await import("@/app/actions")
+          await sendNotificationToAll("Nova notícia da Paróquia", doc.titulo, `/noticias/${doc.slug}`)
+        } catch (err) {
+          console.error("[noticias] falha ao enviar notificação push:", err)
+        }
+        return doc
+      },
+    ],
+  },
   fields: [
     // Guarda o id numérico do registro no banco antigo (só preenchido pela
     // migração) para permitir redirecionar links já compartilhados como

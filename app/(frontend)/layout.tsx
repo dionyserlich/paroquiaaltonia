@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter } from 'next/font/google'
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import ServiceWorkerCleanup from "@/components/service-worker-cleanup"
+import ServiceWorkerRegister from "@/components/service-worker-register"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -75,7 +75,7 @@ export default function RootLayout({
       <head />
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
-          <ServiceWorkerCleanup />
+          <ServiceWorkerRegister />
           {children}
         </ThemeProvider>
       </body>

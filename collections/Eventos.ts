@@ -10,6 +10,21 @@ export const Eventos: CollectionConfig = {
   access: {
     read: () => true,
   },
+  hooks: {
+    afterChange: [
+      async ({ doc, operation }) => {
+        // Eventos não tem drafts — todo create já é público.
+        if (operation !== "create") return doc
+        try {
+          const { sendNotificationToAll } = await import("@/app/actions")
+          await sendNotificationToAll("Novo evento na Paróquia", doc.titulo, `/eventos/${doc.slug}`)
+        } catch (err) {
+          console.error("[eventos] falha ao enviar notificação push:", err)
+        }
+        return doc
+      },
+    ],
+  },
   fields: [
     // Id do registro no banco antigo, só para redirecionar links antigos
     // (ver Noticias.ts para a explicação completa).

@@ -74,6 +74,16 @@ export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunR
           console.error("[live-mass-bot] falha ao criar registro em missas:", err)
         }
       }
+      // Notifica só na transição pra "ao vivo" (mesma checagem acima), não a
+      // cada tick de 5 min enquanto a mesma live continuar no ar.
+      if (!jaRegistrada) {
+        try {
+          const { sendNotificationToAll } = await import("@/app/actions")
+          await sendNotificationToAll("Missa ao vivo agora!", live.title, "/")
+        } catch (err) {
+          console.error("[live-mass-bot] falha ao enviar notificação push:", err)
+        }
+      }
 
       await query(
         `INSERT INTO bot.missa_ao_vivo (id, titulo, inicio, fim, link_embed, updated_at)

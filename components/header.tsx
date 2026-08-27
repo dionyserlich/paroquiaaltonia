@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Bell } from "lucide-react"
+import NotificationButton from "@/components/notification-button"
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -43,9 +43,7 @@ export default function Header() {
         </div>
       </Link>
 
-      <button className="text-white p-2" aria-label="Notificações">
-        <Bell size={24} />
-      </button>
+      <NotificationButton />
     </header>
   )
 }
