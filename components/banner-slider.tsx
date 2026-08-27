@@ -5,8 +5,15 @@ import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { getBanners } from "@/lib/api"
 
+type Banner = {
+  id: number
+  titulo?: string | null
+  link?: string | null
+  imagem?: { url?: string | null; alt?: string | null } | null
+}
+
 export default function BannerSlider() {
-  const [banners, setBanners] = useState<any[]>([])
+  const [banners, setBanners] = useState<Banner[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
@@ -20,6 +27,26 @@ export default function BannerSlider() {
 
     loadBanners()
   }, [])
+
+  const goToPrevious = () => {
+    if (isTransitioning) return
+
+    setIsTransitioning(true)
+    setCurrentIndex((prevIndex) => (prevIndex === 0 ? banners.length - 1 : prevIndex - 1))
+    resetTimer()
+
+    setTimeout(() => setIsTransitioning(false), 300)
+  }
+
+  const goToNext = () => {
+    if (isTransitioning) return
+
+    setIsTransitioning(true)
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length)
+    resetTimer()
+
+    setTimeout(() => setIsTransitioning(false), 300)
+  }
 
   // Função para limpar e reiniciar o timer
   const resetTimer = () => {
@@ -44,26 +71,6 @@ export default function BannerSlider() {
       }
     }
   }, [banners.length, isPaused])
-
-  const goToPrevious = () => {
-    if (isTransitioning) return
-
-    setIsTransitioning(true)
-    setCurrentIndex((prevIndex) => (prevIndex === 0 ? banners.length - 1 : prevIndex - 1))
-    resetTimer()
-
-    setTimeout(() => setIsTransitioning(false), 300)
-  }
-
-  const goToNext = () => {
-    if (isTransitioning) return
-
-    setIsTransitioning(true)
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length)
-    resetTimer()
-
-    setTimeout(() => setIsTransitioning(false), 300)
-  }
 
   const handleMouseEnter = () => {
     setIsPaused(true)

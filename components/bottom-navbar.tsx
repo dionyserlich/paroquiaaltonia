@@ -58,7 +58,6 @@ export default function BottomNavbar() {
             onClick={toggleMenu}
             icon={isMenuOpen ? <X size={20} /> : <Menu size={20} />}
             label="Menu"
-            className="md:text-base"
           />
           <NavItem href="/missas" icon={<Book size={20} />} label="Missas" />
 

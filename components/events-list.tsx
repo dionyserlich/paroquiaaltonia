@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { getProximosEventos } from "@/lib/api"
+import type { Evento } from "@/app/lib/content-types"
 
 export default function EventsList() {
-  const [eventos, setEventos] = useState<any[]>([])
+  const [eventos, setEventos] = useState<Evento[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

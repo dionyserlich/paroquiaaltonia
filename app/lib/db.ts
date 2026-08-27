@@ -29,7 +29,7 @@ if (process.env.NODE_ENV !== "production") {
   globalForPg.pgPool = pool
 }
 
-export async function query<T = any>(text: string, params?: any[]) {
+export async function query<T = unknown>(text: string, params?: unknown[]) {
   const res = await pool.query(text, params)
   return res as { rows: T[]; rowCount: number | null }
 }

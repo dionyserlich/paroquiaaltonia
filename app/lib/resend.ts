@@ -30,10 +30,10 @@ export async function sendEmail(opts: {
   })
   const ccStr = opts.cc ? (Array.isArray(opts.cc) ? opts.cc.join(",") : opts.cc) : null
   console.log(
-    `[resend] sent from=${fromEmail} to=${Array.isArray(opts.to) ? opts.to.join(",") : opts.to}${ccStr ? ` cc=${ccStr}` : ""} id=${(result as any)?.data?.id ?? "?"} error=${JSON.stringify((result as any)?.error ?? null)}`,
+    `[resend] sent from=${fromEmail} to=${Array.isArray(opts.to) ? opts.to.join(",") : opts.to}${ccStr ? ` cc=${ccStr}` : ""} id=${result.data?.id ?? "?"} error=${JSON.stringify(result.error)}`,
   )
-  if ((result as any)?.error) {
-    throw new Error(`Resend rejeitou o envio: ${JSON.stringify((result as any).error)}`)
+  if (result.error) {
+    throw new Error(`Resend rejeitou o envio: ${JSON.stringify(result.error)}`)
   }
   return result
 }

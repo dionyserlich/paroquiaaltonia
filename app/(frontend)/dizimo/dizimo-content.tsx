@@ -3,6 +3,7 @@ import { RichText as RichTextBase } from "@payloadcms/richtext-lexical/react"
 
 // Cast: o tipo de retorno do RichText (ReactNode) não bate com o que a
 // versão do @types/react instalada aceita como componente JSX.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const RichText: (props: { data: unknown; className?: string }) => any = RichTextBase as any
 
 type Props = {
@@ -132,8 +133,8 @@ export default function DizimoContent({ conteudo, chavePix }: Props) {
         {/* Versículo Bíblico */}
         <div className="bg-gradient-to-r from-[#0c2657] to-[#1a3a7a] border border-yellow-500/30 rounded-lg p-6 text-center">
           <p className="text-lg italic text-gray-300 mb-2">
-            "Trazei todos os dízimos à casa do tesouro, para que haja mantimento na minha casa; e provai-me nisto, diz o
-            Senhor dos Exércitos, se eu não vos abrir as janelas do céu e não derramar sobre vós bênção sem medida."
+            &ldquo;Trazei todos os dízimos à casa do tesouro, para que haja mantimento na minha casa; e provai-me nisto, diz o
+            Senhor dos Exércitos, se eu não vos abrir as janelas do céu e não derramar sobre vós bênção sem medida.&rdquo;
           </p>
           <p className="text-yellow-500 font-semibold">Malaquias 3:10</p>
         </div>

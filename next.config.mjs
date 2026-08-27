@@ -10,9 +10,6 @@ const __dirname = path.dirname(__filename)
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   devIndicators: false,
   agentRules: false,
   webpack: (webpackConfig) => {

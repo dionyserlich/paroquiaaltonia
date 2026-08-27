@@ -20,9 +20,9 @@ export default function MissasContent() {
       try {
         const response = await fetch("/api/missas/publicas")
         if (response.ok) {
-          const data = await response.json()
+          const data: { id: string; titulo: string; inicio: string; linkEmbed: string }[] = await response.json()
           // Filtrar apenas os campos necessários
-          const missasFormatadas = data.map((missa: any) => ({
+          const missasFormatadas = data.map((missa) => ({
             id: missa.id,
             titulo: missa.titulo,
             dataTransmissao: missa.inicio,

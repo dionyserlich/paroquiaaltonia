@@ -49,7 +49,7 @@ export default async function SobrePage() {
         <div className="page-no-hero p-6">
           <SobreContent
             introducao={sobre.introducao}
-            timeline={(sobre.timeline || []) as any}
+            timeline={(sobre.timeline || []) as { titulo: string; badge: string; texto: string }[]}
             legado={sobre.legado}
             whatsapp={contactInfo.whatsapp}
           />

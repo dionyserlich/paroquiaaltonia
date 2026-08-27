@@ -16,7 +16,7 @@ const TEMAS: Record<string, { cor: string; bgColor: string }> = {
   purple: { cor: "border-purple-500", bgColor: "from-purple-500/20 to-purple-600/20" },
 }
 
-type Pastoral = {
+export type Pastoral = {
   id: number
   nome: string
   descricao: string

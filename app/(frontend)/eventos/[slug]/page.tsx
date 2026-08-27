@@ -13,6 +13,7 @@ import type { Evento } from "@/app/lib/content-types"
 
 // Cast: o tipo de retorno do RichText (ReactNode) não bate com o que a
 // versão do @types/react instalada aceita como componente JSX.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const RichText: (props: { data: unknown; className?: string }) => any = RichTextBase as any
 
 type Props = {

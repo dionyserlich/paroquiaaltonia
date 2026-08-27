@@ -95,8 +95,8 @@ export default function OfertasContent() {
         {/* Versículo Bíblico */}
         <div className="bg-gradient-to-r from-[#0c2657] to-[#1a3a7a] border border-yellow-500/30 rounded-lg p-6 text-center">
           <p className="text-lg italic text-gray-300 mb-2">
-            "Cada um dê conforme decidiu em seu coração, não com tristeza ou por obrigação, pois Deus ama quem dá com
-            alegria."
+            &ldquo;Cada um dê conforme decidiu em seu coração, não com tristeza ou por obrigação, pois Deus ama quem dá com
+            alegria.&rdquo;
           </p>
           <p className="text-yellow-500 font-semibold">2 Coríntios 9:7</p>
         </div>

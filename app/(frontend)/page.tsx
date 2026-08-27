@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import { Suspense } from "react"
 import BannerSlider from "@/components/banner-slider"
 import EventsList from "@/components/events-list"
@@ -64,12 +65,12 @@ export default function Home() {
               </Suspense>
             </div>
             <div className="mt-4">
-              <a
+              <Link
                 href="/eventos"
                 className="text-[#4d3600] block w-full bg-yellow-500 text-center py-3 rounded-lg font-medium"
               >
                 Ver agenda completa
-              </a>
+              </Link>
             </div>
           </section>
 
@@ -83,12 +84,12 @@ export default function Home() {
               <NewsList />
             </Suspense>
             <div className="mt-4">
-              <a
+              <Link
                 href="/noticias"
                 className="text-[#4d3600] block w-full bg-yellow-500 text-center py-3 rounded-lg font-medium"
               >
                 Ver mais notícias
-              </a>
+              </Link>
             </div>
           </section>
 

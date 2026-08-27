@@ -5,10 +5,17 @@ import Image from "next/image"
 import { getMissas } from "@/lib/api"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 
+type Missa = {
+  id: number
+  titulo?: string | null
+  inicio: string
+  fim: string
+  linkEmbed?: string | null
+}
+
 export default function LiveMassButton() {
-  const [missas, setMissas] = useState<any[]>([])
-  const [missaAoVivo, setMissaAoVivo] = useState<any>(null)
-  const [ultimaMissa, setUltimaMissa] = useState<any>(null)
+  const [missaAoVivo, setMissaAoVivo] = useState<Missa | null>(null)
+  const [ultimaMissa, setUltimaMissa] = useState<Missa | null>(null)
   const [isLive, setIsLive] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -22,7 +29,6 @@ export default function LiveMassButton() {
       ])
 
       if (!Array.isArray(missasData) || missasData.length === 0) {
-        setMissas([])
         if (botLive?.linkEmbed) {
           setMissaAoVivo(botLive)
           setIsLive(true)
@@ -35,7 +41,6 @@ export default function LiveMassButton() {
         return
       }
 
-      setMissas(missasData)
       const agora = new Date()
 
       if (botLive?.linkEmbed) {
@@ -44,7 +49,7 @@ export default function LiveMassButton() {
         return
       }
 
-      const missaAtual = missasData.find((missa) => {
+      const missaAtual = (missasData as Missa[]).find((missa) => {
         const inicio = new Date(missa.inicio)
         const fim = new Date(missa.fim)
         return agora >= inicio && agora <= fim
@@ -89,13 +94,15 @@ export default function LiveMassButton() {
         <div className="bg-yellow-500 rounded-full p-4 mb-2">
           <Image src="/images/live-icon.png" alt="Ao vivo" width={40} height={40} />
         </div>
-        <span className="text-lg font-medium">{isLive ? "Assistir agora" : formatarData(ultimaMissa?.inicio)}</span>
+        <span className="text-lg font-medium">
+          {isLive ? "Assistir agora" : ultimaMissa && formatarData(ultimaMissa.inicio)}
+        </span>
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-3xl w-[90vw] h-[80vh] p-0">
           <iframe
-            src={isLive ? missaAoVivo?.linkEmbed : ultimaMissa?.linkEmbed}
+            src={(isLive ? missaAoVivo?.linkEmbed : ultimaMissa?.linkEmbed) ?? undefined}
             title={isLive ? "Missa ao vivo" : "Última missa"}
             className="w-full h-full"
             allowFullScreen

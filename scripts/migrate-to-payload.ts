@@ -8,21 +8,7 @@ import { Pool } from "pg"
 import type { Payload } from "payload"
 import fs from "fs"
 import path from "path"
-
-const MESES: Record<string, string> = {
-  Janeiro: "01",
-  Fevereiro: "02",
-  Março: "03",
-  Abril: "04",
-  Maio: "05",
-  Junho: "06",
-  Julho: "07",
-  Agosto: "08",
-  Setembro: "09",
-  Outubro: "10",
-  Novembro: "11",
-  Dezembro: "12",
-}
+import { parseEventoStartAt } from "@/app/lib/parse-evento-date"
 
 type MigrationLog = {
   step: string
@@ -256,13 +242,7 @@ export async function runMigration(payload: Payload) {
     const { rows } = await old.query("SELECT id, titulo, dia, mes, ano, hora, descricao, conteudo FROM eventos ORDER BY id")
     for (const r of rows) {
       try {
-        const mesNumero = /^\d+$/.test(r.mes) ? r.mes.padStart(2, "0") : MESES[r.mes]
-        if (!mesNumero) throw new Error(`mês não reconhecido: "${r.mes}"`)
-        const hora = String(r.hora).replace(/[^\d:]/g, "")
-        const dia = String(r.dia).padStart(2, "0")
-        // BRT fixo (UTC-3), igual à lógica hoje usada no admin de eventos.
-        const startAt = new Date(`${r.ano}-${mesNumero}-${dia}T${hora}:00-03:00`)
-        if (isNaN(startAt.getTime())) throw new Error(`data inválida: ${r.ano}-${mesNumero}-${dia}T${hora}`)
+        const startAt = parseEventoStartAt(r.mes, r.dia, r.ano, r.hora)
 
         await payload.create({
           collection: "eventos",

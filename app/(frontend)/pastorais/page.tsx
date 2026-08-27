@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
-import PastoraisContent from "./pastorais-content"
+import PastoraisContent, { type Pastoral } from "./pastorais-content"
 import { payloadClient } from "@/app/lib/payload"
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export default async function PastoraisPage() {
       <Header />
       <main className="min-h-screen">
         <div className="page-no-hero p-6">
-          <PastoraisContent pastorais={docs as any} />
+          <PastoraisContent pastorais={docs as Pastoral[]} />
         </div>
       </main>
       <BottomNavbar />

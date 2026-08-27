@@ -4,9 +4,16 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { getUltimasNoticias } from "@/lib/api"
+import type { Noticia, MediaDoc } from "@/app/lib/content-types"
+
+// A rota que alimenta esta lista busca com depth: 1, então `imagem` sempre
+// vem como o objeto de mídia populado — nunca o id numérico cru.
+function asMedia(imagem: Noticia["imagem"]): MediaDoc | null {
+  return imagem && typeof imagem === "object" ? imagem : null
+}
 
 export default function NewsList() {
-  const [noticias, setNoticias] = useState<any[]>([])
+  const [noticias, setNoticias] = useState<Noticia[]>([])
 
   useEffect(() => {
     async function loadNoticias() {
@@ -40,8 +47,8 @@ export default function NewsList() {
         <Link href={`/noticias/${noticiaDestaque.slug}`} className="block">
           <div className="relative w-full h-48 rounded-lg overflow-hidden">
             <Image
-              src={noticiaDestaque.imagem?.url || "/placeholder.svg?height=192&width=400"}
-              alt={noticiaDestaque.imagem?.alt || noticiaDestaque.titulo}
+              src={asMedia(noticiaDestaque.imagem)?.url || "/placeholder.svg?height=192&width=400"}
+              alt={asMedia(noticiaDestaque.imagem)?.alt || noticiaDestaque.titulo}
               fill
               className="object-cover"
             />
@@ -56,8 +63,8 @@ export default function NewsList() {
             <Link href={`/noticias/${noticia.slug}`} key={noticia.id} className="block">
               <div className="relative w-full h-32 rounded-lg overflow-hidden">
                 <Image
-                  src={noticia.imagem?.url || "/placeholder.svg?height=128&width=200"}
-                  alt={noticia.imagem?.alt || noticia.titulo}
+                  src={asMedia(noticia.imagem)?.url || "/placeholder.svg?height=128&width=200"}
+                  alt={asMedia(noticia.imagem)?.alt || noticia.titulo}
                   fill
                   className="object-cover"
                 />

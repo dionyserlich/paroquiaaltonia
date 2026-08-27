@@ -1,3 +1,5 @@
+import Link from "next/link"
+
 // Cobre only o caso de uma URL de topo que não bate com nenhum route group
 // (nem (frontend), nem (payload)/cms) — 404s de conteúdo real (ex.: slug de
 // notícia inválido) já usam app/(frontend)/not-found.tsx normalmente. Como
@@ -26,7 +28,7 @@ export default function GlobalNotFound() {
         <p style={{ color: "#d1d5db", margin: "0 0 2rem" }}>
           O conteúdo que você procura não existe ou foi removido.
         </p>
-        <a
+        <Link
           href="/"
           style={{
             backgroundColor: "#eab308",
@@ -38,7 +40,7 @@ export default function GlobalNotFound() {
           }}
         >
           Voltar para o início
-        </a>
+        </Link>
       </body>
     </html>
   )

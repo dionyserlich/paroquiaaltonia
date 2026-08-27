@@ -43,8 +43,15 @@ export default async function HorariosPage() {
         <div className="z-20 page-no-hero">
           <div className="container mx-auto px-4 py-6">
             <HorariosContent
-              horariosMissas={(massSchedule.horarios || []) as any}
-              missasEspeciais={(horarios.missasEspeciais || []) as any}
+              horariosMissas={
+                (massSchedule.horarios || []) as {
+                  diaSemana: string
+                  hora: number
+                  minuto: number
+                  label?: string | null
+                }[]
+              }
+              missasEspeciais={(horarios.missasEspeciais || []) as { descricao: string; horario: string }[]}
               horarioSecretaria={horarios.horarioSecretaria}
               atendimentoPadres={horarios.atendimentoPadres}
               confissoes={horarios.confissoes}

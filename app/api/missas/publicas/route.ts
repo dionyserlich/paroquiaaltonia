@@ -16,7 +16,15 @@ export async function GET() {
       sort: "-inicio",
       limit: 100,
     })
-    const missas = docs.map((m: any) => ({
+    type MissaDoc = {
+      id: number
+      titulo: string
+      inicio: string
+      fim: string
+      linkEmbed?: string | null
+      descricao?: string | null
+    }
+    const missas = (docs as MissaDoc[]).map((m) => ({
       id: m.id,
       titulo: m.titulo,
       inicio: m.inicio,

@@ -63,9 +63,9 @@ export default function LiturgiaContent() {
 
       const data = await response.json()
       setLiturgia(data)
-    } catch (err: any) {
+    } catch (err) {
       console.error("Erro ao carregar liturgia:", err)
-      setError(err.message || "Não foi possível carregar a liturgia")
+      setError(err instanceof Error ? err.message : "Não foi possível carregar a liturgia")
     } finally {
       setLoading(false)
     }

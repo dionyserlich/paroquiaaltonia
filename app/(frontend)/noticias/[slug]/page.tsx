@@ -6,6 +6,7 @@ import { RichText as RichTextBase } from "@payloadcms/richtext-lexical/react"
 
 // Cast: o tipo de retorno do RichText (ReactNode) não bate com o que a
 // versão do @types/react instalada aceita como componente JSX.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const RichText: (props: { data: unknown; className?: string }) => any = RichTextBase as any
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
@@ -76,7 +77,7 @@ export default async function NoticiaPage({ params }: Props) {
               )}
 
               <div className="prose prose-invert max-w-none text-white">
-                <RichText data={noticia.conteudo as any} />
+                <RichText data={noticia.conteudo} />
               </div>
 
               {galeria.length > 0 && (

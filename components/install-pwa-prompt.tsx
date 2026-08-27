@@ -3,10 +3,16 @@
 import { useState, useEffect, useRef } from "react"
 import { Download, X, Share } from "lucide-react"
 
+// beforeinstallprompt não é um evento padrão do DOM (só Chrome/Edge/Android).
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>
+}
+
 export default function InstallPwaPrompt() {
   const [isVisible, setIsVisible] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
-  const deferredPromptRef = useRef<any>(null)
+  const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null)
 
   useEffect(() => {
     // Verificar se o usuário já fechou o aviso antes
@@ -23,21 +29,23 @@ export default function InstallPwaPrompt() {
 
     // Verificar se o app já está instalado
     const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true
 
     if (isStandalone) {
       return // App já está instalado, não mostrar o aviso
     }
 
     // Capturar o evento beforeinstallprompt para Android/Chrome
-    window.addEventListener("beforeinstallprompt", (e) => {
+    const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
-      deferredPromptRef.current = e
+      deferredPromptRef.current = e as BeforeInstallPromptEvent
       setIsVisible(true)
 
       // Adicionar classe ao body quando o aviso estiver visível
       document.body.classList.add("has-install-prompt")
-    })
+    }
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
 
     // Para iOS, mostrar o aviso diretamente
     if (isIOSDevice) {
@@ -48,9 +56,10 @@ export default function InstallPwaPrompt() {
     }
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault()
-      })
+      // Passar a mesma referência de função usada no addEventListener — uma
+      // arrow function nova aqui (como estava antes) nunca bate com a
+      // registrada, então o listener nunca era removido de verdade.
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
 
       // Remover classe do body quando o componente for desmontado
       document.body.classList.remove("has-install-prompt")
