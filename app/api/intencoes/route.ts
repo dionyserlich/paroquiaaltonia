@@ -12,6 +12,9 @@ const TIPOS_VALIDOS = [
 ]
 
 const DESTINATARIO = "paroquia_altonia@hotmail.com"
+// Cópia para o responsável técnico saber quando chega uma intenção e poder
+// reforçar o aviso pro pessoal da paróquia.
+const DESTINATARIO_COPIA = "dionyserlich@gmail.com"
 
 function escapeHtml(s: string) {
   return s
@@ -78,6 +81,7 @@ export async function POST(request: NextRequest) {
     try {
       await sendEmail({
         to: DESTINATARIO,
+        cc: DESTINATARIO_COPIA,
         subject: `Nova intenção de missa: ${tipo} — ${nome}`,
         html,
         replyTo: email || undefined,

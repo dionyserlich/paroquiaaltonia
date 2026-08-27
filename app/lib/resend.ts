@@ -57,6 +57,7 @@ async function getCreds(): Promise<ResendCreds> {
 
 export async function sendEmail(opts: {
   to: string | string[]
+  cc?: string | string[]
   subject: string
   html: string
   replyTo?: string
@@ -67,12 +68,14 @@ export async function sendEmail(opts: {
   const result = await client.emails.send({
     from: fromEmail,
     to: opts.to,
+    cc: opts.cc,
     subject: opts.subject,
     html: opts.html,
     replyTo: opts.replyTo,
   })
+  const ccStr = opts.cc ? (Array.isArray(opts.cc) ? opts.cc.join(",") : opts.cc) : null
   console.log(
-    `[resend] sent via ${usingOwnKey ? "own RESEND_API_KEY" : "Replit-managed connector"} from=${fromEmail} to=${Array.isArray(opts.to) ? opts.to.join(",") : opts.to} id=${(result as any)?.data?.id ?? "?"} error=${JSON.stringify((result as any)?.error ?? null)}`,
+    `[resend] sent via ${usingOwnKey ? "own RESEND_API_KEY" : "Replit-managed connector"} from=${fromEmail} to=${Array.isArray(opts.to) ? opts.to.join(",") : opts.to}${ccStr ? ` cc=${ccStr}` : ""} id=${(result as any)?.data?.id ?? "?"} error=${JSON.stringify((result as any)?.error ?? null)}`,
   )
   if ((result as any)?.error) {
     throw new Error(
