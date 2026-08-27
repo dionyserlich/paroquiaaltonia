@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import "@/app/admin/admin.css"
+import "@/app/(frontend)/admin/admin.css"
 
 type Intencao = {
   id: number

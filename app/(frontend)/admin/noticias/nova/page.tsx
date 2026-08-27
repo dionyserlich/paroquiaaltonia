@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import RichTextEditor from "@/components/rich-text-editor"
 import DeployStatus from "@/components/deploy-status"
-import "@/app/admin/admin.css"
+import "@/app/(frontend)/admin/admin.css"
 
 export default function NovaNoticias() {
   const router = useRouter()

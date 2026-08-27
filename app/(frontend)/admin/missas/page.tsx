@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import DeployStatus from "@/components/deploy-status"
-import "@/app/admin/admin.css"
+import "@/app/(frontend)/admin/admin.css"
 
 export default function AdminMissas() {
   const [missas, setMissas] = useState<any[]>([])

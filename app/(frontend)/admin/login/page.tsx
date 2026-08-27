@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import "@/app/admin/admin.css"
+import "@/app/(frontend)/admin/admin.css"
 
 export default function AdminLogin() {
   const [password, setPassword] = useState("")

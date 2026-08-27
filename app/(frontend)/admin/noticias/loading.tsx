@@ -1,4 +1,4 @@
-import "@/app/admin/admin.css"
+import "@/app/(frontend)/admin/admin.css"
 
 export default function Loading() {
   return (

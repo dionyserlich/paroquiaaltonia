@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import "@/app/admin/admin.css"
+import "@/app/(frontend)/admin/admin.css"
 
 export default function AdminPanel() {
   const router = useRouter()

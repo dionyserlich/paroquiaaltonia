@@ -24,7 +24,7 @@ import {
   Redo,
   X,
 } from "lucide-react"
-import "@/app/admin/admin.css"
+import "@/app/(frontend)/admin/admin.css"
 
 interface RichTextEditorProps {
   value: string
