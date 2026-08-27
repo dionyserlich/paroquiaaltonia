@@ -37,9 +37,23 @@ function oldPool() {
   return new Pool({ connectionString, ssl: { rejectUnauthorized: false }, max: 3 })
 }
 
+// Algumas notícias têm <img> coladas direto no meio do HTML (upload manual
+// no editor antigo, não é a capa) — extrai os src's e devolve o HTML sem
+// elas, para virarem itens da `galeria` em vez de tentar (mal) preservar a
+// imagem solta no meio do texto corrido.
+function extractInlineImages(html: string): { html: string; srcs: string[] } {
+  const srcs: string[] = []
+  const cleaned = html.replace(/<img\s+[^>]*src="([^"]*)"[^>]*>/g, (_match, src) => {
+    srcs.push(src)
+    return ""
+  })
+  return { html: cleaned, srcs }
+}
+
 // Converte o HTML simples gerado pelo Tiptap (StarterKit + Link) para o JSON
 // do Lexical. Cobre exatamente o que o editor antigo emite: <p>, <strong>,
-// <a href>, <br> — não é um parser HTML genérico.
+// <a href>, <br> — não é um parser HTML genérico. Chamar depois de
+// extractInlineImages (não trata <img>).
 function htmlToLexical(html: string) {
   const paragraphs = html.match(/<p>([\s\S]*?)<\/p>/g) || []
 
@@ -157,6 +171,27 @@ async function uploadLocalImage(payload: Payload, imagePath: string | null, alt:
   return doc.id as number
 }
 
+// Algumas imagens (as coladas no meio do conteúdo) vieram do Vercel Blob
+// antigo, não de public/images/ — baixa e reenvia pra collection `media`.
+const remoteMediaCache = new Map<string, number>()
+async function uploadRemoteImage(payload: Payload, url: string, alt: string): Promise<number> {
+  if (remoteMediaCache.has(url)) return remoteMediaCache.get(url)!
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`falha ao baixar imagem remota ${url}: ${res.status}`)
+  const buffer = Buffer.from(await res.arrayBuffer())
+  const filename = decodeURIComponent(url.split("/").pop() || "imagem.jpg").split("?")[0]
+  const ext = path.extname(filename).toLowerCase()
+  const mimetype = ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg"
+
+  const doc = await payload.create({
+    collection: "media",
+    data: { alt },
+    file: { data: buffer, mimetype, name: filename, size: buffer.length },
+  })
+  remoteMediaCache.set(url, doc.id as number)
+  return doc.id as number
+}
+
 export async function runMigration(payload: Payload) {
   const old = oldPool()
   const results: MigrationLog[] = []
@@ -188,14 +223,20 @@ export async function runMigration(payload: Payload) {
     for (const r of rows) {
       try {
         const imagemId = await uploadLocalImage(payload, r.imagem, r.titulo)
+        const { html: conteudoSemImagens, srcs: galeriaSrcs } = extractInlineImages(r.conteudo || "")
+        const galeria: { imagem: number }[] = []
+        for (const src of galeriaSrcs) {
+          galeria.push({ imagem: await uploadRemoteImage(payload, src, r.titulo) })
+        }
         await payload.create({
           collection: "noticias",
           data: {
             legacyId: r.id,
             titulo: r.titulo,
             resumo: r.resumo,
-            conteudo: htmlToLexical(r.conteudo || ""),
+            conteudo: htmlToLexical(conteudoSemImagens),
             imagem: imagemId,
+            galeria: galeria.length ? galeria : undefined,
             data: r.data,
             _status: "published",
           },

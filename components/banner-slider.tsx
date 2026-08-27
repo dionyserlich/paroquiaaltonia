@@ -97,8 +97,8 @@ export default function BannerSlider() {
             }`}
           >
             <Image
-              src={banner.imagem || "/placeholder.svg?height=192&width=400"}
-              alt={banner.titulo || "Banner"}
+              src={banner.imagem?.url || "/placeholder.svg?height=192&width=400"}
+              alt={banner.imagem?.alt || banner.titulo || "Banner"}
               fill
               className="object-cover"
               priority={index === 0}

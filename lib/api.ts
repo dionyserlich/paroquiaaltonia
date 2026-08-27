@@ -33,7 +33,7 @@ export async function getProximosEventos() {
   try {
     // Adicionar timestamp para evitar cache do navegador
     const timestamp = new Date().getTime()
-    const res = await fetch(`/api/proximos-eventos?t=${timestamp}`, {
+    const res = await fetch(`/api/eventos/proximos?t=${timestamp}`, {
       next: { revalidate: 0 }, // Não usar cache
       cache: "no-store",
     })
@@ -69,35 +69,5 @@ export async function getUltimasNoticias() {
   } catch (error) {
     console.error("Erro ao buscar últimas notícias:", error)
     return []
-  }
-}
-
-export async function getNoticias() {
-  try {
-    const timestamp = new Date().getTime()
-    const res = await fetch(`/api/noticias?t=${timestamp}`, {
-      next: { revalidate: 0 },
-      cache: "no-store",
-    })
-    if (!res.ok) return []
-    return res.json()
-  } catch (error) {
-    console.error("Erro ao buscar notícias:", error)
-    return []
-  }
-}
-
-export async function getNoticia(id: string) {
-  try {
-    const timestamp = new Date().getTime()
-    const res = await fetch(`/api/noticias/${id}?t=${timestamp}`, {
-      next: { revalidate: 0 },
-      cache: "no-store",
-    })
-    if (!res.ok) return null
-    return res.json()
-  } catch (error) {
-    console.error(`Erro ao buscar notícia ${id}:`, error)
-    return null
   }
 }

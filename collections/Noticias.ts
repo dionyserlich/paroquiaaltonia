@@ -57,6 +57,24 @@ export const Noticias: CollectionConfig = {
       name: "imagem",
       type: "upload",
       relationTo: "media",
+      admin: {
+        description: "Imagem de capa da notícia.",
+      },
+    },
+    {
+      // Galeria de fotos própria, além da capa e de imagens soltas dentro
+      // do corpo do texto (o editor rich text já suporta upload inline).
+      name: "galeria",
+      type: "array",
+      labels: { singular: "Foto", plural: "Fotos" },
+      fields: [
+        {
+          name: "imagem",
+          type: "upload",
+          relationTo: "media",
+          required: true,
+        },
+      ],
     },
     {
       name: "data",

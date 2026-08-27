@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server"
-import { query } from "@/app/lib/db"
+import { payloadClient } from "@/app/lib/payload"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const { rows } = await query(
-      `SELECT id, titulo, resumo, conteudo, imagem, data
-       FROM noticias ORDER BY data DESC LIMIT 5`
-    )
-    return NextResponse.json(rows)
+    const payload = await payloadClient()
+    const { docs } = await payload.find({
+      collection: "noticias",
+      sort: "-data",
+      depth: 1,
+      limit: 5,
+    })
+    return NextResponse.json(docs)
   } catch (error) {
     console.error("Erro ao listar últimas notícias:", error)
     return NextResponse.json([], { status: 500 })
