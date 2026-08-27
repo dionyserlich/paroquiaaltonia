@@ -1,3 +1,6 @@
+// dev/build usam --webpack (ver package.json): Turbopack ainda não processa
+// corretamente o Tailwind v4 (@theme/@apply passam direto sem compilar).
+// Remover a flag quando o suporte do Turbopack a Tailwind v4 amadurecer.
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
