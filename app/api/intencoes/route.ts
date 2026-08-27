@@ -12,8 +12,16 @@ const HONEYPOT_FIELD = "empresa"
 const MIN_FILL_TIME_MS = 2500
 
 function getClientIp(request: NextRequest) {
-  const forwardedFor = request.headers.get("x-forwarded-for")
-  return forwardedFor?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown"
+  // O domínio passa pelo Cloudflare — cf-connecting-ip é o header confiável
+  // pro IP real do visitante ali. x-forwarded-for nesse setup reflete o nó
+  // de borda da Cloudflare (varia a cada request, não o visitante), então
+  // só serve como fallback caso cf-connecting-ip não venha por algum motivo.
+  return (
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  )
 }
 
 const TIPOS_VALIDOS = [
