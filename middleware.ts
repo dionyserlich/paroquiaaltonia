@@ -1,15 +1,25 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-export function middleware(request: NextRequest) {
-  // Verificar se a rota começa com /admin (exceto /admin/login)
-  if (request.nextUrl.pathname.startsWith("/admin") && !request.nextUrl.pathname.startsWith("/admin/login")) {
-    // Verificar se o cookie de autenticação existe
-    const adminAuth = request.cookies.get("admin_auth")
+const PUBLIC_ADMIN_API = ["/api/admin/login", "/api/admin/logout"]
 
-    if (!adminAuth || adminAuth.value !== "true") {
-      // Redirecionar para a página de login se não estiver autenticado
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const isAuthed = request.cookies.get("admin_auth")?.value === "true"
+
+  // Páginas /admin (exceto /admin/login): redireciona para o login se não autenticado.
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
+    if (!isAuthed) {
       return NextResponse.redirect(new URL("/admin/login", request.url))
+    }
+    return NextResponse.next()
+  }
+
+  // Rotas de API /api/admin/*: defesa em profundidade além do check em cada handler.
+  // Login/logout precisam ficar acessíveis sem sessão.
+  if (pathname.startsWith("/api/admin") && !PUBLIC_ADMIN_API.includes(pathname)) {
+    if (!isAuthed) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 })
     }
   }
 
@@ -17,5 +27,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Calendar } from "lucide-react"
+import { sanitizeRichText } from "@/lib/sanitize"
 
 export default function EventoDetalhes({ id }: { id: string }) {
   const [evento, setEvento] = useState<any>(null)
@@ -63,7 +64,7 @@ export default function EventoDetalhes({ id }: { id: string }) {
         </div>
 
         {evento.conteudo ? (
-          <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: evento.conteudo }} />
+          <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeRichText(evento.conteudo) }} />
         ) : (
           <p className="text-white">{evento.descricao}</p>
         )}

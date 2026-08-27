@@ -1,7 +1,14 @@
+import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { query } from "@/app/lib/db"
 
+async function isAuthed() {
+  const c = await cookies()
+  return c.get("admin_auth")?.value === "true"
+}
+
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   try {
     const { id: rawId } = await context.params
     const id = Number.parseInt(rawId)
@@ -25,6 +32,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 }
 
 export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
+  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   try {
     const { id: rawId } = await context.params
     const id = Number.parseInt(rawId)

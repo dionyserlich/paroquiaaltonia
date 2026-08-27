@@ -1,7 +1,14 @@
+import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { query } from "@/app/lib/db"
 
+async function isAuthed() {
+  const c = await cookies()
+  return c.get("admin_auth")?.value === "true"
+}
+
 export async function POST(request: Request) {
+  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   try {
     const data = await request.json()
     if (!data.titulo || !data.dia || !data.mes || !data.ano || !data.hora) {

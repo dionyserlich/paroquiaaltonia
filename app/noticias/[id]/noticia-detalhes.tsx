@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { getNoticia } from "@/lib/api"
 import { formatarData } from "@/lib/utils"
+import { sanitizeRichText } from "@/lib/sanitize"
 
 export default function NoticiaDetalhes({ id }: { id: string }) {
   const [noticia, setNoticia] = useState<any | null>(null)
@@ -77,7 +78,7 @@ export default function NoticiaDetalhes({ id }: { id: string }) {
         </div>
       )}
 
-      <div className="prose max-w-none text-white" dangerouslySetInnerHTML={{ __html: noticia.conteudo }} />
+      <div className="prose max-w-none text-white" dangerouslySetInnerHTML={{ __html: sanitizeRichText(noticia.conteudo) }} />
     </article>
   )
 }

@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 
-// Senha simples para acesso administrativo
-// Em produção, use variáveis de ambiente para armazenar a senha
-const ADMIN_PASSWORD = "paroquia2024"
-
 export async function POST(request: Request) {
   try {
+    const adminPassword = process.env.ADMIN_PASSWORD
+    if (!adminPassword) {
+      console.error("ADMIN_PASSWORD não configurada")
+      return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+    }
+
     const { password } = await request.json()
 
-    if (password === ADMIN_PASSWORD) {
+    if (password === adminPassword) {
       // Senha correta, definir cookie de autenticação
-      const cookieStore = cookies()
+      const cookieStore = await cookies()
 
       // Definir um cookie que expira em 24 horas
       cookieStore.set("admin_auth", "true", {
