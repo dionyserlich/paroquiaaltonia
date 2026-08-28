@@ -6,7 +6,6 @@ import {
   BookIcon as Bible,
   BookOpen,
   Church,
-  DollarSign,
   HelpCircle,
   PenSquare,
   Share2,
@@ -120,7 +119,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
             <MenuItem
               href="/horarios"
               icon={<HelpCircle size={20} />}
-              label="Ajuda"
+              label="Contato"
               onClick={handleInternalLinkClick}
             />
           </MenuSection>

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
 import PastoraisContent, { type Pastoral } from "./pastorais-content"
+import PageClient from "../page-client"
 import { payloadClient } from "@/app/lib/payload"
 
 export const metadata: Metadata = {
@@ -31,7 +32,7 @@ export default async function PastoraisPage() {
   const { docs } = await payload.find({ collection: "pastorais", sort: "ordem", limit: 50 })
 
   return (
-    <>
+    <PageClient>
       <Header />
       <main className="min-h-screen">
         <div className="page-no-hero p-6">
@@ -39,6 +40,6 @@ export default async function PastoraisPage() {
         </div>
       </main>
       <BottomNavbar />
-    </>
+    </PageClient>
   )
 }

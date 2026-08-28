@@ -14,6 +14,7 @@ type Banner = {
 
 export default function BannerSlider() {
   const [banners, setBanners] = useState<Banner[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
@@ -21,8 +22,12 @@ export default function BannerSlider() {
 
   useEffect(() => {
     async function loadBanners() {
-      const bannersData = await getBanners()
-      setBanners(bannersData)
+      try {
+        const bannersData = await getBanners()
+        setBanners(Array.isArray(bannersData) ? bannersData : [])
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     loadBanners()
@@ -84,8 +89,15 @@ export default function BannerSlider() {
     resetTimer()
   }
 
-  if (banners.length === 0) {
+  if (isLoading) {
     return <div className="h-48 bg-gray-700/50 rounded-xl animate-pulse" />
+  }
+
+  // Nenhum banner cadastrado (ou a busca falhou) — some de vez, sem deixar
+  // um espaço de "carregando" preso pra sempre nem uma mensagem de erro
+  // pra um elemento puramente promocional.
+  if (banners.length === 0) {
+    return null
   }
 
   return (

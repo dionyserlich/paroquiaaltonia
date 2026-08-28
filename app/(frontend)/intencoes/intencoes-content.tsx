@@ -160,7 +160,7 @@ export default function IntencoesContent() {
               minLength={2}
               value={form.nome}
               onChange={(e) => update("nome", e.target.value)}
-              className="w-full rounded-md bg-[#0c2657]/60 border border-white/10 px-3 py-2 text-white outline-none focus:border-yellow-500"
+              className="w-full rounded-md bg-[#0c2657]/60 border border-white/25 px-3 py-2 text-white outline-none focus:border-yellow-500"
               placeholder="Como devemos chamar você?"
             />
           </div>
@@ -169,7 +169,7 @@ export default function IntencoesContent() {
             <select
               value={form.tipo}
               onChange={(e) => update("tipo", e.target.value)}
-              className="w-full rounded-md bg-[#0c2657]/60 border border-white/10 px-3 py-2 text-white outline-none focus:border-yellow-500"
+              className="w-full rounded-md bg-[#0c2657]/60 border border-white/25 px-3 py-2 text-white outline-none focus:border-yellow-500"
             >
               {tiposIntencoes.map((t) => (
                 <option key={t.tipo} value={t.tipo}>
@@ -184,7 +184,7 @@ export default function IntencoesContent() {
               type="email"
               value={form.email}
               onChange={(e) => update("email", e.target.value)}
-              className="w-full rounded-md bg-[#0c2657]/60 border border-white/10 px-3 py-2 text-white outline-none focus:border-yellow-500"
+              className="w-full rounded-md bg-[#0c2657]/60 border border-white/25 px-3 py-2 text-white outline-none focus:border-yellow-500"
               placeholder="seu@email.com"
             />
           </div>
@@ -194,7 +194,7 @@ export default function IntencoesContent() {
               type="tel"
               value={form.telefone}
               onChange={(e) => update("telefone", e.target.value)}
-              className="w-full rounded-md bg-[#0c2657]/60 border border-white/10 px-3 py-2 text-white outline-none focus:border-yellow-500"
+              className="w-full rounded-md bg-[#0c2657]/60 border border-white/25 px-3 py-2 text-white outline-none focus:border-yellow-500"
               placeholder="(00) 00000-0000"
             />
           </div>
@@ -204,7 +204,7 @@ export default function IntencoesContent() {
               type="text"
               value={form.dataPreferida}
               onChange={(e) => update("dataPreferida", e.target.value)}
-              className="w-full rounded-md bg-[#0c2657]/60 border border-white/10 px-3 py-2 text-white outline-none focus:border-yellow-500"
+              className="w-full rounded-md bg-[#0c2657]/60 border border-white/25 px-3 py-2 text-white outline-none focus:border-yellow-500"
               placeholder="Ex.: domingo 19h, ou 20/05/2026"
             />
           </div>
@@ -216,7 +216,7 @@ export default function IntencoesContent() {
               rows={5}
               value={form.intencao}
               onChange={(e) => update("intencao", e.target.value)}
-              className="w-full rounded-md bg-[#0c2657]/60 border border-white/10 px-3 py-2 text-white outline-none focus:border-yellow-500"
+              className="w-full rounded-md bg-[#0c2657]/60 border border-white/25 px-3 py-2 text-white outline-none focus:border-yellow-500"
               placeholder="Descreva sua intenção..."
             />
           </div>

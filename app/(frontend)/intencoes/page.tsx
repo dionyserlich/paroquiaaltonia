@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
 import IntencoesContent from "./intencoes-content"
+import PageClient from "../page-client"
 
 export const metadata: Metadata = {
   title: "Intenções de Missa",
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function IntencoesPage() {
   return (
-    <>
+    <PageClient>
       <Header />
       <main className="min-h-screen">
         <div className="page-no-hero p-6">
@@ -30,6 +31,6 @@ export default function IntencoesPage() {
         </div>
       </main>
       <BottomNavbar />
-    </>
+    </PageClient>
   )
 }

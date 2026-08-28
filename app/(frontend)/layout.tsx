@@ -67,7 +67,9 @@ export const viewport: Viewport = {
   themeColor: "#0a1e42",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // Sem maximumScale fixo — pinch-to-zoom é um dos jeitos mais comuns de
+  // pessoa mais velha aumentar o texto no celular; travar o zoom tira essa
+  // opção de quem mais precisa dela.
 }
 
 export default function RootLayout({

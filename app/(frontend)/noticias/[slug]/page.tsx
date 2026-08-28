@@ -63,7 +63,7 @@ export default async function NoticiaPage({ params }: Props) {
         <div className="page-no-hero z-20">
           <div className="container mx-auto px-4 py-6">
             <article className="max-w-3xl mx-auto">
-              <Link href="/noticias" className="inline-flex items-center text-blue-400 hover:text-blue-300 mb-4">
+              <Link href="/noticias" className="inline-flex items-center text-yellow-500 hover:text-yellow-400 mb-4">
                 ← Voltar para notícias
               </Link>
 

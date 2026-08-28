@@ -50,7 +50,10 @@ export default function EventsList() {
     return (
       <div className="p-4 text-center">
         <p className="text-red-400">{error}</p>
-        <button onClick={() => window.location.reload()} className="mt-2 px-4 py-2 bg-blue-600 rounded-md text-sm">
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 px-4 py-2 bg-yellow-500 text-[#4d3600] font-medium rounded-md text-sm"
+        >
           Tentar novamente
         </button>
       </div>
@@ -77,7 +80,7 @@ export default function EventsList() {
             <div className="flex items-start">
               <div className="text-yellow-500 font-bold mr-3 text-center min-w-[60px]">
                 <div className="text-[16pt]">{dia}</div>
-                <div className="text-[8pt] capitalize">{mes}</div>
+                <div className="text-xs capitalize">{mes}</div>
               </div>
               <div>
                 <div className="text-white text-sm">{hora}</div>

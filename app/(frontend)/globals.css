@@ -1,70 +1,50 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
-@custom-variant dark (&:where(.dark, .dark *));
 
+/* Paleta oficial do site — os mesmos hex que já apareciam soltos em dezenas
+   de arquivos (header, cards, gradientes) agora nomeados aqui. Usar as
+   classes bg-parish-... (ou text-parish-...) em componentes novos em vez
+   de redigitar hex; os componentes existentes continuam com hex direto
+   (não foram todos migrados, mas representam exatamente estas mesmas
+   cores). */
 @theme inline {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-  --color-chart-1: hsl(var(--chart-1));
-  --color-chart-2: hsl(var(--chart-2));
-  --color-chart-3: hsl(var(--chart-3));
-  --color-chart-4: hsl(var(--chart-4));
-  --color-chart-5: hsl(var(--chart-5));
-  --color-sidebar: hsl(var(--sidebar-background));
-  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
-  --color-sidebar-primary: hsl(var(--sidebar-primary));
-  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
-  --color-sidebar-accent: hsl(var(--sidebar-accent));
-  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
-  --color-sidebar-border: hsl(var(--sidebar-border));
-  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  --color-parish-bg: #00143d;
+  --color-parish-navy: #0a1e42;
+  --color-parish-card: #0c2657;
+  --color-parish-card-end: #1a3a7a;
+  --color-parish-accent: #eab308;
+  --color-parish-accent-text: #4d3600;
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-
-  @keyframes accordion-down {
-    from {
-      height: 0;
-    }
-    to {
-      height: var(--radix-accordion-content-height);
-    }
-  }
-  @keyframes accordion-up {
-    from {
-      height: var(--radix-accordion-content-height);
-    }
-    to {
-      height: 0;
-    }
-  }
+  /* Usados pelos dois componentes shadcn que sobraram no projeto (Button,
+     Dialog — o resto do template era código morto, removido). Apontam pra
+     mesma paleta acima em vez de manter uma paleta cinza genérica separada. */
+  --color-background: #00143d;
+  --color-foreground: #ffffff;
+  --color-primary: #eab308;
+  --color-primary-foreground: #4d3600;
+  --color-secondary: #0c2657;
+  --color-secondary-foreground: #ffffff;
+  --color-muted-foreground: #d1d5db;
+  --color-accent: #0c2657;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  --color-border: rgb(255 255 255 / 0.15);
+  --color-input: rgb(255 255 255 / 0.15);
+  --color-ring: #eab308;
 }
 
 :root {
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 10, 30, 66;
   --background-end-rgb: 10, 30, 66;
+  --parish-max-width: 650px;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
 }
 
 body {
@@ -115,7 +95,7 @@ main > div[class*="relative z-20"] {
   margin-top: 51vh; /* Deve corresponder à altura do hero */
   border-radius: 15px;
   box-shadow: 0 -10px 70px rgba(0, 0, 0, 0.2);
-  max-width: 650px; /* Manter o conteúdo limitado */
+  max-width: var(--parish-max-width);
   margin-left: auto;
   margin-right: auto;
   width: 100%;
@@ -128,7 +108,7 @@ main > div[class*="relative z-20"] {
   margin-top: 0; /* Deve corresponder à altura do hero */
   border-radius: 15px;
   box-shadow: 0 -10px 70px rgba(0, 0, 0, 0.2);
-  max-width: 650px; /* Manter o conteúdo limitado */
+  max-width: var(--parish-max-width);
   margin-left: auto;
   margin-right: auto;
   width: 100%;
@@ -144,10 +124,6 @@ main > div[class*="relative z-20"] {
   display: none; /* Chrome, Safari and Opera */
 }
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -158,97 +134,16 @@ body {
   background: linear-gradient(0deg, rgba(0, 20, 61, 1) 0%, rgba(0, 20, 61, 0.17) 50%, rgba(0, 20, 61, 1) 100%);
 }
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
 /* Ajustes para o layout com largura limitada */
 header.fixed {
-  max-width: 650px;
+  max-width: var(--parish-max-width);
   left: 50% !important;
   transform: translateX(-50%);
   z-index: 50;
 }
 
 .fixed.bottom-0.left-0.right-0 {
-  max-width: 650px;
+  max-width: var(--parish-max-width);
   left: 50% !important;
   right: auto !important;
   transform: translateX(-50%);
@@ -292,7 +187,7 @@ header.fixed {
   left: 0;
   right: 0;
   z-index: 49; /* Menor que o header (50) */
-  max-width: 650px;
+  max-width: var(--parish-max-width);
   margin: 0 auto;
   transition: transform 0.3s ease;
 }

@@ -14,17 +14,22 @@ function asMedia(imagem: Noticia["imagem"]): MediaDoc | null {
 
 export default function NewsList() {
   const [noticias, setNoticias] = useState<Noticia[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function loadNoticias() {
-      const noticiasData = await getUltimasNoticias()
-      setNoticias(noticiasData)
+      try {
+        const noticiasData = await getUltimasNoticias()
+        setNoticias(Array.isArray(noticiasData) ? noticiasData : [])
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     loadNoticias()
   }, [])
 
-  if (noticias.length === 0) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="h-48 bg-gray-700/50 rounded-lg animate-pulse" />
@@ -32,6 +37,14 @@ export default function NewsList() {
           <div className="h-32 bg-gray-700/50 rounded-lg animate-pulse" />
           <div className="h-32 bg-gray-700/50 rounded-lg animate-pulse" />
         </div>
+      </div>
+    )
+  }
+
+  if (noticias.length === 0) {
+    return (
+      <div className="bg-parish-card p-6 rounded-lg text-center">
+        <p className="text-gray-300">Nenhuma notícia disponível no momento.</p>
       </div>
     )
   }

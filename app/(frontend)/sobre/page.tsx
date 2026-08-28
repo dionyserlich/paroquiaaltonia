@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
 import SobreContent from "./sobre-content"
+import PageClient from "../page-client"
 import { payloadClient } from "@/app/lib/payload"
 
 export const metadata: Metadata = {
@@ -43,7 +44,7 @@ export default async function SobrePage() {
   ])
 
   return (
-    <>
+    <PageClient>
       <Header />
       <main className="min-h-screen">
         <div className="page-no-hero p-6">
@@ -56,6 +57,6 @@ export default async function SobrePage() {
         </div>
       </main>
       <BottomNavbar />
-    </>
+    </PageClient>
   )
 }

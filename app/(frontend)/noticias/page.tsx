@@ -44,8 +44,8 @@ export default async function NoticiasPage() {
         <div className="z-20 page-no-hero">
           <div className="container mx-auto px-4 py-6">
             {noticias.length === 0 ? (
-              <div className="bg-gray-100 p-6 rounded-lg text-center">
-                <p className="text-gray-600">Nenhuma notícia disponível no momento.</p>
+              <div className="bg-parish-card p-6 rounded-lg text-center">
+                <p className="text-gray-300">Nenhuma notícia disponível no momento.</p>
               </div>
             ) : (
               <div className="space-y-6">
