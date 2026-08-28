@@ -196,7 +196,13 @@ header.fixed {
   transform: translateY(-100%);
 }
 
-/* Ajuste para o conteúdo principal quando o aviso está visível */
+/* Ajuste para o conteúdo principal quando o aviso está visível — a etapa da
+   dica de bateria tem mais texto (2-3 linhas em telas estreitas) que os
+   passos de instalar/notificar (1 linha), por isso reserva mais espaço. */
 body.has-install-prompt main {
   padding-top: 110px; /* 60px (header) + 50px (aviso) */
+}
+
+body.has-install-prompt-tall main {
+  padding-top: 190px; /* 60px (header) + até ~130px (dica de bateria) */
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { getBanners } from "@/lib/api"
@@ -12,13 +12,21 @@ type Banner = {
   imagem?: { url?: string | null; alt?: string | null } | null
 }
 
+const AUTOPLAY_MS = 5000
+const SWIPE_THRESHOLD_PX = 50
+
 export default function BannerSlider() {
   const [banners, setBanners] = useState<Banner[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [isTransitioning, setIsTransitioning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState(0)
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const draggedRef = useRef(false)
+  const pointerStartXRef = useRef(0)
+  const transitionLockRef = useRef(false)
 
   useEffect(() => {
     async function loadBanners() {
@@ -33,60 +41,63 @@ export default function BannerSlider() {
     loadBanners()
   }, [])
 
+  const goTo = (index: number) => {
+    const total = banners.length
+    setCurrentIndex(((index % total) + total) % total)
+  }
+
   const goToPrevious = () => {
-    if (isTransitioning) return
-
-    setIsTransitioning(true)
-    setCurrentIndex((prevIndex) => (prevIndex === 0 ? banners.length - 1 : prevIndex - 1))
-    resetTimer()
-
-    setTimeout(() => setIsTransitioning(false), 300)
+    if (transitionLockRef.current) return
+    transitionLockRef.current = true
+    goTo(currentIndex - 1)
+    setTimeout(() => (transitionLockRef.current = false), 300)
   }
 
   const goToNext = () => {
-    if (isTransitioning) return
-
-    setIsTransitioning(true)
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length)
-    resetTimer()
-
-    setTimeout(() => setIsTransitioning(false), 300)
+    if (transitionLockRef.current) return
+    transitionLockRef.current = true
+    goTo(currentIndex + 1)
+    setTimeout(() => (transitionLockRef.current = false), 300)
   }
 
-  // Função para limpar e reiniciar o timer
-  const resetTimer = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-    }
-
-    if (banners.length > 1 && !isPaused) {
-      intervalRef.current = setInterval(() => {
-        goToNext()
-      }, 5000)
-    }
-  }
-
-  // Configurar timer inicial
+  // Autoplay — pausa enquanto o dedo/mouse está interagindo com o carrossel.
   useEffect(() => {
-    resetTimer()
-
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    if (banners.length > 1 && !isPaused) {
+      intervalRef.current = setInterval(goToNext, AUTOPLAY_MS)
+    }
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [banners.length, isPaused])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [banners.length, isPaused, currentIndex])
 
-  const handleMouseEnter = () => {
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (banners.length <= 1) return
+    pointerStartXRef.current = e.clientX
+    draggedRef.current = false
+    setIsDragging(true)
     setIsPaused(true)
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-    }
+    e.currentTarget.setPointerCapture(e.pointerId)
   }
 
-  const handleMouseLeave = () => {
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!isDragging) return
+    const delta = e.clientX - pointerStartXRef.current
+    if (Math.abs(delta) > 5) draggedRef.current = true
+    setDragOffset(delta)
+  }
+
+  function endDrag() {
+    if (!isDragging) return
+    setIsDragging(false)
+    if (dragOffset <= -SWIPE_THRESHOLD_PX) {
+      goTo(currentIndex + 1)
+    } else if (dragOffset >= SWIPE_THRESHOLD_PX) {
+      goTo(currentIndex - 1)
+    }
+    setDragOffset(0)
     setIsPaused(false)
-    resetTimer()
   }
 
   if (isLoading) {
@@ -101,25 +112,30 @@ export default function BannerSlider() {
   }
 
   return (
-    <div
-      className="relative w-full aspect-[18/9] rounded-xl overflow-hidden bg-gray-200 group"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Container dos slides */}
-      <div className="relative w-full h-full">
+    <div className="relative w-full aspect-[18/9] rounded-xl overflow-hidden bg-gray-200">
+      {/* touch-action: pan-y libera rolagem vertical da página, mas deixa o
+          gesto horizontal livre pro carrossel — sem isso, arrastar o dedo
+          pro lado no celular tenta rolar a página junto. */}
+      <div
+        className="relative w-full h-full flex cursor-grab active:cursor-grabbing touch-pan-y select-none"
+        style={{
+          transform: `translateX(calc(${-currentIndex * 100}% + ${dragOffset}px))`,
+          transition: isDragging ? "none" : "transform 300ms ease-out",
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onPointerLeave={() => isDragging && endDrag()}
+      >
         {banners.map((banner, index) => (
-          <div
-            key={banner.id}
-            className={`absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out ${
-              index === currentIndex ? "translate-x-0" : index < currentIndex ? "-translate-x-full" : "translate-x-full"
-            }`}
-          >
+          <div key={banner.id} className="relative w-full h-full shrink-0 grow-0 basis-full">
             <Image
               src={banner.imagem?.url || "/placeholder.svg?height=192&width=400"}
               alt={banner.imagem?.alt || banner.titulo || "Banner"}
               fill
-              className="object-cover"
+              draggable={false}
+              className="object-cover pointer-events-none"
               priority={index === 0}
               sizes="(max-width: 650px) 100vw, 650px"
             />
@@ -129,9 +145,7 @@ export default function BannerSlider() {
                 className="absolute inset-0 z-10"
                 aria-label={`Link do banner ${index + 1}`}
                 onClick={(e) => {
-                  if (isTransitioning) {
-                    e.preventDefault()
-                  }
+                  if (draggedRef.current) e.preventDefault()
                 }}
               />
             )}
@@ -145,8 +159,7 @@ export default function BannerSlider() {
               que é a maioria do público deste site. */}
           <button
             onClick={goToPrevious}
-            disabled={isTransitioning}
-            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-20 transition-all duration-200 disabled:opacity-50"
+            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-20 transition-all duration-200"
             aria-label="Banner anterior"
           >
             <ChevronLeft size={20} />
@@ -154,12 +167,26 @@ export default function BannerSlider() {
 
           <button
             onClick={goToNext}
-            disabled={isTransitioning}
-            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-20 transition-all duration-200 disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-20 transition-all duration-200"
             aria-label="Próximo banner"
           >
             <ChevronRight size={20} />
           </button>
+
+          {/* Indicadores de posição — mostram quantos banners existem e qual
+              está ativo, dá pra pular direto pra um específico também. */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+            {banners.map((banner, index) => (
+              <button
+                key={banner.id}
+                onClick={() => goTo(index)}
+                aria-label={`Ir para o banner ${index + 1}`}
+                className={`h-2 rounded-full transition-all duration-200 ${
+                  index === currentIndex ? "w-5 bg-white" : "w-2 bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
         </>
       )}
     </div>
