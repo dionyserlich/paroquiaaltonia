@@ -1,6 +1,6 @@
 import { query } from "@/app/lib/db"
 import { findActiveMassWindow, type MassSlot } from "@/app/lib/mass-schedule"
-import { fetchLiveVideo } from "@/app/lib/youtube-live-scraper"
+import { fetchLiveVideo, type LiveVideo } from "@/app/lib/youtube-live-scraper"
 import { payloadClient } from "@/app/lib/payload"
 
 // Busca o horário semanal no Global do Payload (fonte única — também usada
@@ -40,7 +40,11 @@ export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunR
   const win = findActiveMassWindow(now, schedule)
 
   if (!win.inWindow) {
-    await clearExpiredLive(now)
+    // Rede de segurança: se por algum motivo (falha da API, etc.) uma live
+    // ainda estava sendo rastreada quando a janela toda se esgotou sem nunca
+    // bater 2 ticks seguidos sem live (ver handleNoLiveInWindow), fecha o
+    // registro mesmo assim em vez de deixar `fim` em branco pra sempre.
+    await closeStaleTrackedMissa(now)
     const result: RunResult = {
       ranAt: now.toISOString(),
       inWindow: false,
@@ -56,38 +60,7 @@ export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunR
   try {
     const live = await fetchLiveVideo()
     if (live) {
-      // Só cria um registro permanente em `missas` na primeira detecção deste
-      // vídeo (não a cada tick de 5 min enquanto a mesma live continuar) —
-      // compara com o que já está salvo como "ao vivo agora".
-      const { rows: atuais } = await query<{ linkEmbed: string | null }>(
-        `SELECT link_embed AS "linkEmbed" FROM bot.missa_ao_vivo WHERE id = 1`
-      )
-      const jaRegistrada = atuais[0]?.linkEmbed === live.embedUrl
-      if (!jaRegistrada && win.startsAt && win.endsAt) {
-        try {
-          const payload = await payloadClient()
-          // O afterChange de missas (collections/Missas.ts) dispara a
-          // notificação push a partir deste create — não duplicar aqui.
-          // context.fromBot avisa o hook pra notificar incondicionalmente
-          // (a API do YouTube já confirmou que está ao vivo agora).
-          await payload.create({
-            collection: "missas",
-            data: { titulo: live.title, inicio: win.startsAt.toISOString(), fim: win.endsAt.toISOString(), linkEmbed: live.embedUrl },
-            context: { fromBot: true },
-          })
-        } catch (err) {
-          console.error("[live-mass-bot] falha ao criar registro em missas:", err)
-        }
-      }
-
-      await query(
-        `INSERT INTO bot.missa_ao_vivo (id, titulo, inicio, fim, link_embed, updated_at)
-         VALUES (1, $1, $2, $3, $4, NOW())
-         ON CONFLICT (id) DO UPDATE
-           SET titulo=EXCLUDED.titulo, inicio=EXCLUDED.inicio, fim=EXCLUDED.fim,
-               link_embed=EXCLUDED.link_embed, updated_at=NOW()`,
-        [live.title, win.startsAt, win.endsAt, live.embedUrl]
-      )
+      await handleLiveFound(now, live)
       const result: RunResult = {
         ranAt: now.toISOString(),
         inWindow: true,
@@ -99,7 +72,7 @@ export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunR
       await logRun(trigger, result)
       return result
     }
-    await clearExpiredLive(now)
+    await handleNoLiveInWindow(now)
     const result: RunResult = {
       ranAt: now.toISOString(),
       inWindow: true,
@@ -121,13 +94,118 @@ export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunR
   }
 }
 
-async function clearExpiredLive(now: Date) {
+type BotState = {
+  missaId: number | null
+  linkEmbed: string | null
+  lastConfirmedAt: string | null
+  consecutiveNoLive: number
+}
+
+async function readBotState(): Promise<BotState | null> {
+  const { rows } = await query<BotState>(
+    `SELECT missa_id AS "missaId", link_embed AS "linkEmbed",
+            last_confirmed_at AS "lastConfirmedAt", consecutive_no_live AS "consecutiveNoLive"
+     FROM bot.missa_ao_vivo WHERE id = 1`
+  )
+  return rows[0] ?? null
+}
+
+async function clearTrackedLive() {
   await query(
     `UPDATE bot.missa_ao_vivo
-     SET link_embed = NULL, updated_at = NOW()
-     WHERE id = 1 AND (fim IS NULL OR fim < $1)`,
-    [now]
+     SET link_embed = NULL, missa_id = NULL, last_confirmed_at = NULL, consecutive_no_live = 0, updated_at = NOW()
+     WHERE id = 1`
   )
+}
+
+// Fecha o registro em `missas` que estava aberto (fim em branco), usando o
+// horário da última confirmação real de que a live ainda estava no ar — não
+// o horário em que a ausência foi percebida, que já vem com atraso de até um
+// tick do cron (5-10 min).
+async function closeMissaRecord(missaId: number, fimIso: string) {
+  try {
+    const payload = await payloadClient()
+    await payload.update({ collection: "missas", id: missaId, data: { fim: fimIso } })
+  } catch (err) {
+    console.error("[live-mass-bot] falha ao fechar registro em missas:", missaId, err)
+  }
+}
+
+async function handleLiveFound(now: Date, live: LiveVideo) {
+  const state = await readBotState()
+  const linkMudou = state?.linkEmbed !== live.embedUrl
+
+  if (!linkMudou) {
+    // Mesma live continuando — só atualiza o "último ping confirmado" e zera
+    // o contador de ausência (não cria um novo registro em `missas`).
+    await query(
+      `UPDATE bot.missa_ao_vivo SET last_confirmed_at = $1, consecutive_no_live = 0, updated_at = NOW() WHERE id = 1`,
+      [now.toISOString()]
+    )
+    return
+  }
+
+  // Link mudou: ou é a primeira live desta janela, ou a anterior caiu e uma
+  // nova começou — fecha o registro antigo (se houver) antes de abrir o novo.
+  if (state?.missaId) {
+    await closeMissaRecord(state.missaId, state.lastConfirmedAt ?? now.toISOString())
+  }
+
+  let novoId: number | null = null
+  try {
+    const payload = await payloadClient()
+    // O afterChange de missas (collections/Missas.ts) dispara a notificação
+    // push a partir deste create — não duplicar aqui. context.fromBot avisa
+    // o hook pra notificar incondicionalmente (a API do YouTube já confirmou
+    // que está ao vivo agora). `inicio` é o horário real de detecção, não o
+    // horário agendado, e `fim` fica em branco de propósito enquanto a
+    // transmissão continua — só é preenchido quando ela de fato terminar.
+    const novoDoc = await payload.create({
+      collection: "missas",
+      data: { titulo: live.title, inicio: now.toISOString(), linkEmbed: live.embedUrl },
+      context: { fromBot: true },
+    })
+    novoId = novoDoc.id as number
+  } catch (err) {
+    console.error("[live-mass-bot] falha ao criar registro em missas:", err)
+  }
+
+  await query(
+    `INSERT INTO bot.missa_ao_vivo
+       (id, titulo, inicio, fim, link_embed, missa_id, last_confirmed_at, consecutive_no_live, updated_at)
+     VALUES (1, $1, $2, NULL, $3, $4, $2, 0, NOW())
+     ON CONFLICT (id) DO UPDATE
+       SET titulo = EXCLUDED.titulo, inicio = EXCLUDED.inicio, fim = NULL,
+           link_embed = EXCLUDED.link_embed, missa_id = EXCLUDED.missa_id,
+           last_confirmed_at = EXCLUDED.last_confirmed_at, consecutive_no_live = 0, updated_at = NOW()`,
+    [live.title, now.toISOString(), live.embedUrl, novoId]
+  )
+}
+
+// A API do YouTube pode falhar/oscilar por um tick sem que a transmissão
+// tenha de fato terminado — só fecha o registro depois de 2 verificações
+// seguidas sem live (~5-10 min de ausência confirmada), não já na primeira.
+async function handleNoLiveInWindow(now: Date) {
+  const state = await readBotState()
+  if (!state?.missaId) return // nada sendo rastreado no momento
+
+  const novoContador = (state.consecutiveNoLive ?? 0) + 1
+  if (novoContador < 2) {
+    await query(`UPDATE bot.missa_ao_vivo SET consecutive_no_live = $1, updated_at = NOW() WHERE id = 1`, [novoContador])
+    return
+  }
+
+  await closeMissaRecord(state.missaId, state.lastConfirmedAt ?? now.toISOString())
+  await clearTrackedLive()
+}
+
+// Rede de segurança pro caso raro de a janela toda se esgotar sem nunca
+// bater 2 ticks seguidos sem live (ex.: falha prolongada da API do YouTube).
+async function closeStaleTrackedMissa(now: Date) {
+  const state = await readBotState()
+  if (!state?.missaId) return
+  await closeMissaRecord(state.missaId, state.lastConfirmedAt ?? now.toISOString())
+  await clearTrackedLive()
 }
 
 async function logRun(trigger: string, r: RunResult) {
@@ -163,9 +241,11 @@ export async function getCurrentLiveMass() {
 // Cobre missas cadastradas manualmente pelo /cms com `inicio` no futuro
 // (ex.: live já agendada no YouTube com antecedência) — o hook de
 // collections/Missas.ts só notifica no cadastro se a missa já estiver
-// dentro da janela "ao vivo" (inicio <= agora <= fim); esta função, chamada
-// a cada tick do cron (ver app/api/cron/check-live-mass/route.ts), cobre o
-// caso contrário assim que a janela realmente começa.
+// dentro da janela "ao vivo" (inicio <= agora, e fim em branco ou >= agora);
+// esta função, chamada a cada tick do cron (ver
+// app/api/cron/check-live-mass/route.ts), cobre o caso contrário assim que a
+// janela realmente começa. `fim` em branco conta como "ainda em aberto",
+// mesmo critério usado no hook.
 export async function notifyDueManualMissas() {
   const payload = await payloadClient()
   const nowIso = new Date().toISOString()
@@ -175,7 +255,7 @@ export async function notifyDueManualMissas() {
       and: [
         { notificado: { not_equals: true } },
         { inicio: { less_than_equal: nowIso } },
-        { fim: { greater_than_equal: nowIso } },
+        { or: [{ fim: { greater_than_equal: nowIso } }, { fim: { exists: false } }] },
       ],
     },
     limit: 20,

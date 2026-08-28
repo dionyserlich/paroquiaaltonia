@@ -9,7 +9,7 @@ type Missa = {
   id: number
   titulo?: string | null
   inicio: string
-  fim: string
+  fim?: string | null
   linkEmbed?: string | null
 }
 
@@ -51,8 +51,10 @@ export default function LiveMassButton() {
 
       const missaAtual = (missasData as Missa[]).find((missa) => {
         const inicio = new Date(missa.inicio)
-        const fim = new Date(missa.fim)
-        return agora >= inicio && agora <= fim
+        // `fim` em branco significa que a missa (cadastrada pelo bot) ainda
+        // está ao vivo — tratar como "sem fim ainda", não como já encerrada.
+        const fim = missa.fim ? new Date(missa.fim) : null
+        return agora >= inicio && (fim === null || agora <= fim)
       })
 
       if (missaAtual) {

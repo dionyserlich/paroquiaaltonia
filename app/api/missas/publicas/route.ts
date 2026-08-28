@@ -20,7 +20,7 @@ export async function GET() {
       id: number
       titulo: string
       inicio: string
-      fim: string
+      fim?: string | null
       linkEmbed?: string | null
       descricao?: string | null
     }

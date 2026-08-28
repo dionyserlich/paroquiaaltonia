@@ -23,7 +23,10 @@ export const Missas: CollectionConfig = {
         const now = Date.now()
         const inicio = data.inicio ? new Date(data.inicio).getTime() : null
         const fim = data.fim ? new Date(data.fim).getTime() : null
-        const isCurrentlyLive = inicio !== null && fim !== null && inicio <= now && now <= fim
+        // `fim` em branco significa "ainda ao vivo/em aberto" (o bot cadastra
+        // assim de propósito — ver app/lib/live-mass-bot.ts — e só preenche
+        // depois que a transmissão realmente termina), não "não sei".
+        const isCurrentlyLive = inicio !== null && inicio <= now && (fim === null || now <= fim)
         data.notificado = fromBot || isCurrentlyLive
         return data
       },
@@ -87,13 +90,17 @@ export const Missas: CollectionConfig = {
       },
     },
     {
+      // Opcional de propósito: o bot cria a missa só com `inicio` (horário
+      // real em que a live foi detectada) e deixa `fim` em branco enquanto a
+      // transmissão continua — só preenche quando ela de fato termina (ver
+      // app/lib/live-mass-bot.ts). Em branco = "ainda ao vivo", não "erro".
       name: "fim",
       type: "date",
-      required: true,
       admin: {
         date: {
           pickerAppearance: "dayAndTime",
         },
+        description: "Deixe em branco enquanto a missa ainda está ao vivo/em andamento.",
       },
     },
     {
