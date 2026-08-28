@@ -2,7 +2,7 @@
 
 import type { SVGProps } from "react"
 import Link from "next/link"
-import { Book, Church, HandHeart } from "lucide-react"
+import { Book, Calendar, Church, HandHeart, MapPin, Users } from "lucide-react"
 
 // Ícone personalizado para "Intenção" (mãos em oração). Fora do componente
 // pra não ser recriado (e remontado) a cada render.
@@ -48,24 +48,54 @@ function HeartIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-const links = [
+// Calendar em vez de Church pra Missas — Church já é usado por "Sobre a
+// Paróquia" na seção "Conheça a Paróquia" logo abaixo, mesma página, e os
+// dois ícones ficariam parecidos demais um do outro pra representar coisas
+// diferentes. Mesmo ícone usado em components/bottom-navbar.tsx pro mesmo
+// destino (/missas), por consistência.
+const acoesRapidas = [
   { icon: <Book className="h-7 w-7" />, label: "Liturgia", href: "/liturgia" },
-  { icon: <Church className="h-7 w-7" />, label: "Missas", href: "/missas" },
+  { icon: <Calendar className="h-7 w-7" />, label: "Missas", href: "/missas" },
   { icon: <PrayingHandsIcon className="h-7 w-7" />, label: "Intenções", href: "/intencoes" },
   { icon: <HandHeart className="h-7 w-7" />, label: "Ofertas", href: "/ofertas" },
   { icon: <HeartIcon className="h-7 w-7" />, label: "Dízimo", href: "/dizimo" },
 ]
 
+// Mesmos ícones usados pra estes destinos em components/side-menu.tsx, por
+// consistência — mesmo lugar, mesmo ícone, não importa por qual caminho a
+// pessoa chega.
+const conhecaPara = [
+  { icon: <Church className="h-6 w-6" />, label: "Sobre a Paróquia", href: "/sobre" },
+  { icon: <Users className="h-6 w-6" />, label: "Pastorais", href: "/pastorais" },
+  { icon: <MapPin className="h-6 w-6" />, label: "Capelas e Comunidades", href: "/capelas" },
+]
+
 export default function QuickLinks() {
   return (
-    <div className="w-full ">
+    <div className="w-full space-y-5">
       <div className="flex justify-between min-w-full px-4 overflow-x-auto scrollbar-hide max-w-0">
-        {links.map((link, index) => (
+        {acoesRapidas.map((link, index) => (
           <Link key={index} href={link.href} className="flex flex-col items-center justify-center px-3">
             <div className="mb-2 text-white">{link.icon}</div>
             <span className="text-sm font-medium text-white whitespace-nowrap">{link.label}</span>
           </Link>
         ))}
+      </div>
+
+      <div className="px-4">
+        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Conheça a paróquia</p>
+        <div className="grid grid-cols-3 gap-3">
+          {conhecaPara.map((link, index) => (
+            <Link
+              key={index}
+              href={link.href}
+              className="flex flex-col items-center justify-center text-center gap-1.5 bg-parish-card rounded-lg px-2 py-3"
+            >
+              <div className="text-yellow-500">{link.icon}</div>
+              <span className="text-xs font-medium text-white leading-tight">{link.label}</span>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   )

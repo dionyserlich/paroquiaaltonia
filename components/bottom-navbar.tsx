@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Book, Clock, Menu, MessageCircle, X } from "lucide-react"
+import { Calendar, Clock, Menu, MessageCircle, X } from "lucide-react"
 import Image from "next/image"
 import SideMenu from "./side-menu"
 
@@ -59,7 +59,7 @@ export default function BottomNavbar() {
             icon={isMenuOpen ? <X size={20} /> : <Menu size={20} />}
             label="Menu"
           />
-          <NavItem href="/missas" icon={<Book size={20} />} label="Missas" />
+          <NavItem href="/missas" icon={<Calendar size={20} />} label="Missas" />
 
           <Link href="/" className="flex flex-col items-center justify-center -mt-6">
             <div className="bg-yellow-500 rounded-full mb-1">

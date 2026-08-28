@@ -6,7 +6,7 @@ import {
   BookIcon as Bible,
   BookOpen,
   Church,
-  HelpCircle,
+  Clock,
   PenSquare,
   Share2,
   Users,
@@ -125,8 +125,8 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
             />
             <MenuItem
               href="/horarios"
-              icon={<HelpCircle size={20} />}
-              label="Contato"
+              icon={<Clock size={20} />}
+              label="Horários"
               onClick={handleInternalLinkClick}
             />
           </MenuSection>
