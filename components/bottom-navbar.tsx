@@ -7,8 +7,25 @@ import { Calendar, Clock, Menu, MessageCircle, X } from "lucide-react"
 import Image from "next/image"
 import SideMenu from "./side-menu"
 
+// Número usado até a busca no CMS retornar (ou se ela falhar) — o mesmo que
+// antes ficava fixo direto no código, agora só como fallback.
+const WHATSAPP_FALLBACK = "5544998680244"
+
 export default function BottomNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [whatsapp, setWhatsapp] = useState(WHATSAPP_FALLBACK)
+
+  // Lido do mesmo campo do CMS usado em horarios-content.tsx — antes era
+  // fixo aqui no código, então trocar o número no /cms não atualizava esta
+  // barra sem um novo deploy.
+  useEffect(() => {
+    fetch("/api/contato/publico")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.whatsapp) setWhatsapp(data.whatsapp)
+      })
+      .catch(() => {})
+  }, [])
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -52,7 +69,7 @@ export default function BottomNavbar() {
     <>
       <SideMenu isOpen={isMenuOpen} onClose={closeMenu} />
 
-      <nav className="fixed bottom-0 bg-[#0a1e42] border-t border-blue-900 z-40 w-full shadow-[0_0_30px_rgba(0,23,63,0.9)]">
+      <nav className="fixed bottom-0 bg-parish-navy border-t border-blue-900 z-40 w-full shadow-[0_0_30px_rgba(0,23,63,0.9)]">
         <div className="flex justify-between items-center px-2 py-2 md:py-3 w-full max-w-[650px] mx-auto">
           <NavItem
             onClick={toggleMenu}
@@ -74,11 +91,7 @@ export default function BottomNavbar() {
           </Link>
 
           <NavItem href="/horarios" icon={<Clock size={20} />} label="Horários" />
-          <NavItem
-            href="http://api.whatsapp.com/send/?phone=%2B5544998680244"
-            icon={<MessageCircle size={20} />}
-            label="WhatsApp"
-          />
+          <NavItem href={`https://wa.me/${whatsapp}`} icon={<MessageCircle size={20} />} label="WhatsApp" />
         </div>
       </nav>
     </>

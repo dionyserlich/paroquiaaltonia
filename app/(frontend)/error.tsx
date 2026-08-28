@@ -17,7 +17,7 @@ export default function Error({
   }, [error])
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#00143d]">
+    <main className="flex min-h-screen flex-col bg-parish-bg">
       <Header />
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center page-no-hero">
         <h1 className="text-4xl font-bold text-yellow-500 mb-4">Algo deu errado</h1>
@@ -25,7 +25,7 @@ export default function Error({
         <div className="flex gap-4">
           <button
             onClick={() => reset()}
-            className="bg-yellow-500 text-[#0a1e42] font-semibold px-6 py-3 rounded-full"
+            className="bg-yellow-500 text-parish-navy font-semibold px-6 py-3 rounded-full"
           >
             Tentar novamente
           </button>

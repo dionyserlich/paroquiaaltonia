@@ -88,7 +88,7 @@ export default function MissasContent() {
         <div className="text-center space-y-4">
           <div className="flex justify-center mb-4">
             <div className="bg-yellow-500 p-4 rounded-full">
-              <Church className="w-8 h-8 text-[#0c2657]" />
+              <Church className="w-8 h-8 text-parish-card" />
             </div>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold">Missas</h1>

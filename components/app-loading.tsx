@@ -18,7 +18,7 @@ export default function AppLoading() {
   if (!visible) return null
 
   return (
-    <div className="fixed inset-0 bg-[#00143d] flex flex-col items-center justify-center z-50">
+    <div className="fixed inset-0 bg-parish-bg flex flex-col items-center justify-center z-50">
       <div className="relative">
         <Image src="/images/logo-icone.png" alt="Logo São Sebastião" width={80} height={80} className="pulse" />
         <div className="hidden spinner-border absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 border-4 border-yellow-500/20 border-t-yellow-500 rounded-full"></div>

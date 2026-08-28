@@ -31,9 +31,8 @@ export default function Header() {
   return (
     <header
       className={`fixed top-0 z-50 flex items-center justify-between px-4 py-3 transition-all duration-300 w-full ${
-        isScrolled ? "bg-[#0a1e42]" : "bg-transparent"
+        isScrolled ? "bg-parish-navy" : "bg-transparent"
       }`}
-      style={{ backgroundColor: isScrolled ? "#0a1e42" : "transparent" }}
     >
       <Link href="/" className="flex items-center">
         <Image src="/images/logo-icone.png" alt="Paróquia São Sebastião" width={40} height={40} />

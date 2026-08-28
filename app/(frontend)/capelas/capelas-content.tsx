@@ -40,7 +40,7 @@ export default function CapelasContent({ capelas }: { capelas: Capela[] }) {
       <div className="text-center space-y-4">
         <div className="flex justify-center mb-4">
           <div className="bg-yellow-500 p-4 rounded-full">
-            <Church className="w-8 h-8 text-[#0c2657]" />
+            <Church className="w-8 h-8 text-parish-card" />
           </div>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold">Capelas e Comunidades</h1>
@@ -57,7 +57,7 @@ export default function CapelasContent({ capelas }: { capelas: Capela[] }) {
               key={opcao}
               onClick={() => setFiltro(opcao)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                filtro === opcao ? "bg-yellow-500 text-[#4d3600]" : "bg-white/10 text-gray-300 hover:bg-white/20"
+                filtro === opcao ? "bg-yellow-500 text-parish-accent-text" : "bg-white/10 text-gray-300 hover:bg-white/20"
               }`}
             >
               {opcao === "todas" ? "Todas" : ZONA_LABEL[opcao]}

@@ -11,11 +11,14 @@ const RichText: (props: { data: unknown; className?: string }) => any = RichText
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
 import PhotoLightbox from "@/components/photo-lightbox"
+import { JsonLd } from "@/components/json-ld"
 import PageClient from "../../page-client"
 import { payloadClient } from "@/app/lib/payload"
 import { findBySlugOrLegacyId } from "@/app/lib/find-by-slug"
 import { formatarData } from "@/lib/utils"
 import type { Noticia } from "@/app/lib/content-types"
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.paroquiaaltonia.com.br"
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -57,9 +60,27 @@ export default async function NoticiaPage({ params }: Props) {
     .map((item) => (typeof item.imagem === "object" ? item.imagem : null))
     .filter((img): img is NonNullable<typeof img> & { url: string } => Boolean(img?.url))
 
+  // Schema.org "NewsArticle" — ver https://schema.org/NewsArticle
+  const noticiaJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: noticia.titulo,
+    datePublished: noticia.data,
+    ...(noticia.resumo ? { description: noticia.resumo } : {}),
+    image: [imagem?.url || `${baseUrl}/images/logo-icone.png`],
+    author: { "@type": "Organization", name: "Paróquia São Sebastião de Altônia" },
+    publisher: {
+      "@type": "Organization",
+      name: "Paróquia São Sebastião de Altônia",
+      logo: { "@type": "ImageObject", url: `${baseUrl}/images/logo-icone.png` },
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${baseUrl}/noticias/${slug}` },
+  }
+
   return (
     <PageClient>
-      <main className="flex min-h-screen flex-col bg-[#00143d]">
+      <JsonLd data={noticiaJsonLd} />
+      <main className="flex min-h-screen flex-col bg-parish-bg">
         <Header />
         <div className="page-no-hero z-20">
           <div className="container mx-auto px-4 py-6">

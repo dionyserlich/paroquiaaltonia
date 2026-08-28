@@ -38,7 +38,7 @@ export default async function NoticiasPage() {
 
   return (
     <PageClient>
-      <main className="flex min-h-screen flex-col bg-[#00143d]">
+      <main className="flex min-h-screen flex-col bg-parish-bg">
         <Header />
         <h1 className="text-2xl font-bold text-white mb-6 text-center mt-10">Notícias</h1>
         <div className="z-20 page-no-hero">
@@ -55,7 +55,7 @@ export default async function NoticiasPage() {
                     <Link
                       href={`/noticias/${noticia.slug}`}
                       key={noticia.id}
-                      className="block bg-[#0c2657] rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                      className="block bg-parish-card rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
                     >
                       <div className="md:flex">
                         <div className="md:w-1/3 relative">

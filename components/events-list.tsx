@@ -52,7 +52,7 @@ export default function EventsList() {
         <p className="text-red-400">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-2 px-4 py-2 bg-yellow-500 text-[#4d3600] font-medium rounded-md text-sm"
+          className="mt-2 px-4 py-2 bg-yellow-500 text-parish-accent-text font-medium rounded-md text-sm"
         >
           Tentar novamente
         </button>
@@ -76,7 +76,7 @@ export default function EventsList() {
         const mes = data.toLocaleDateString("pt-BR", { month: "short", timeZone: "America/Sao_Paulo" }).replace(".", "")
         const hora = data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })
         return (
-          <Link href={`/eventos/${evento.slug}`} key={evento.id} className="block bg-[#0c2657] p-3 rounded-lg">
+          <Link href={`/eventos/${evento.slug}`} key={evento.id} className="block bg-parish-card p-3 rounded-lg">
             <div className="flex items-start">
               <div className="text-yellow-500 font-bold mr-3 text-center min-w-[60px]">
                 <div className="text-[16pt]">{dia}</div>

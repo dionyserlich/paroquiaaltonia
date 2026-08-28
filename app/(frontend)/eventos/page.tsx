@@ -41,7 +41,7 @@ export default async function EventosPage() {
 
   return (
     <PageClient>
-      <main className="flex min-h-screen flex-col bg-[#00143d]">
+      <main className="flex min-h-screen flex-col bg-parish-bg">
         <Header />
         <h1 className="text-2xl font-bold text-white mb-6 text-center mt-10">Eventos</h1>
         <div className="z-20 page-no-hero">

@@ -32,7 +32,7 @@ export default function PastoraisContent({ pastorais }: { pastorais: Pastoral[] 
       <div className="text-center space-y-4">
         <div className="flex justify-center mb-4">
           <div className="bg-yellow-500 p-4 rounded-full">
-            <Church className="w-8 h-8 text-[#0c2657]" />
+            <Church className="w-8 h-8 text-parish-card" />
           </div>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold">Pastorais</h1>
@@ -84,7 +84,7 @@ export default function PastoraisContent({ pastorais }: { pastorais: Pastoral[] 
       <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-8 text-center">
         <div className="flex justify-center mb-4">
           <div className="bg-yellow-500 p-3 rounded-full">
-            <Plus className="w-6 h-6 text-[#0c2657]" />
+            <Plus className="w-6 h-6 text-parish-card" />
           </div>
         </div>
         <h2 className="text-2xl font-bold mb-4">Mais Pastorais em Breve</h2>
@@ -92,7 +92,7 @@ export default function PastoraisContent({ pastorais }: { pastorais: Pastoral[] 
           Nossa comunidade está sempre crescendo e novas pastorais estão sendo organizadas para atender melhor às
           necessidades da nossa paróquia.
         </p>
-        <div className="bg-[#0c2657]/50 rounded-lg p-4">
+        <div className="bg-parish-card/50 rounded-lg p-4">
           <p className="text-sm text-gray-300">
             <strong>Quer participar?</strong> Entre em contato conosco para saber como se envolver nas atividades
             pastorais.
@@ -113,7 +113,7 @@ export default function PastoraisContent({ pastorais }: { pastorais: Pastoral[] 
 
       {/* Call to Action */}
       <div className="text-center">
-        <div className="bg-gradient-to-r from-[#0c2657] to-[#1a3a7a] border border-yellow-500/30 rounded-lg p-6">
+        <div className="bg-gradient-to-r from-parish-card to-parish-card-end border border-yellow-500/30 rounded-lg p-6">
           <h3 className="text-xl font-bold mb-2">Venha Fazer Parte!</h3>
           <p className="text-gray-300 mb-4">
             Cada pastoral é uma oportunidade de servir a Deus e à comunidade. Descubra onde seus dons podem ser

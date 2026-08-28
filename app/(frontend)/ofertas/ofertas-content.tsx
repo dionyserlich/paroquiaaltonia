@@ -36,7 +36,7 @@ export default function OfertasContent() {
         <div className="text-center space-y-4">
           <div className="flex justify-center mb-4">
             <div className="bg-yellow-500 p-4 rounded-full">
-              <Gift className="w-8 h-8 text-[#0c2657]" />
+              <Gift className="w-8 h-8 text-parish-card" />
             </div>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold">Ofertas</h1>
@@ -65,7 +65,7 @@ export default function OfertasContent() {
         <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-8 text-center">
           <div className="flex justify-center mb-4">
             <div className="bg-yellow-500 p-3 rounded-full">
-              <Heart className="w-6 h-6 text-[#0c2657]" />
+              <Heart className="w-6 h-6 text-parish-card" />
             </div>
           </div>
           <h2 className="text-2xl font-bold mb-4">Em Construção</h2>
@@ -73,7 +73,7 @@ export default function OfertasContent() {
             Estamos desenvolvendo um sistema seguro para receber ofertas online. Em breve você poderá contribuir
             diretamente pelo aplicativo.
           </p>
-          <div className="bg-[#0c2657]/50 rounded-lg p-4">
+          <div className="bg-parish-card/50 rounded-lg p-4">
             <p className="text-sm text-gray-300">
               <strong>Por enquanto:</strong> As ofertas podem ser feitas presencialmente durante as missas ou na
               secretaria paroquial.
@@ -93,7 +93,7 @@ export default function OfertasContent() {
         </div>
 
         {/* Versículo Bíblico */}
-        <div className="bg-gradient-to-r from-[#0c2657] to-[#1a3a7a] border border-yellow-500/30 rounded-lg p-6 text-center">
+        <div className="bg-gradient-to-r from-parish-card to-parish-card-end border border-yellow-500/30 rounded-lg p-6 text-center">
           <p className="text-lg italic text-gray-300 mb-2">
             &ldquo;Cada um dê conforme decidiu em seu coração, não com tristeza ou por obrigação, pois Deus ama quem dá com
             alegria.&rdquo;

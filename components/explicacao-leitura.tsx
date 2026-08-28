@@ -302,7 +302,7 @@ export default function ExplicacaoLeitura({ tipo, referencia, titulo, texto }: E
               onClick={isSpeaking ? stopSpeaking : startSpeaking}
               variant="default"
               size="default"
-              className="bg-yellow-500 hover:bg-yellow-600 text-[#4d3600] font-medium px-6 py-2"
+              className="bg-yellow-500 hover:bg-yellow-600 text-parish-accent-text font-medium px-6 py-2"
               disabled={loading || !explicacao}
             >
               {isSpeaking ? (

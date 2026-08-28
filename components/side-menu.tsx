@@ -5,22 +5,23 @@ import type React from "react"
 import {
   BookIcon as Bible,
   BookOpen,
+  Calendar,
   Church,
   Clock,
-  PenSquare,
+  Facebook,
+  HandHeart,
+  Instagram,
+  MapPin,
+  Newspaper,
+  PartyPopper,
   Share2,
   Users,
   X,
-  Facebook,
-  Instagram,
   Youtube,
-  HandHeart,
-  Heart,
-  Calendar,
-  MapPin,
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect } from "react"
+import { HeartIcon, PrayingHandsIcon } from "@/components/icons"
 
 interface SideMenuProps {
   isOpen: boolean
@@ -60,7 +61,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
 
       {/* Menu lateral */}
       <div
-        className={`fixed top-0 left-0 h-full w-[85%] max-w-[320px] bg-[#0a1e42] z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full w-[85%] max-w-[320px] bg-parish-navy z-50 transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } overflow-y-auto`}
       >
@@ -72,39 +73,57 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
         </div>
 
         <div className="py-2">
-          <MenuSection title="Espiritual">
+          {/* Ações do dia a dia — o que a pessoa mais provavelmente veio fazer */}
+          <MenuSection title="Participar">
             <MenuItem
               href="/liturgia"
               icon={<BookOpen size={20} />}
               label="Liturgia do Dia"
               onClick={handleInternalLinkClick}
             />
-            <MenuItem href="https://www.bibliaonline.com.br/" icon={<Bible size={20} />} label="Bíblia" external />
-          </MenuSection>
-
-          <MenuSection title="Serviços">
             <MenuItem
-              href="/eventos"
+              href="/missas"
               icon={<Calendar size={20} />}
-              label="Próximos Eventos"
+              label="Missas"
               onClick={handleInternalLinkClick}
             />
             <MenuItem
               href="/intencoes"
-              icon={<PenSquare size={20} />}
+              icon={<PrayingHandsIcon size={20} />}
               label="Pedidos de Intenções"
               onClick={handleInternalLinkClick}
             />
+            <MenuItem href="https://www.bibliaonline.com.br/" icon={<Bible size={20} />} label="Bíblia" external />
+          </MenuSection>
+
+          {/* Conteúdo que muda com frequência — o que a pessoa vem checar de novo */}
+          <MenuSection title="Fique por dentro">
+            <MenuItem
+              href="/noticias"
+              icon={<Newspaper size={20} />}
+              label="Notícias"
+              onClick={handleInternalLinkClick}
+            />
+            <MenuItem
+              href="/eventos"
+              icon={<PartyPopper size={20} />}
+              label="Próximos Eventos"
+              onClick={handleInternalLinkClick}
+            />
+          </MenuSection>
+
+          <MenuSection title="Contribuir">
+            <MenuItem href="/dizimo" icon={<HeartIcon size={20} />} label="Dízimo" onClick={handleInternalLinkClick} />
             <MenuItem
               href="/ofertas"
               icon={<HandHeart size={20} />}
               label="Ofertas"
               onClick={handleInternalLinkClick}
             />
-            <MenuItem href="/dizimo" icon={<Heart size={20} />} label="Dízimo" onClick={handleInternalLinkClick} />
           </MenuSection>
 
-          <MenuSection title="Comunidade">
+          {/* Institucional — quem somos, onde e quando encontrar a paróquia */}
+          <MenuSection title="A Paróquia">
             <MenuItem
               href="/sobre"
               icon={<Church size={20} />}

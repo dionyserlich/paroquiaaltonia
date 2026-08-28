@@ -64,8 +64,16 @@ export default function WelcomeBanner() {
   }, [push.checked, push.isSupported, push.isSubscribed])
 
   useEffect(() => {
-    document.body.classList.toggle("has-install-prompt", step !== null)
-    return () => document.body.classList.remove("has-install-prompt")
+    // A etapa "battery-tip" tem texto mais longo (2-3 linhas em telas
+    // estreitas) e precisa de mais espaço reservado no <main> — ver
+    // .has-install-prompt-tall em globals.css. Só uma das duas classes fica
+    // ativa por vez.
+    document.body.classList.toggle("has-install-prompt", step !== null && step !== "battery-tip")
+    document.body.classList.toggle("has-install-prompt-tall", step === "battery-tip")
+    return () => {
+      document.body.classList.remove("has-install-prompt")
+      document.body.classList.remove("has-install-prompt-tall")
+    }
   }, [step])
 
   async function handleInstall() {
@@ -120,7 +128,7 @@ export default function WelcomeBanner() {
   if (step === null) return null
 
   return (
-    <div className="install-prompt bg-yellow-500 text-[#4d3600] px-4 py-3 shadow-md">
+    <div className="install-prompt bg-yellow-500 text-parish-accent-text px-4 py-3 shadow-md">
       {step === "install" && (
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center min-w-0">
@@ -133,11 +141,11 @@ export default function WelcomeBanner() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {!isIOS && (
-              <button onClick={handleInstall} className="bg-[#4d3600] text-yellow-500 text-xs font-medium px-3 py-1.5 rounded">
+              <button onClick={handleInstall} className="bg-parish-accent-text text-yellow-500 text-xs font-medium px-3 py-1.5 rounded">
                 Instalar
               </button>
             )}
-            <button onClick={closeInstall} className="text-[#4d3600] hover:opacity-70" aria-label="Fechar">
+            <button onClick={closeInstall} className="text-parish-accent-text hover:opacity-70" aria-label="Fechar">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -154,11 +162,11 @@ export default function WelcomeBanner() {
             <button
               onClick={handleActivateNotifications}
               disabled={push.isLoading}
-              className="bg-[#4d3600] text-yellow-500 text-xs font-medium px-3 py-1.5 rounded disabled:opacity-60"
+              className="bg-parish-accent-text text-yellow-500 text-xs font-medium px-3 py-1.5 rounded disabled:opacity-60"
             >
               Ativar
             </button>
-            <button onClick={closeNotify} className="text-[#4d3600] hover:opacity-70" aria-label="Fechar">
+            <button onClick={closeNotify} className="text-parish-accent-text hover:opacity-70" aria-label="Fechar">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -172,7 +180,7 @@ export default function WelcomeBanner() {
             desativar a &quot;otimização de bateria&quot; do Chrome pra elas chegarem mesmo com o app fechado —
             geralmente em Configurações → Apps → Chrome → Bateria.
           </p>
-          <button onClick={closeBatteryTip} className="text-[#4d3600] hover:opacity-70 shrink-0" aria-label="Fechar">
+          <button onClick={closeBatteryTip} className="text-parish-accent-text hover:opacity-70 shrink-0" aria-label="Fechar">
             <X className="h-4 w-4" />
           </button>
         </div>

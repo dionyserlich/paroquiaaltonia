@@ -5,11 +5,14 @@ import { ChevronLeft, Calendar } from "lucide-react"
 import { RichText as RichTextBase } from "@payloadcms/richtext-lexical/react"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
+import { JsonLd } from "@/components/json-ld"
 import PageClient from "../../page-client"
 import { payloadClient } from "@/app/lib/payload"
 import { findBySlugOrLegacyId } from "@/app/lib/find-by-slug"
 import { formatarData } from "@/lib/utils"
 import type { Evento } from "@/app/lib/content-types"
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.paroquiaaltonia.com.br"
 
 // Cast: o tipo de retorno do RichText (ReactNode) não bate com o que a
 // versão do @types/react instalada aceita como componente JSX.
@@ -49,10 +52,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function EventoPage({ params }: Props) {
   const { slug } = await params
   const evento = await getEvento(slug)
+  const payload = await payloadClient()
+  const contato = await payload.findGlobal({ slug: "contact-info" }).catch(() => null)
+
+  // Schema.org "Event" — ver https://schema.org/Event. Sem endereço próprio
+  // por evento no CMS hoje, então usa o endereço da própria paróquia como
+  // local (a grande maioria dos eventos acontece ali).
+  const eventoJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: evento.titulo,
+    startDate: evento.startAt,
+    ...(evento.endAt ? { endDate: evento.endAt } : {}),
+    ...(evento.descricao ? { description: evento.descricao } : {}),
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    url: `${baseUrl}/eventos/${slug}`,
+    location: {
+      "@type": "Place",
+      name: "Paróquia São Sebastião de Altônia",
+      ...(contato?.endereco
+        ? {
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: contato.endereco,
+              addressLocality: "Altônia",
+              addressRegion: "PR",
+              addressCountry: "BR",
+            },
+          }
+        : {}),
+    },
+  }
 
   return (
     <PageClient>
-      <main className="flex min-h-screen flex-col bg-[#00143d]">
+      <JsonLd data={eventoJsonLd} />
+      <main className="flex min-h-screen flex-col bg-parish-bg">
         <Header />
 
         <div className="page-no-hero z-20">
@@ -62,7 +98,7 @@ export default async function EventoPage({ params }: Props) {
               <span>Voltar para eventos</span>
             </Link>
 
-            <div className="bg-[#0c2657] rounded-lg overflow-hidden">
+            <div className="bg-parish-card rounded-lg overflow-hidden">
               <div className="p-6">
                 <h1 className="text-2xl font-bold text-white mb-4">{evento.titulo}</h1>
 

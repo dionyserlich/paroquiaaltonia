@@ -8,13 +8,62 @@ import LiveMassButton from "@/components/live-mass-button"
 import QuickLinks from "@/components/quick-links"
 import BottomNavbar from "@/components/bottom-navbar"
 import Header from "@/components/header"
+import { JsonLd } from "@/components/json-ld"
 import PageClient from "./page-client"
+import { payloadClient } from "@/app/lib/payload"
 
-export default function Home() {
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.paroquiaaltonia.com.br"
+
+// Sem isso, o resultado do payload.findGlobal (contato pro schema.org
+// abaixo) fica congelado no build — edições feitas depois via CMS nunca
+// apareceriam no dado estruturado até o próximo deploy.
+export const dynamic = "force-dynamic"
+
+export default async function Home() {
+  const payload = await payloadClient()
+  const contato = await payload.findGlobal({ slug: "contact-info" }).catch(() => null)
+
+  // Schema.org "Church" — é o que permite o Google mostrar endereço,
+  // telefone e redes sociais direto no resultado de busca/Google Maps, sem
+  // a pessoa precisar entrar no site. Ver https://schema.org/Church
+  const churchJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Church",
+    name: "Paróquia São Sebastião de Altônia",
+    url: baseUrl,
+    logo: `${baseUrl}/images/logo-icone.png`,
+    image: `${baseUrl}/images/logo-icone.png`,
+    ...(contato?.telefone ? { telephone: contato.telefone } : {}),
+    ...(contato?.email ? { email: contato.email } : {}),
+    ...(contato?.endereco
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: contato.endereco,
+            addressLocality: "Altônia",
+            addressRegion: "PR",
+            addressCountry: "BR",
+          },
+        }
+      : {}),
+    sameAs: [
+      "https://facebook.com/paroquiaaltonia",
+      "https://instagram.com/paroquiaaltonia",
+      "https://youtube.com/paroquiaaltonia",
+    ],
+  }
+
   return (
     <PageClient>
-      <main className="flex min-h-screen flex-col bg-[#00143d]">
+      <JsonLd data={churchJsonLd} />
+      <main className="flex min-h-screen flex-col bg-parish-bg">
         <Header />
+
+        {/* Sem heading de nível 1 antes, o Google tinha menos clareza sobre o
+            assunto central da página. Fica invisível de propósito — o
+            logo+nome já cumpre esse papel visualmente no Header, isto é só
+            pra estrutura/SEO. */}
+        <h1 className="sr-only">Paróquia São Sebastião de Altônia</h1>
 
         {/* Hero Section com efeito Parallax - 100% de largura */}
         <section className="relative w-full h-[60vh] min-h-[400px] hero-parallax">
@@ -67,7 +116,7 @@ export default function Home() {
             <div className="mt-4">
               <Link
                 href="/eventos"
-                className="text-[#4d3600] block w-full bg-yellow-500 text-center py-3 rounded-lg font-medium"
+                className="text-parish-accent-text block w-full bg-yellow-500 text-center py-3 rounded-lg font-medium"
               >
                 Ver agenda completa
               </Link>
@@ -86,7 +135,7 @@ export default function Home() {
             <div className="mt-4">
               <Link
                 href="/noticias"
-                className="text-[#4d3600] block w-full bg-yellow-500 text-center py-3 rounded-lg font-medium"
+                className="text-parish-accent-text block w-full bg-yellow-500 text-center py-3 rounded-lg font-medium"
               >
                 Ver mais notícias
               </Link>

@@ -31,7 +31,7 @@ export default function HorariosContent({
   return (
     <div className="space-y-6">
       {/* Horário das Missas */}
-      <div className="bg-[#0c2657] p-6 rounded-lg">
+      <div className="bg-parish-card p-6 rounded-lg">
         <div className="flex items-center mb-4 text-yellow-500">
           <Clock className="mr-2" size={20} />
           <h3 className="text-lg font-bold">Horário das Missas</h3>
@@ -63,7 +63,7 @@ export default function HorariosContent({
 
       {/* Horário da Secretaria */}
       {horarioSecretaria && (
-        <div className="bg-[#0c2657] p-6 rounded-lg">
+        <div className="bg-parish-card p-6 rounded-lg">
           <div className="flex items-center mb-4 text-yellow-500">
             <Calendar className="mr-2" size={20} />
             <h3 className="text-lg font-bold">Horário da Secretaria</h3>
@@ -74,7 +74,7 @@ export default function HorariosContent({
 
       {/* Atendimento dos Padres */}
       {atendimentoPadres && (
-        <div className="bg-[#0c2657] p-6 rounded-lg">
+        <div className="bg-parish-card p-6 rounded-lg">
           <div className="flex items-center mb-4 text-yellow-500">
             <Users className="mr-2" size={20} />
             <h3 className="text-lg font-bold">Atendimento dos Padres</h3>
@@ -85,7 +85,7 @@ export default function HorariosContent({
 
       {/* Confissões */}
       {confissoes && (
-        <div className="bg-[#0c2657] p-6 rounded-lg">
+        <div className="bg-parish-card p-6 rounded-lg">
           <div className="flex items-center mb-4 text-yellow-500">
             <Users className="mr-2" size={20} />
             <h3 className="text-lg font-bold">Confissões</h3>
@@ -95,7 +95,7 @@ export default function HorariosContent({
       )}
 
       {/* Contatos */}
-      <div className="bg-[#0c2657] p-6 rounded-lg">
+      <div className="bg-parish-card p-6 rounded-lg">
         <div className="flex items-center mb-4 text-yellow-500">
           <Phone className="mr-2" size={20} />
           <h3 className="text-lg font-bold">Contatos</h3>
@@ -147,7 +147,7 @@ export default function HorariosContent({
 
       {/* Endereço */}
       {contato.endereco && (
-        <div className="bg-[#0c2657] p-6 rounded-lg">
+        <div className="bg-parish-card p-6 rounded-lg">
           <div className="flex items-center mb-4 text-yellow-500">
             <MapPin className="mr-2" size={20} />
             <h3 className="text-lg font-bold">Endereço</h3>

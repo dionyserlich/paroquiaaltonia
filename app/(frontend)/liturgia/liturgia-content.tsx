@@ -130,7 +130,7 @@ export default function LiturgiaContent() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="bg-[#0c2657] p-6 rounded-lg">
+        <div className="bg-parish-card p-6 rounded-lg">
           <div className="flex items-center justify-center h-32">
             <RefreshCw className="animate-spin text-yellow-500 mr-2" size={24} />
             <span className="text-white">Carregando liturgia...</span>
@@ -157,7 +157,7 @@ export default function LiturgiaContent() {
 
   if (!liturgia) {
     return (
-      <div className="bg-[#0c2657] p-6 rounded-lg text-center">
+      <div className="bg-parish-card p-6 rounded-lg text-center">
         <h2 className="text-xl text-white mb-4">Liturgia não disponível</h2>
         <p className="text-gray-300">Não foi possível carregar a liturgia do dia.</p>
       </div>
@@ -167,7 +167,7 @@ export default function LiturgiaContent() {
   return (
     <div className="space-y-6">
       {/* Cabeçalho da liturgia */}
-      <div className={`bg-[#0c2657] p-6 rounded-lg border-2 ${getCorColor(liturgia.cor)}`}>
+      <div className={`bg-parish-card p-6 rounded-lg border-2 ${getCorColor(liturgia.cor)}`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center text-yellow-500">
             <Calendar className="mr-2" size={20} />
@@ -176,7 +176,7 @@ export default function LiturgiaContent() {
           <button
             onClick={fetchLiturgia}
             disabled={loading}
-            className="bg-yellow-500 text-[#4d3600] px-3 py-1 rounded text-sm hover:bg-yellow-600 transition-colors disabled:opacity-50"
+            className="bg-yellow-500 text-parish-accent-text px-3 py-1 rounded text-sm hover:bg-yellow-600 transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`inline mr-1 ${loading ? "animate-spin" : ""}`} size={14} />
             Atualizar
@@ -194,7 +194,7 @@ export default function LiturgiaContent() {
 
       {/* Antífonas */}
       {(liturgia.antifonas.entrada || liturgia.antifonas.comunhao) && (
-        <div className="bg-[#0c2657] p-6 rounded-lg">
+        <div className="bg-parish-card p-6 rounded-lg">
           <div className="flex items-center mb-4 text-yellow-500">
             <Heart className="mr-2" size={20} />
             <h3 className="text-lg font-bold">Antífonas</h3>
@@ -224,7 +224,7 @@ export default function LiturgiaContent() {
 
       {/* Primeira Leitura */}
       {liturgia.leituras.primeiraLeitura.map((leitura, index) => (
-        <div key={index} className="bg-[#0c2657] p-6 rounded-lg">
+        <div key={index} className="bg-parish-card p-6 rounded-lg">
           <div className="flex items-center mb-4 text-yellow-500">
             <Book className="mr-2" size={20} />
             <h3 className="text-lg font-bold">Primeira Leitura</h3>
@@ -248,7 +248,7 @@ export default function LiturgiaContent() {
 
       {/* Salmos */}
       {liturgia.leituras.salmo.map((salmo, index) => (
-        <div key={index} className="bg-[#0c2657] p-6 rounded-lg">
+        <div key={index} className="bg-parish-card p-6 rounded-lg">
           <div className="flex items-center mb-4 text-yellow-500">
             <Book className="mr-2" size={20} />
             <h3 className="text-lg font-bold">Salmo Responsorial</h3>
@@ -272,7 +272,7 @@ export default function LiturgiaContent() {
 
       {/* Segunda Leitura */}
       {liturgia.leituras.segundaLeitura.map((leitura, index) => (
-        <div key={index} className="bg-[#0c2657] p-6 rounded-lg">
+        <div key={index} className="bg-parish-card p-6 rounded-lg">
           <div className="flex items-center mb-4 text-yellow-500">
             <Book className="mr-2" size={20} />
             <h3 className="text-lg font-bold">Segunda Leitura</h3>
@@ -296,7 +296,7 @@ export default function LiturgiaContent() {
 
       {/* Leituras Extras */}
       {liturgia.leituras.extras.map((leitura, index) => (
-        <div key={index} className="bg-[#0c2657] p-6 rounded-lg">
+        <div key={index} className="bg-parish-card p-6 rounded-lg">
           <div className="flex items-center mb-4 text-yellow-500">
             <Book className="mr-2" size={20} />
             <h3 className="text-lg font-bold">{leitura.tipo || "Leitura Adicional"}</h3>
@@ -320,7 +320,7 @@ export default function LiturgiaContent() {
 
       {/* Evangelho */}
       {liturgia.leituras.evangelho.map((evangelho, index) => (
-        <div key={index} className="bg-[#0c2657] p-6 rounded-lg border-2 border-yellow-500/30">
+        <div key={index} className="bg-parish-card p-6 rounded-lg border-2 border-yellow-500/30">
           <div className="flex items-center mb-4 text-yellow-500">
             <Book className="mr-2" size={20} />
             <h3 className="text-lg font-bold">Evangelho</h3>
@@ -343,7 +343,7 @@ export default function LiturgiaContent() {
       ))}
 
       {/* Orações */}
-      <div className="bg-[#0c2657] p-6 rounded-lg">
+      <div className="bg-parish-card p-6 rounded-lg">
         <div className="flex items-center mb-4 text-yellow-500">
           <Heart className="mr-2" size={20} />
           <h3 className="text-lg font-bold">Orações</h3>

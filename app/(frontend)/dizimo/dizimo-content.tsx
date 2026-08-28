@@ -1,5 +1,6 @@
 import { Heart, Calendar, Shield, Users, Gift, Repeat } from "lucide-react"
 import { RichText as RichTextBase } from "@payloadcms/richtext-lexical/react"
+import PixKey from "@/components/pix-key"
 
 // Cast: o tipo de retorno do RichText (ReactNode) não bate com o que a
 // versão do @types/react instalada aceita como componente JSX.
@@ -40,13 +41,13 @@ export default function DizimoContent({ conteudo, chavePix }: Props) {
   ]
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0c2657] to-[#1a3a7a] text-white">
+    <main className="min-h-screen bg-gradient-to-br from-parish-card to-parish-card-end text-white">
       <div className="container mx-auto px-6 py-8 space-y-8">
         {/* Hero Section */}
         <div className="text-center space-y-4">
           <div className="flex justify-center mb-4">
             <div className="bg-yellow-500 p-4 rounded-full">
-              <Heart className="w-8 h-8 text-[#0c2657]" />
+              <Heart className="w-8 h-8 text-parish-card" />
             </div>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold">Dízimo</h1>
@@ -67,8 +68,8 @@ export default function DizimoContent({ conteudo, chavePix }: Props) {
 
         {chavePix && (
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-center">
-            <h2 className="text-xl font-bold mb-2 text-yellow-500">Chave PIX</h2>
-            <p className="text-gray-300 text-lg font-mono">{chavePix}</p>
+            <h2 className="text-xl font-bold mb-3 text-yellow-500">Chave PIX</h2>
+            <PixKey chave={chavePix} />
           </div>
         )}
 
@@ -92,7 +93,7 @@ export default function DizimoContent({ conteudo, chavePix }: Props) {
         <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-8 text-center">
           <div className="flex justify-center mb-4">
             <div className="bg-yellow-500 p-3 rounded-full">
-              <Gift className="w-6 h-6 text-[#0c2657]" />
+              <Gift className="w-6 h-6 text-parish-card" />
             </div>
           </div>
           <h2 className="text-2xl font-bold mb-4">Em Construção</h2>
@@ -100,7 +101,7 @@ export default function DizimoContent({ conteudo, chavePix }: Props) {
             Estamos desenvolvendo um sistema de cobrança recorrente para facilitar sua contribuição mensal. Em breve
             você poderá aderir ao dízimo diretamente pelo aplicativo.
           </p>
-          <div className="bg-[#0c2657]/50 rounded-lg p-4">
+          <div className="bg-parish-card/50 rounded-lg p-4">
             <p className="text-sm text-gray-300">
               <strong>Por enquanto:</strong> Procure a secretaria paroquial para se tornar um dizimista.
             </p>
@@ -131,7 +132,7 @@ export default function DizimoContent({ conteudo, chavePix }: Props) {
         </div>
 
         {/* Versículo Bíblico */}
-        <div className="bg-gradient-to-r from-[#0c2657] to-[#1a3a7a] border border-yellow-500/30 rounded-lg p-6 text-center">
+        <div className="bg-gradient-to-r from-parish-card to-parish-card-end border border-yellow-500/30 rounded-lg p-6 text-center">
           <p className="text-lg italic text-gray-300 mb-2">
             &ldquo;Trazei todos os dízimos à casa do tesouro, para que haja mantimento na minha casa; e provai-me nisto, diz o
             Senhor dos Exércitos, se eu não vos abrir as janelas do céu e não derramar sobre vós bênção sem medida.&rdquo;

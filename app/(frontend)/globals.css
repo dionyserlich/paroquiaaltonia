@@ -1,12 +1,10 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
-/* Paleta oficial do site — os mesmos hex que já apareciam soltos em dezenas
-   de arquivos (header, cards, gradientes) agora nomeados aqui. Usar as
-   classes bg-parish-... (ou text-parish-...) em componentes novos em vez
-   de redigitar hex; os componentes existentes continuam com hex direto
-   (não foram todos migrados, mas representam exatamente estas mesmas
-   cores). */
+/* Paleta oficial do site — os mesmos hex que antes apareciam soltos em
+   dezenas de arquivos (header, cards, gradientes) agora nomeados aqui e
+   adotados em todo o projeto via classes bg-parish-.../text-parish-...
+   Usar essas classes em componentes novos em vez de redigitar hex. */
 @theme inline {
   --color-parish-bg: #00143d;
   --color-parish-navy: #0a1e42;
@@ -89,7 +87,7 @@ header.bg-transparent {
 
 /* Ajuste para o conteúdo que vai rolar por cima da imagem */
 main > div[class*="relative z-20"] {
-  background-color: #0a1e42;
+  background-color: var(--color-parish-navy);
   position: relative;
   z-index: 20;
   margin-top: 51vh; /* Deve corresponder à altura do hero */
@@ -102,7 +100,7 @@ main > div[class*="relative z-20"] {
 }
 
 .page-no-hero{
-  background-color: #0a1e42;
+  background-color: var(--color-parish-navy);
   position: relative;
   z-index: 20;
   margin-top: 0; /* Deve corresponder à altura do hero */
