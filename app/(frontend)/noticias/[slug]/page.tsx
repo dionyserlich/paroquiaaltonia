@@ -10,6 +10,7 @@ import { RichText as RichTextBase } from "@payloadcms/richtext-lexical/react"
 const RichText: (props: { data: unknown; className?: string }) => any = RichTextBase as any
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
+import PhotoLightbox from "@/components/photo-lightbox"
 import PageClient from "../../page-client"
 import { payloadClient } from "@/app/lib/payload"
 import { findBySlugOrLegacyId } from "@/app/lib/find-by-slug"
@@ -54,7 +55,7 @@ export default async function NoticiaPage({ params }: Props) {
   const imagem = typeof noticia.imagem === "object" ? noticia.imagem : null
   const galeria = (noticia.galeria || [])
     .map((item) => (typeof item.imagem === "object" ? item.imagem : null))
-    .filter((img): img is NonNullable<typeof img> => Boolean(img))
+    .filter((img): img is NonNullable<typeof img> & { url: string } => Boolean(img?.url))
 
   return (
     <PageClient>
@@ -83,13 +84,7 @@ export default async function NoticiaPage({ params }: Props) {
               {galeria.length > 0 && (
                 <div className="mt-8">
                   <h2 className="text-xl font-semibold mb-4 text-yellow-500">Fotos</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {galeria.map((img) => (
-                      <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden">
-                        {img.url && <Image src={img.url} alt={img.alt || noticia.titulo} fill className="object-cover" />}
-                      </div>
-                    ))}
-                  </div>
+                  <PhotoLightbox fotos={galeria} altFallback={noticia.titulo} />
                 </div>
               )}
             </article>
