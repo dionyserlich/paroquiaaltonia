@@ -17,6 +17,7 @@ import {
   HandHeart,
   Heart,
   Calendar,
+  MapPin,
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect } from "react"
@@ -114,6 +115,12 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
               href="/pastorais"
               icon={<Users size={20} />}
               label="Pastorais"
+              onClick={handleInternalLinkClick}
+            />
+            <MenuItem
+              href="/capelas"
+              icon={<MapPin size={20} />}
+              label="Capelas e Comunidades"
               onClick={handleInternalLinkClick}
             />
             <MenuItem

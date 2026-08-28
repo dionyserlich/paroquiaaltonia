@@ -13,6 +13,7 @@ import { Eventos } from "./collections/Eventos"
 import { Missas } from "./collections/Missas"
 import { Banners } from "./collections/Banners"
 import { Pastorais } from "./collections/Pastorais"
+import { Capelas } from "./collections/Capelas"
 import { Intencoes } from "./collections/Intencoes"
 import { MassSchedule } from "./globals/MassSchedule"
 import { Sobre } from "./globals/Sobre"
@@ -40,7 +41,7 @@ export default buildConfig({
   graphQL: {
     disable: true,
   },
-  collections: [Users, Media, Noticias, Eventos, Missas, Banners, Pastorais, Intencoes],
+  collections: [Users, Media, Noticias, Eventos, Missas, Banners, Pastorais, Capelas, Intencoes],
   globals: [MassSchedule, Sobre, Dizimo, Ofertas, ContactInfo, Horarios],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",
