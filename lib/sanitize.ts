@@ -1,10 +1,10 @@
 import DOMPurify from "dompurify"
 
-// Allowlist alinhada ao que o editor Tiptap (StarterKit + Image + Link) gera.
-// Usado para sanitizar HTML vindo do admin antes de dangerouslySetInnerHTML.
-// Só deve ser chamado no client (depende de `window`/`document`) — os dois
-// usos atuais (noticia-detalhes.tsx, evento-detalhes.tsx) só chamam isso
-// depois de um fetch em useEffect, nunca durante o SSR.
+// Allowlist alinhada ao que o editor Tiptap (StarterKit + Image + Link) gera,
+// mas também serve pro HTML leve (negrito/lista) gerado a partir da resposta
+// da IA em explicacao-leitura.tsx. Só deve ser chamado no client (depende de
+// `window`/`document`) — os usos atuais só chamam isso depois de um fetch
+// disparado por interação do usuário, nunca durante o SSR.
 const RICH_TEXT_TAGS = [
   "p", "br", "strong", "b", "em", "i", "s", "strike", "u",
   "h1", "h2", "h3", "h4", "h5", "h6",

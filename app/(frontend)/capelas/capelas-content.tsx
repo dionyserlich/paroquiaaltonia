@@ -127,8 +127,7 @@ export default function CapelasContent({ capelas }: { capelas: Capela[] }) {
 
       <div className="bg-white/5 rounded-lg p-6 text-center">
         <p className="text-gray-300 text-sm">
-          Conhece o horário de missa ou o endereço de alguma dessas comunidades? Procure a secretaria paroquial pra
-          ajudar a completar essas informações.
+          Em breve estaremos atualizando esta seção com mais detalhes sobre as capelas e comunidades.
         </p>
       </div>
     </div>

@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, Loader2, X, Volume2, Pause } from "lucide-react"
+import { sanitizeRichText } from "@/lib/sanitize"
 
 // Adicionar interface para Wake Lock API
 interface WakeLock {
@@ -28,6 +29,81 @@ interface ExplicacaoLeituraProps {
   texto: string
 }
 
+function escapeHtml(texto: string): string {
+  return texto
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+}
+
+// A API já remove marcadores estruturais (#, tabelas, ---), mas mantém
+// **negrito** e listas com "- "/"• " de propósito — aqui é convertido pra
+// HTML de verdade em vez de mostrar os símbolos literais na tela. Escapa
+// primeiro (defesa contra a IA devolver HTML/script bruto), então
+// sanitizeRichText (lib/sanitize.ts) faz a limpeza final antes do render.
+function explicacaoParaHtml(texto: string): string {
+  const escapado = escapeHtml(texto).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+
+  const LISTA_RE = /^[ \t]*[-•]\s+/
+
+  const blocos = escapado.split(/\n{2,}/)
+  const html = blocos
+    .map((bloco) => {
+      const linhas = bloco.split("\n").filter((l) => l.trim().length > 0)
+      if (linhas.length === 0) return ""
+
+      // Dentro de um mesmo bloco pode vir uma frase de introdução seguida
+      // da lista, sem linha em branco entre as duas (comum na resposta da
+      // IA) — por isso agrupa por sub-trechos de linhas de lista vs. texto
+      // normal, em vez de decidir o bloco inteiro como um ou outro.
+      const partes: string[] = []
+      let textoAtual: string[] = []
+      let itensAtual: string[] = []
+
+      const fecharTexto = () => {
+        if (textoAtual.length > 0) {
+          partes.push(`<p>${textoAtual.join("<br />")}</p>`)
+          textoAtual = []
+        }
+      }
+      const fecharLista = () => {
+        if (itensAtual.length > 0) {
+          partes.push(`<ul>${itensAtual.map((i) => `<li>${i}</li>`).join("")}</ul>`)
+          itensAtual = []
+        }
+      }
+
+      for (const linha of linhas) {
+        if (LISTA_RE.test(linha)) {
+          fecharTexto()
+          itensAtual.push(linha.replace(LISTA_RE, ""))
+        } else {
+          fecharLista()
+          textoAtual.push(linha)
+        }
+      }
+      fecharTexto()
+      fecharLista()
+
+      return partes.join("")
+    })
+    .filter(Boolean)
+    .join("")
+
+  return sanitizeRichText(html)
+}
+
+// Texto puro pra leitura em voz alta (SpeechSynthesisUtterance) — sem
+// tags/símbolos, que ficariam estranhos falados ("asterisco", "menor que").
+function explicacaoParaFala(texto: string): string {
+  return texto
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/^[ \t]*[-•]\s+/gm, "")
+    .replace(/\n{2,}/g, ". ")
+    .replace(/\n/g, " ")
+    .trim()
+}
+
 export default function ExplicacaoLeitura({ tipo, referencia, titulo, texto }: ExplicacaoLeituraProps) {
   const [explicacao, setExplicacao] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -36,6 +112,8 @@ export default function ExplicacaoLeitura({ tipo, referencia, titulo, texto }: E
   const [isSpeaking, setIsSpeaking] = useState(false)
   const synthRef = useRef<SpeechSynthesis | null>(null)
   const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null)
+
+  const explicacaoHtml = useMemo(() => (explicacao ? explicacaoParaHtml(explicacao) : ""), [explicacao])
 
   const buscarExplicacao = async () => {
     try {
@@ -95,7 +173,7 @@ export default function ExplicacaoLeitura({ tipo, referencia, titulo, texto }: E
         synthRef.current = synth
 
         // Configurar a fala
-        const utterance = new SpeechSynthesisUtterance(explicacao)
+        const utterance = new SpeechSynthesisUtterance(explicacaoParaFala(explicacao))
         utterance.lang = "pt-BR" // Definir o idioma para português brasileiro
         utterance.rate = 0.9 // Ajustar a velocidade da fala
 
@@ -241,7 +319,10 @@ export default function ExplicacaoLeitura({ tipo, referencia, titulo, texto }: E
             </Button>
           </div>
 
-          <div className="text-gray-200 leading-relaxed whitespace-pre-line">{explicacao}</div>
+          <div
+            className="text-gray-200 leading-relaxed space-y-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-white"
+            dangerouslySetInnerHTML={{ __html: explicacaoHtml }}
+          />
         </div>
       )}
     </div>
