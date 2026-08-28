@@ -1,9 +1,12 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Inter } from 'next/font/google'
+import Script from "next/script"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import ServiceWorkerRegister from "@/components/service-worker-register"
+
+const GA_MEASUREMENT_ID = "G-CCH49S7VLQ"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -81,6 +84,17 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <head />
       <body className={inter.className}>
+        {/* Só no (frontend) — não carrega no /cms (app/(payload)/layout.tsx),
+            que não deve ser rastreado como tráfego do site público. */}
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <ServiceWorkerRegister />
           {children}
