@@ -35,7 +35,11 @@ Mantenha a explicação acessível para fiéis de todos os níveis de conhecimen
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant", // Modelo mais leve e confiável
+        // llama-3.1-8b-instant foi descontinuado pela Groq (404
+        // model_not_found) — confirmado testando direto contra a API antes
+        // de trocar. gpt-oss-20b é o substituto mais próximo em porte/uso
+        // hoje disponível no catálogo gratuito da Groq.
+        model: "openai/gpt-oss-20b",
         messages: [
           {
             role: "system",
