@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Download, Share, X, BellRing } from "lucide-react"
 import { usePushSubscription } from "@/hooks/use-push-subscription"
+import { trackEvent } from "@/lib/analytics"
 
 // beforeinstallprompt não é um evento padrão do DOM (só Chrome/Edge/Android).
 type BeforeInstallPromptEvent = Event & {
@@ -81,10 +82,12 @@ export default function WelcomeBanner() {
     if (!deferredPromptRef.current) return
     try {
       await deferredPromptRef.current.prompt()
-      await deferredPromptRef.current.userChoice
+      const { outcome } = await deferredPromptRef.current.userChoice
+      trackEvent("instalar_app", { resultado: outcome })
       deferredPromptRef.current = null
     } catch (error) {
       console.error("Erro ao tentar instalar o PWA:", error)
+      trackEvent("instalar_app", { resultado: "erro" })
     }
     // Segue pro próximo passo (notificação) se ainda fizer sentido — em
     // Android isso acontece na mesma sessão, sem precisar sair da página.

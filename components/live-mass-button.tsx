@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { getMissas } from "@/lib/api"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { trackEvent } from "@/lib/analytics"
 
 type Missa = {
   id: number
@@ -91,7 +92,13 @@ export default function LiveMassButton() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="flex flex-col items-center text-white">
+      <button
+        onClick={() => {
+          trackEvent("assistir_missa_ao_vivo", { ao_vivo: isLive })
+          setOpen(true)
+        }}
+        className="flex flex-col items-center text-white"
+      >
         <h2 className="text-2xl font-bold mb-2">{isLive ? "Missa ao vivo" : "Assistir a última missa"}</h2>
         <div className="bg-yellow-500 rounded-full p-4 mb-2">
           <Image src="/images/live-icon.png" alt="Ao vivo" width={40} height={40} />

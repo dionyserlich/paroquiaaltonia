@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { subscribe, unsubscribe } from "@/app/actions"
+import { setUserProperty, trackEvent } from "@/lib/analytics"
 
 // Conversão explícita pra Uint8Array em vez de passar a VAPID key como string
 // direto pro pushManager.subscribe — suporte a string é inconsistente entre
@@ -56,12 +57,28 @@ export function usePushSubscription() {
     }
   }, [])
 
+  // Propriedade de usuário no GA4 — reflete o estado real de inscrição
+  // (não só "clicou pra ativar"), atualizada tanto na checagem inicial
+  // quanto depois de activate()/deactivate(). Cobre os dois pontos de
+  // entrada (notification-button.tsx, welcome-banner.tsx) automaticamente,
+  // por rodarem sobre este mesmo hook.
+  useEffect(() => {
+    if (!checked) return
+    setUserProperty("notificacoes_ativas", isSubscribed)
+  }, [checked, isSubscribed])
+
   const activate = useCallback(async (): Promise<"granted" | "denied" | "unsupported"> => {
-    if (!isSupported) return "unsupported"
+    if (!isSupported) {
+      trackEvent("ativar_notificacoes", { resultado: "unsupported" })
+      return "unsupported"
+    }
     setIsLoading(true)
     try {
       const permission = await Notification.requestPermission()
-      if (permission !== "granted") return "denied"
+      if (permission !== "granted") {
+        trackEvent("ativar_notificacoes", { resultado: "denied" })
+        return "denied"
+      }
 
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
       if (!vapidKey) throw new Error("NEXT_PUBLIC_VAPID_PUBLIC_KEY não configurada")
@@ -81,9 +98,11 @@ export function usePushSubscription() {
         keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
       })
       setIsSubscribed(true)
+      trackEvent("ativar_notificacoes", { resultado: "granted" })
       return "granted"
     } catch (error) {
       console.error("Erro ao ativar notificações:", error)
+      trackEvent("ativar_notificacoes", { resultado: "erro" })
       return "denied"
     } finally {
       setIsLoading(false)

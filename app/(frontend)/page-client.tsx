@@ -4,6 +4,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import AppLoading from "@/components/app-loading"
 import WelcomeBanner from "@/components/welcome-banner"
+import { setUserProperty } from "@/lib/analytics"
 
 export default function PageClient({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
@@ -17,6 +18,15 @@ export default function PageClient({ children }: { children: React.ReactNode }) 
     // Registro do service worker roda em app/(frontend)/layout.tsx (via
     // ServiceWorkerRegister), pra valer em toda página, não só nas que
     // usam PageClient.
+
+    // PageClient roda em praticamente toda página — ponto único pra marcar,
+    // uma vez por carregamento, se a visita veio do app instalado ou do
+    // navegador comum. Mesma checagem de display-mode já usada em
+    // welcome-banner.tsx/use-push-subscription.ts.
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+    setUserProperty("modo_exibicao", isStandalone ? "pwa" : "navegador")
 
     return () => {
       clearTimeout(timer)
