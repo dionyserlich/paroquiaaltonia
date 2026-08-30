@@ -40,9 +40,9 @@ export default function QuickLinks() {
     <div className="w-full space-y-6">
       <div className="flex justify-between min-w-full px-4 overflow-x-auto scrollbar-hide max-w-0">
         {acoesRapidas.map((link, index) => (
-          <Link key={index} href={link.href} className="flex flex-col items-center justify-center px-3">
+          <Link key={index} href={link.href} className="flex flex-col items-center justify-center px-3 w-16">
             <div className="mb-2 text-white">{link.icon}</div>
-            <span className="text-sm font-medium text-white whitespace-nowrap">{link.label}</span>
+            <span className="text-sm font-medium text-white text-center leading-tight">{link.label}</span>
           </Link>
         ))}
       </div>
