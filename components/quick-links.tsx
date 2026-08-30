@@ -8,7 +8,7 @@ import { PrayingHandsIcon, HeartIcon } from "@/components/icons"
 // mesmo lugar, mesmo ícone, não importa por qual caminho a pessoa chega.
 const acoesRapidas = [
   { icon: <Flame className="h-7 w-7" />, label: "Acender Vela", href: "/velas" },
-  { icon: <BookOpen className="h-7 w-7" />, label: "Liturgia do dia", href: "/liturgia" },
+  { icon: <BookOpen className="h-7 w-7" />, label: "Liturgia", href: "/liturgia" },
   { icon: <PrayingHandsIcon className="h-7 w-7" />, label: "Intenções", href: "/intencoes" },
   { icon: <HandHeart className="h-7 w-7" />, label: "Ofertas", href: "/ofertas" },
   { icon: <HeartIcon className="h-7 w-7" />, label: "Dízimo", href: "/dizimo" },
