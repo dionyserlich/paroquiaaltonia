@@ -7,11 +7,11 @@ import { PrayingHandsIcon, HeartIcon } from "@/components/icons"
 // Mesmo ícone usado em components/side-menu.tsx pros mesmos destinos —
 // mesmo lugar, mesmo ícone, não importa por qual caminho a pessoa chega.
 const acoesRapidas = [
-  { icon: <BookOpen className="h-7 w-7" />, label: "Liturgia", href: "/liturgia" },
+  { icon: <Flame className="h-7 w-7" />, label: "Acenda uma Vela", href: "/velas" },
+  { icon: <BookOpen className="h-7 w-7" />, label: "Liturgia do dia", href: "/liturgia" },
   { icon: <PrayingHandsIcon className="h-7 w-7" />, label: "Intenções", href: "/intencoes" },
   { icon: <HandHeart className="h-7 w-7" />, label: "Ofertas", href: "/ofertas" },
   { icon: <HeartIcon className="h-7 w-7" />, label: "Dízimo", href: "/dizimo" },
-  { icon: <Flame className="h-7 w-7" />, label: "Velas", href: "/velas" },
 ]
 
 const conhecaParoquia = [
