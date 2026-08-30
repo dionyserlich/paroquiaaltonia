@@ -14,6 +14,12 @@ type Banner = {
 
 const AUTOPLAY_MS = 5000
 const SWIPE_THRESHOLD_PX = 50
+// Tolerância pra diferenciar "clicou" de "arrastou" (usada só pra decidir
+// se bloqueia a navegação do link, não pra avançar o slide — isso é o
+// SWIPE_THRESHOLD_PX acima). Era 5px e cliques legítimos no desktop
+// estavam sendo tratados como arraste — mouse/trackpad naturalmente têm
+// mais tremor de pixel entre pressionar e soltar do que um toque de dedo.
+const CLICK_TOLERANCE_PX = 10
 
 export default function BannerSlider() {
   const [banners, setBanners] = useState<Banner[]>([])
@@ -84,7 +90,7 @@ export default function BannerSlider() {
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!isDragging) return
     const delta = e.clientX - pointerStartXRef.current
-    if (Math.abs(delta) > 5) draggedRef.current = true
+    if (Math.abs(delta) > CLICK_TOLERANCE_PX) draggedRef.current = true
     setDragOffset(delta)
   }
 
@@ -95,6 +101,17 @@ export default function BannerSlider() {
       goTo(currentIndex + 1)
     } else if (dragOffset >= SWIPE_THRESHOLD_PX) {
       goTo(currentIndex - 1)
+    } else if (!draggedRef.current && Math.abs(dragOffset) < CLICK_TOLERANCE_PX) {
+      // Nem arrasto nem swipe — foi um clique/toque no banner atual.
+      // Navega daqui em vez de depender do <a> disparar seu próprio
+      // "click": com setPointerCapture ativo (necessário pro arrasto
+      // funcionar), navegadores não são consistentes sobre se o evento
+      // "click" nativo chega até um <a> descendente do elemento que
+      // capturou o ponteiro — no desktop isso estava silenciosamente
+      // deixando de navegar. Fazer o próprio endDrag decidir, usando o
+      // deslocamento real que já temos, tira essa incerteza da jogada.
+      const link = banners[currentIndex]?.link
+      if (link) window.location.href = link
     }
     setDragOffset(0)
     setIsPaused(false)
@@ -144,8 +161,17 @@ export default function BannerSlider() {
                 href={banner.link}
                 className="absolute inset-0 z-10"
                 aria-label={`Link do banner ${index + 1}`}
+                // A navegação de verdade acontece em endDrag() (ver
+                // comentário lá) — aqui só previne o clique simples nativo
+                // do <a>, pra não navegar duas vezes nos casos em que ele
+                // também chega a disparar. Preserva ctrl/cmd/shift+clique
+                // (abrir em nova aba/janela), que o navegador já trata
+                // nativamente sem precisar da nossa lógica de
+                // clique-vs-arrasto — e clique do meio nem passa por aqui
+                // (dispara "auxclick", não "click").
                 onClick={(e) => {
-                  if (draggedRef.current) e.preventDefault()
+                  if (e.ctrlKey || e.metaKey || e.shiftKey) return
+                  e.preventDefault()
                 }}
               />
             )}
