@@ -32,6 +32,11 @@ export default function BannerSlider() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const draggedRef = useRef(false)
   const pointerStartXRef = useRef(0)
+  const pointerStartYRef = useRef(0)
+  // true quando o gesto atual é reconhecido como rolagem vertical da
+  // página (não interação com o carrossel) — enquanto isso, ignora o
+  // movimento pro carrossel e não trata o fim do gesto como clique.
+  const isVerticalScrollRef = useRef(false)
   const transitionLockRef = useRef(false)
 
   useEffect(() => {
@@ -81,7 +86,9 @@ export default function BannerSlider() {
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (banners.length <= 1) return
     pointerStartXRef.current = e.clientX
+    pointerStartYRef.current = e.clientY
     draggedRef.current = false
+    isVerticalScrollRef.current = false
     setIsDragging(true)
     setIsPaused(true)
     e.currentTarget.setPointerCapture(e.pointerId)
@@ -89,14 +96,36 @@ export default function BannerSlider() {
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!isDragging) return
-    const delta = e.clientX - pointerStartXRef.current
-    if (Math.abs(delta) > CLICK_TOLERANCE_PX) draggedRef.current = true
-    setDragOffset(delta)
+    const deltaX = e.clientX - pointerStartXRef.current
+    const deltaY = e.clientY - pointerStartYRef.current
+
+    // Decide UMA VEZ, assim que um dos eixos sair da zona de tremor, se
+    // este gesto é rolagem vertical da página ou interação com o
+    // carrossel — usando qual eixo andou mais. Sem isso, um toque que
+    // rola a página verticalmente (deltaX perto de zero o tempo todo)
+    // batia com a condição de "foi um clique" no fim do gesto e abria o
+    // link do banner sem querer.
+    if (!isVerticalScrollRef.current && !draggedRef.current) {
+      if (Math.abs(deltaY) > CLICK_TOLERANCE_PX && Math.abs(deltaY) > Math.abs(deltaX)) {
+        isVerticalScrollRef.current = true
+      }
+    }
+    if (isVerticalScrollRef.current) return // deixa a rolagem nativa da página agir, carrossel não reage
+
+    if (Math.abs(deltaX) > CLICK_TOLERANCE_PX) draggedRef.current = true
+    setDragOffset(deltaX)
   }
 
   function endDrag() {
     if (!isDragging) return
     setIsDragging(false)
+    if (isVerticalScrollRef.current) {
+      // Foi rolagem da página, não interação com o carrossel — não
+      // avança slide nem trata como clique no banner.
+      setDragOffset(0)
+      setIsPaused(false)
+      return
+    }
     if (dragOffset <= -SWIPE_THRESHOLD_PX) {
       goTo(currentIndex + 1)
     } else if (dragOffset >= SWIPE_THRESHOLD_PX) {
