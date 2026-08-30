@@ -5,6 +5,7 @@ import Script from "next/script"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import ServiceWorkerRegister from "@/components/service-worker-register"
+import { LiveMassPlayerProvider } from "@/components/live-mass-player-provider"
 
 const GA_MEASUREMENT_ID = "G-CCH49S7VLQ"
 
@@ -97,7 +98,10 @@ export default function RootLayout({
         </Script>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <ServiceWorkerRegister />
-          {children}
+          {/* Precisa envolver {children} aqui (não dentro de page-client.tsx,
+              remontado a cada página) pro player sobreviver à navegação em
+              vez de reiniciar o vídeo toda vez que a pessoa troca de página. */}
+          <LiveMassPlayerProvider>{children}</LiveMassPlayerProvider>
         </ThemeProvider>
       </body>
     </html>

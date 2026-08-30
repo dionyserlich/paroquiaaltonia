@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { getMissas } from "@/lib/api"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { useLiveMassPlayer } from "@/components/live-mass-player-provider"
 import { trackEvent } from "@/lib/analytics"
 
 type Missa = {
@@ -18,7 +18,7 @@ export default function LiveMassButton() {
   const [missaAoVivo, setMissaAoVivo] = useState<Missa | null>(null)
   const [ultimaMissa, setUltimaMissa] = useState<Missa | null>(null)
   const [isLive, setIsLive] = useState(false)
-  const [open, setOpen] = useState(false)
+  const { open: openPlayer } = useLiveMassPlayer()
 
   useEffect(() => {
     async function loadData() {
@@ -90,34 +90,24 @@ export default function LiveMassButton() {
     return null
   }
 
-  return (
-    <>
-      <button
-        onClick={() => {
-          trackEvent("assistir_missa_ao_vivo", { ao_vivo: isLive })
-          setOpen(true)
-        }}
-        className="flex flex-col items-center text-white"
-      >
-        <h2 className="text-2xl font-bold mb-2">{isLive ? "Missa ao vivo" : "Assistir a última missa"}</h2>
-        <div className="bg-yellow-500 rounded-full p-4 mb-2">
-          <Image src="/images/live-icon.png" alt="Ao vivo" width={40} height={40} />
-        </div>
-        <span className="text-lg font-medium">
-          {isLive ? "Assistir agora" : ultimaMissa && formatarData(ultimaMissa.inicio)}
-        </span>
-      </button>
+  const linkEmbed = isLive ? missaAoVivo?.linkEmbed : ultimaMissa?.linkEmbed
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl w-[90vw] h-[80vh] p-0">
-          <iframe
-            src={(isLive ? missaAoVivo?.linkEmbed : ultimaMissa?.linkEmbed) ?? undefined}
-            title={isLive ? "Missa ao vivo" : "Última missa"}
-            className="w-full h-full"
-            allowFullScreen
-          />
-        </DialogContent>
-      </Dialog>
-    </>
+  return (
+    <button
+      onClick={() => {
+        if (!linkEmbed) return
+        trackEvent("assistir_missa_ao_vivo", { ao_vivo: isLive })
+        openPlayer({ titulo: isLive ? "Missa ao vivo" : "Última missa", linkEmbed })
+      }}
+      className="flex flex-col items-center text-white"
+    >
+      <h2 className="text-2xl font-bold mb-2">{isLive ? "Missa ao vivo" : "Assistir a última missa"}</h2>
+      <div className="bg-yellow-500 rounded-full p-4 mb-2">
+        <Image src="/images/live-icon.png" alt="Ao vivo" width={40} height={40} />
+      </div>
+      <span className="text-lg font-medium">
+        {isLive ? "Assistir agora" : ultimaMissa && formatarData(ultimaMissa.inicio)}
+      </span>
+    </button>
   )
 }
