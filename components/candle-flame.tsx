@@ -4,7 +4,7 @@ import { useInViewport } from "@/hooks/use-in-viewport"
 
 type Props = {
   lit: boolean
-  size?: "small" | "large"
+  size?: "small" | "large" | "xlarge"
   className?: string
 }
 
@@ -17,7 +17,7 @@ type Props = {
 // celulares mais fracos quando a listagem tem várias velas ao mesmo tempo.
 export default function CandleFlame({ lit, size = "small", className }: Props) {
   const { ref, isInView } = useInViewport<HTMLDivElement>()
-  const scale = size === "large" ? 0.6 : 0.28
+  const scale = size === "xlarge" ? 1 : size === "large" ? 0.6 : 0.28
   const paused = !isInView
 
   return (

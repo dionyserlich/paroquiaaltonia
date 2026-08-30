@@ -28,11 +28,23 @@ export type VelaExistente = {
   ownershipToken: string
 }
 
+export type VelaAcesa = {
+  id: number
+  nome: string
+  nomePrivado: boolean
+  intencao: string
+  intencaoPrivada: boolean
+  foto: string | null
+  fotoPrivada: boolean
+  createdAt: string
+  ownershipToken: string
+}
+
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   velaExistente?: VelaExistente
-  onAcesa?: () => void
+  onAcesa?: (vela: VelaAcesa) => void
   onEditada?: () => void
 }
 
@@ -51,7 +63,7 @@ export default function VelaDialog({ open, onOpenChange, velaExistente, onAcesa,
   const [previewFoto, setPreviewFoto] = useState<string | null>(velaExistente?.foto ?? null)
   const [removerFoto, setRemoverFoto] = useState(false)
   const [honeypot, setHoneypot] = useState("")
-  const [status, setStatus] = useState<"idle" | "enviando" | "acesa" | "erro">("idle")
+  const [status, setStatus] = useState<"idle" | "enviando" | "erro">("idle")
   const [erro, setErro] = useState("")
   const renderedAtRef = useRef(Date.now())
 
@@ -161,8 +173,21 @@ export default function VelaDialog({ open, onOpenChange, velaExistente, onAcesa,
         handleOpenChange(false)
       } else {
         salvarVelaOwnership(data.id, data.ownershipToken)
-        setStatus("acesa")
-        onAcesa?.()
+        // Fecha na hora e já joga pra tela cheia da vela (vela-fullscreen.tsx)
+        // em vez de mostrar uma confirmação própria aqui — o pedido é que a
+        // pessoa já vá direto pra lá depois de acender.
+        onAcesa?.({
+          id: data.id,
+          nome,
+          nomePrivado,
+          intencao,
+          intencaoPrivada,
+          foto: previewFoto,
+          fotoPrivada,
+          createdAt: new Date().toISOString(), // a rota não devolve createdAt — acabou de acender agora mesmo
+          ownershipToken: data.ownershipToken,
+        })
+        handleOpenChange(false)
       }
     } catch (err) {
       setStatus("erro")
@@ -177,21 +202,9 @@ export default function VelaDialog({ open, onOpenChange, velaExistente, onAcesa,
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
         <div className="flex flex-col items-center gap-4">
-          <CandleFlame lit={status === "acesa"} size="large" />
+          <CandleFlame lit={editando} size="large" />
 
-          {status === "acesa" ? (
-            <div className="text-center space-y-4 w-full">
-              <p className="text-white font-medium">Sua vela está acesa e já aparece na listagem.</p>
-              <button
-                type="button"
-                onClick={() => handleOpenChange(false)}
-                className="w-full bg-yellow-500 text-parish-card font-semibold px-5 py-2.5 rounded-md hover:bg-yellow-400 transition"
-              >
-                Fechar
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="w-full space-y-4">
+          <form onSubmit={handleSubmit} className="w-full space-y-4">
               <h2 className="text-xl font-semibold text-yellow-500 text-center">
                 {editando ? "Editar vela" : "Acender uma vela"}
               </h2>
@@ -336,7 +349,6 @@ export default function VelaDialog({ open, onOpenChange, velaExistente, onAcesa,
                     : "Acender vela"}
               </button>
             </form>
-          )}
         </div>
       </DialogContent>
     </Dialog>

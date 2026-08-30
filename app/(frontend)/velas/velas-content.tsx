@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { Flame, Pencil, X } from "lucide-react"
 import CandleFlame from "@/components/candle-flame"
-import VelaDialog, { type VelaExistente } from "@/components/vela-dialog"
+import VelaDialog, { type VelaAcesa, type VelaExistente } from "@/components/vela-dialog"
+import VelaFullscreen, { type VelaExibicao } from "@/components/vela-fullscreen"
 import { getMinhasVelas, getTokenParaVela, removerVelaOwnership } from "@/lib/velas-ownership"
 
 type VelaPublica = {
@@ -42,6 +43,7 @@ export default function VelasContent() {
   const [apagando, setApagando] = useState<Set<number>>(new Set())
   const [dialogAberto, setDialogAberto] = useState(false)
   const [editando, setEditando] = useState<VelaExistente | null>(null)
+  const [velaEmFoco, setVelaEmFoco] = useState<VelaExibicao | null>(null)
 
   const carregar = useCallback(async () => {
     try {
@@ -143,6 +145,34 @@ export default function VelasContent() {
     setDialogAberto(true)
   }
 
+  // Depois de acender, já joga a pessoa pra tela cheia da vela recém-criada
+  // em vez de mostrar uma confirmação separada — ela pode ficar ali fazendo
+  // a oração com a vela acesa.
+  function handleVelaAcesa(vela: VelaAcesa) {
+    carregar()
+    setVelaEmFoco({
+      id: vela.id,
+      nome: vela.nome,
+      nomePrivado: vela.nomePrivado,
+      intencao: vela.intencao,
+      intencaoPrivada: vela.intencaoPrivada,
+      foto: vela.foto,
+      fotoPrivada: vela.fotoPrivada,
+      createdAt: vela.createdAt,
+      souDono: true,
+    })
+  }
+
+  function abrirEditarNaFullscreen(id: number) {
+    setVelaEmFoco(null)
+    abrirEditar(id)
+  }
+
+  async function handleApagarNaFullscreen(id: number) {
+    await handleApagar(id)
+    setVelaEmFoco(null)
+  }
+
   return (
     <div className="container mx-auto space-y-8">
       <div className="text-center space-y-4">
@@ -191,7 +221,20 @@ export default function VelasContent() {
             return (
               <div
                 key={vela.id}
-                className={`relative rounded-lg overflow-hidden bg-black aspect-[3/4] ${
+                onClick={() =>
+                  setVelaEmFoco({
+                    id: vela.id,
+                    nome: nomeExibido,
+                    nomePrivado: nomeEhPrivadoMostrarAviso,
+                    intencao: intencaoExibida,
+                    intencaoPrivada: intencaoEhPrivadaMostrarAviso,
+                    foto: fotoExibida,
+                    fotoPrivada: fotoEhPrivadaMostrarAviso,
+                    createdAt: vela.createdAt,
+                    souDono,
+                  })
+                }
+                className={`relative rounded-lg overflow-hidden bg-black aspect-[3/4] cursor-pointer ${
                   apagando.has(vela.id) ? "vela-apagando" : ""
                 }`}
               >
@@ -226,14 +269,20 @@ export default function VelasContent() {
                 {souDono && (
                   <div className="absolute top-2 right-2 flex gap-1.5">
                     <button
-                      onClick={() => abrirEditar(vela.id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        abrirEditar(vela.id)
+                      }}
                       className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors"
                       aria-label="Editar vela"
                     >
                       <Pencil size={16} />
                     </button>
                     <button
-                      onClick={() => handleApagar(vela.id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleApagar(vela.id)
+                      }}
                       className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors"
                       aria-label="Apagar vela"
                     >
@@ -281,9 +330,18 @@ export default function VelasContent() {
         open={dialogAberto}
         onOpenChange={setDialogAberto}
         velaExistente={editando ?? undefined}
-        onAcesa={carregar}
+        onAcesa={handleVelaAcesa}
         onEditada={carregar}
       />
+
+      {velaEmFoco && (
+        <VelaFullscreen
+          vela={velaEmFoco}
+          onClose={() => setVelaEmFoco(null)}
+          onEditar={velaEmFoco.souDono ? () => abrirEditarNaFullscreen(velaEmFoco.id) : undefined}
+          onApagar={velaEmFoco.souDono ? () => handleApagarNaFullscreen(velaEmFoco.id) : undefined}
+        />
+      )}
     </div>
   )
 }
