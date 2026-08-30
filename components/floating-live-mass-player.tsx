@@ -29,6 +29,17 @@ type DragState = { startX: number; startY: number; posX: number; posY: number; m
 export default function FloatingLiveMassPlayer({ video, size, onClose, onMinimize, onMaximize }: Props) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
   const dragStateRef = useRef<DragState | null>(null)
+  // Guarda de tempo contra o "clique fantasma" que alguns navegadores mobile
+  // disparam depois de um toque, mesmo com preventDefault() no pointerdown
+  // (não é 100% confiável em todo navegador, especialmente Safari iOS) —
+  // ignora qualquer toque no fundo escuro por meio segundo depois de abrir
+  // grande, não importa a causa exata do clique indevido.
+  const suppressBackdropUntilRef = useRef(0)
+
+  function maximizeFromTap() {
+    suppressBackdropUntilRef.current = Date.now() + 500
+    onMaximize()
+  }
 
   // Posição inicial do modo pequeno — só calculada na primeira vez que
   // minimiza; depois disso, mantém onde a pessoa arrastou (inclusive entre
@@ -86,7 +97,7 @@ export default function FloatingLiveMassPlayer({ video, size, onClose, onMinimiz
     // Tocar sem arrastar (o gesto não passou do limiar) reabre grande —
     // além do botão dedicado, é o gesto mais natural pra quem já usa PiP
     // de outros apps de vídeo.
-    if (drag && !drag.moved) onMaximize()
+    if (drag && !drag.moved) maximizeFromTap()
   }
 
   if (!video) return null
@@ -95,7 +106,15 @@ export default function FloatingLiveMassPlayer({ video, size, onClose, onMinimiz
 
   return (
     <>
-      {!isSmall && <div className="fixed inset-0 bg-black/70 z-[70]" onClick={onClose} />}
+      {!isSmall && (
+        <div
+          className="fixed inset-0 bg-black/70 z-[70]"
+          onClick={() => {
+            if (Date.now() < suppressBackdropUntilRef.current) return
+            onClose()
+          }}
+        />
+      )}
 
       <div
         className={
@@ -130,7 +149,7 @@ export default function FloatingLiveMassPlayer({ video, size, onClose, onMinimiz
           <div className="absolute top-1.5 right-1.5 z-10 flex gap-1.5">
             {isSmall ? (
               <>
-                <PlayerIconButton onClick={onMaximize} label="Aumentar player">
+                <PlayerIconButton onClick={maximizeFromTap} label="Aumentar player">
                   <Maximize2 size={14} />
                 </PlayerIconButton>
                 <PlayerIconButton onClick={onClose} label="Fechar">
