@@ -6,6 +6,7 @@ import EventsList from "@/components/events-list"
 import NewsList from "@/components/news-list"
 import LiveMassButton from "@/components/live-mass-button"
 import QuickLinks from "@/components/quick-links"
+import ConhecaParoquia from "@/components/conheca-paroquia"
 import BottomNavbar from "@/components/bottom-navbar"
 import Header from "@/components/header"
 import { JsonLd } from "@/components/json-ld"
@@ -140,6 +141,11 @@ export default async function Home() {
                 Ver mais notícias
               </Link>
             </div>
+          </section>
+
+          {/* Conheça a Paróquia */}
+          <section className="w-full py-4">
+            <ConhecaParoquia />
           </section>
 
           {/* Footer */}
