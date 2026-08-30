@@ -1,18 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { BookOpen, Calendar, ChevronRight, Church, HandHeart, MapPin, Users } from "lucide-react"
+import { BookOpen, ChevronRight, Church, Flame, HandHeart, MapPin, Users } from "lucide-react"
 import { PrayingHandsIcon, HeartIcon } from "@/components/icons"
 
-// Mesmo ícone usado em components/bottom-navbar.tsx e
-// components/side-menu.tsx pros mesmos destinos — mesmo lugar, mesmo ícone,
-// não importa por qual caminho a pessoa chega.
+// Mesmo ícone usado em components/side-menu.tsx pros mesmos destinos —
+// mesmo lugar, mesmo ícone, não importa por qual caminho a pessoa chega.
 const acoesRapidas = [
   { icon: <BookOpen className="h-7 w-7" />, label: "Liturgia", href: "/liturgia" },
-  { icon: <Calendar className="h-7 w-7" />, label: "Missas", href: "/missas" },
   { icon: <PrayingHandsIcon className="h-7 w-7" />, label: "Intenções", href: "/intencoes" },
   { icon: <HandHeart className="h-7 w-7" />, label: "Ofertas", href: "/ofertas" },
   { icon: <HeartIcon className="h-7 w-7" />, label: "Dízimo", href: "/dizimo" },
+  { icon: <Flame className="h-7 w-7" />, label: "Velas", href: "/velas" },
 ]
 
 const conhecaParoquia = [
