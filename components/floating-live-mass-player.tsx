@@ -56,6 +56,14 @@ export default function FloatingLiveMassPlayer({ video, size, onClose, onMinimiz
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (!pos) return
+    // Evita o clique fantasma que o navegador dispara depois de um toque:
+    // um toque parado (sem arrastar) chama onMaximize() no pointerup, que
+    // troca o player pequeno pelo fundo escuro do modo grande NA MESMA
+    // posição da tela — sem isso, o "click" sintético que o navegador
+    // dispara em seguida (parte da compatibilidade touch→mouse) acerta
+    // esse fundo (que tem onClick={onClose}) em vez de nada, fechando o
+    // player que acabou de abrir.
+    e.preventDefault()
     dragStateRef.current = { startX: e.clientX, startY: e.clientY, posX: pos.x, posY: pos.y, moved: false }
     e.currentTarget.setPointerCapture(e.pointerId)
   }
