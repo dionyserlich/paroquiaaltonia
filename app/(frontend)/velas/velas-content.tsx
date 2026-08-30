@@ -195,7 +195,7 @@ export default function VelasContent() {
                   apagando.has(vela.id) ? "vela-apagando" : ""
                 }`}
               >
-                {fotoExibida ? (
+                {fotoExibida && (
                   <div className="absolute inset-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={fotoExibida} alt="" className="w-full h-full object-cover" />
@@ -212,11 +212,14 @@ export default function VelasContent() {
                       </span>
                     )}
                   </div>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center pb-8">
-                    <CandleFlame lit size="large" />
-                  </div>
                 )}
+
+                {/* A vela aparece sempre, com ou sem foto — ancorada perto de
+                    onde o bloco de texto começa, por cima da foto (quando
+                    tem) ou do fundo preto (quando não tem). */}
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-[24%]">
+                  <CandleFlame lit size="large" />
+                </div>
 
                 {souDono && (
                   <div className="absolute top-2 right-2 flex gap-1.5">
@@ -268,6 +271,11 @@ export default function VelasContent() {
       )}
 
       <VelaDialog
+        // A key muda por vela (ou "novo") pra forçar o React a remontar o
+        // diálogo do zero ao trocar de vela editada — sem isso, o useState
+        // interno só roda o inicializador uma vez e fica com os dados da
+        // primeira vela aberta, mesmo depois de trocar velaExistente.
+        key={editando?.id ?? "novo"}
         open={dialogAberto}
         onOpenChange={setDialogAberto}
         velaExistente={editando ?? undefined}

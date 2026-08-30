@@ -26,15 +26,12 @@ export default function CandleFlame({ lit, size = "small", className }: Props) {
       className={`vela-holder ${className ?? ""}`}
       style={{ "--vela-scale": scale } as React.CSSProperties}
     >
-      <div className="vela-candle" />
-      <div className="vela-thread" />
-      {lit && (
-        <>
-          <div className={`vela-blinking-glow ${paused ? "vela-paused" : ""}`} />
-          <div className="vela-glow" />
-          <div className={`vela-flame ${paused ? "vela-paused" : ""}`} />
-        </>
-      )}
+      <div className="vela-candle">
+        {lit && <div className={`vela-blinking-glow ${paused ? "vela-paused" : ""}`} />}
+        <div className="vela-thread" />
+        {lit && <div className="vela-glow" />}
+        {lit && <div className={`vela-flame ${paused ? "vela-paused" : ""}`} />}
+      </div>
     </div>
   )
 }

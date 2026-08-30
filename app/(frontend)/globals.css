@@ -217,7 +217,9 @@ body.has-install-prompt-tall main {
   height: calc(400px * var(--vela-scale));
 }
 
-.vela-holder * {
+.vela-holder *,
+.vela-holder *:before,
+.vela-holder *:after {
   position: absolute;
   content: "";
 }
