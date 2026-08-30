@@ -239,7 +239,7 @@ body.has-install-prompt-tall main {
    app/(frontend)/velas/velas-content.tsx quando tem foto de fundo) a vela
    desce mais, pra ficar melhor posicionada em relação à foto. */
 .vela-com-foto .vela-candle {
-  bottom: calc(-150px * var(--vela-scale));
+  bottom: calc(-165px * var(--vela-scale));
 }
 
 .vela-candle:before {

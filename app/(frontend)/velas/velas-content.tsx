@@ -203,7 +203,7 @@ export default function VelasContent() {
                       className="absolute inset-0"
                       style={{
                         background:
-                          "linear-gradient(0deg, rgb(0, 0, 0) 45%, rgba(0, 0, 0, 0.15) 75%, transparent 70%)",
+                          "linear-gradient(0deg, rgb(0, 0, 0) 5%, rgba(0, 0, 0, 0.15) 70%, transparent 100%)",
                       }}
                     />
                     {fotoEhPrivadaMostrarAviso && (
