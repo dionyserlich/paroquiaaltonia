@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import { Flame, Pencil, X } from "lucide-react"
 import CandleFlame from "@/components/candle-flame"
 import { useWakeLock } from "@/hooks/use-wake-lock"
@@ -35,8 +36,10 @@ type Props = {
 // tela estiver aberta, mesmo padrão já usado em explicacao-leitura.tsx.
 export default function VelaFullscreen({ vela, onClose, onEditar, onApagar }: Props) {
   const wakeLock = useWakeLock()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     wakeLock.request()
     document.body.style.overflow = "hidden"
     return () => {
@@ -46,8 +49,17 @@ export default function VelaFullscreen({ vela, onClose, onEditar, onApagar }: Pr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return (
-    <div className="fixed inset-0 z-[80] bg-black flex flex-col">
+  if (!mounted) return null
+
+  // Renderizado direto em document.body via portal — .page-no-hero (que
+  // envolve o conteúdo desta página) tem position:relative + z-index:20 no
+  // CSS, o que cria um contexto de empilhamento próprio. Qualquer z-index
+  // definido AQUI DENTRO só compete com outros elementos dentro desse mesmo
+  // contexto (nunca chega a superar o cabeçalho, que é z-50 mas fica FORA
+  // de .page-no-hero) — não importa o quão alto o z-index declarado seja.
+  // O portal escapa desse problema renderizando fora da árvore da página.
+  return createPortal(
+    <div className="fixed inset-0 z-[100] bg-black flex flex-col">
       {vela.foto && (
         <div className="absolute inset-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -115,6 +127,7 @@ export default function VelaFullscreen({ vela, onClose, onEditar, onApagar }: Pr
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -202,7 +202,7 @@ export default function VelaDialog({ open, onOpenChange, velaExistente, onAcesa,
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
         <div className="flex flex-col items-center gap-4">
-          <CandleFlame lit={editando} size="large" />
+          <CandleFlame lit size="large" />
 
           <form onSubmit={handleSubmit} className="w-full space-y-4">
               <h2 className="text-xl font-semibold text-yellow-500 text-center">
