@@ -196,14 +196,14 @@ export default function VelasContent() {
                 }`}
               >
                 {fotoExibida && (
-                  <div className="absolute inset-0">
+                  <div className="absolute inset-x-0 top-0" style={{ height: "55%", maxHeight: "55%" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={fotoExibida} alt="" className="w-full h-full object-cover" />
                     <div
                       className="absolute inset-0"
                       style={{
                         background:
-                          "linear-gradient(0deg, rgba(0,0,0,1) 25%, rgba(0,0,0,0.15) 55%, transparent 70%)",
+                          "linear-gradient(0deg, rgb(0, 0, 0) 45%, rgba(0, 0, 0, 0.15) 75%, transparent 70%)",
                       }}
                     />
                     {fotoEhPrivadaMostrarAviso && (
@@ -216,9 +216,11 @@ export default function VelasContent() {
 
                 {/* A vela aparece sempre, com ou sem foto — ancorada perto de
                     onde o bloco de texto começa, por cima da foto (quando
-                    tem) ou do fundo preto (quando não tem). */}
+                    tem) ou do fundo preto (quando não tem). Com foto, desce
+                    um pouco mais (vela-com-foto) pra ficar melhor posicionada
+                    em relação à foto. */}
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-[24%]">
-                  <CandleFlame lit size="large" />
+                  <CandleFlame lit size="large" className={fotoExibida ? "vela-com-foto" : ""} />
                 </div>
 
                 {souDono && (

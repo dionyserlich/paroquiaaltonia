@@ -235,6 +235,13 @@ body.has-install-prompt-tall main {
   background: linear-gradient(#e48825, #e78e0e, #833c03, #4c1a03 50%, #1c0900);
 }
 
+/* Nos cards com foto (components/vela-dialog.tsx não usa isso, só
+   app/(frontend)/velas/velas-content.tsx quando tem foto de fundo) a vela
+   desce mais, pra ficar melhor posicionada em relação à foto. */
+.vela-com-foto .vela-candle {
+  bottom: calc(-150px * var(--vela-scale));
+}
+
 .vela-candle:before {
   width: 100%;
   height: calc(40px * var(--vela-scale));
