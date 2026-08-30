@@ -1,17 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
-import AppLoading from "@/components/app-loading"
+import { useEffect } from "react"
 import WelcomeBanner from "@/components/welcome-banner"
 import { setUserProperty } from "@/lib/analytics"
 
 export default function PageClient({ children }: { children: React.ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true)
-
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 600)
-
     // Notificações agora são disparadas por evento (hooks do Payload em
     // noticias/eventos, transição de missa ao vivo), não por polling —
     // ver app/actions.ts e collections/Noticias.ts / Eventos.ts.
@@ -27,15 +22,10 @@ export default function PageClient({ children }: { children: React.ReactNode }) 
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as Navigator & { standalone?: boolean }).standalone === true
     setUserProperty("modo_exibicao", isStandalone ? "pwa" : "navegador")
-
-    return () => {
-      clearTimeout(timer)
-    }
   }, [])
 
   return (
     <>
-      {isLoading && <AppLoading />}
       <WelcomeBanner />
       {children}
     </>
