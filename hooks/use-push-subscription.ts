@@ -24,6 +24,7 @@ function urlBase64ToUint8Array(base64String: string) {
 export function usePushSubscription() {
   const [isSupported, setIsSupported] = useState(false)
   const [isSubscribed, setIsSubscribed] = useState(false)
+  const [endpoint, setEndpoint] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [checked, setChecked] = useState(false)
   // Push web no iOS só é entregue a uma PWA instalada na tela de início —
@@ -49,6 +50,7 @@ export function usePushSubscription() {
       navigator.serviceWorker.ready.then((registration) => {
         registration.pushManager.getSubscription().then((subscription) => {
           setIsSubscribed(!!subscription)
+          setEndpoint(subscription?.endpoint ?? null)
           setChecked(true)
         })
       })
@@ -98,6 +100,7 @@ export function usePushSubscription() {
         keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
       })
       setIsSubscribed(true)
+      setEndpoint(json.endpoint)
       trackEvent("ativar_notificacoes", { resultado: "granted" })
       return "granted"
     } catch (error) {
@@ -118,6 +121,7 @@ export function usePushSubscription() {
         await subscription.unsubscribe()
         await unsubscribe(subscription.endpoint)
         setIsSubscribed(false)
+        setEndpoint(null)
       }
     } catch (error) {
       console.error("Erro ao desativar notificações:", error)
@@ -126,5 +130,5 @@ export function usePushSubscription() {
     }
   }, [])
 
-  return { isSupported, isSubscribed, isLoading, checked, iosNeedsInstall, activate, deactivate }
+  return { isSupported, isSubscribed, endpoint, isLoading, checked, iosNeedsInstall, activate, deactivate }
 }

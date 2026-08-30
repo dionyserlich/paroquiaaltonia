@@ -204,3 +204,151 @@ body.has-install-prompt main {
 body.has-install-prompt-tall main {
   padding-top: 190px; /* 60px (header) + até ~130px (dica de bateria) */
 }
+
+/* Vela virtual (components/candle-flame.tsx) — adaptado do CSS real de
+   https://codepen.io/kh-mamun/pen/YLGjvx (baixado, não reinterpretado).
+   Todo tamanho depende de --vela-scale (definida inline pelo componente por
+   variante: pequena nos cards da listagem, grande no diálogo de acender) —
+   assim os dois tamanhos vêm do mesmo desenho, só escalado, sem duplicar
+   valores. */
+.vela-holder {
+  position: relative;
+  width: calc(150px * var(--vela-scale));
+  height: calc(400px * var(--vela-scale));
+}
+
+.vela-holder * {
+  position: absolute;
+  content: "";
+}
+
+.vela-candle {
+  bottom: 0;
+  width: calc(150px * var(--vela-scale));
+  height: calc(300px * var(--vela-scale));
+  border-radius: calc(150px * var(--vela-scale)) / calc(40px * var(--vela-scale));
+  box-shadow:
+    inset calc(20px * var(--vela-scale)) calc(-30px * var(--vela-scale)) calc(50px * var(--vela-scale)) 0 rgba(0, 0, 0, 0.4),
+    inset calc(-20px * var(--vela-scale)) 0 calc(50px * var(--vela-scale)) 0 rgba(0, 0, 0, 0.4);
+  background: linear-gradient(#e48825, #e78e0e, #833c03, #4c1a03 50%, #1c0900);
+}
+
+.vela-candle:before {
+  width: 100%;
+  height: calc(40px * var(--vela-scale));
+  border-radius: 50%;
+  border: calc(2px * var(--vela-scale)) solid #d47401;
+  background: radial-gradient(#eaa121, #8e4901 45%, #b86409 80%);
+}
+
+.vela-candle:after {
+  width: calc(34px * var(--vela-scale));
+  height: calc(10px * var(--vela-scale));
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  top: calc(14px * var(--vela-scale));
+  box-shadow: 0 0 calc(20px * var(--vela-scale)) 0 rgba(0, 0, 0, 0.5);
+  background: radial-gradient(rgba(0, 0, 0, 0.6), transparent 45%);
+}
+
+.vela-thread {
+  width: calc(6px * var(--vela-scale));
+  height: calc(36px * var(--vela-scale));
+  top: calc(-17px * var(--vela-scale));
+  left: 50%;
+  z-index: 1;
+  border-radius: 40% 40% 0 0;
+  transform: translateX(-50%);
+  background: linear-gradient(#d6994a, #4b232c, #121212, black, #e8bb31 90%);
+}
+
+.vela-flame {
+  width: calc(24px * var(--vela-scale));
+  height: calc(120px * var(--vela-scale));
+  left: 50%;
+  transform-origin: 50% 100%;
+  transform: translateX(-50%);
+  bottom: 100%;
+  border-radius: 50% 50% 20% 20%;
+  background: linear-gradient(white 80%, transparent);
+  animation: velaMoveFlame 6s linear infinite, velaEnlargeFlame 5s linear infinite;
+}
+
+.vela-flame.vela-paused {
+  animation-play-state: paused;
+}
+
+.vela-flame:before {
+  width: 100%;
+  height: 100%;
+  border-radius: 50% 50% 20% 20%;
+  box-shadow:
+    0 0 calc(15px * var(--vela-scale)) 0 rgba(247, 93, 0, 0.4),
+    0 calc(-6px * var(--vela-scale)) calc(4px * var(--vela-scale)) 0 rgba(247, 128, 0, 0.7);
+}
+
+@keyframes velaMoveFlame {
+  0%, 100% { transform: translateX(-50%) rotate(-2deg); }
+  50% { transform: translateX(-50%) rotate(2deg); }
+}
+
+@keyframes velaEnlargeFlame {
+  0%, 100% { height: calc(120px * var(--vela-scale)); }
+  50% { height: calc(140px * var(--vela-scale)); }
+}
+
+.vela-glow {
+  width: calc(26px * var(--vela-scale));
+  height: calc(60px * var(--vela-scale));
+  border-radius: 50% 50% 35% 35%;
+  left: 50%;
+  top: calc(-48px * var(--vela-scale));
+  transform: translateX(-50%);
+  background: rgba(0, 133, 255, 0.7);
+  box-shadow:
+    0 calc(-40px * var(--vela-scale)) calc(30px * var(--vela-scale)) 0 #dc8a0c,
+    0 calc(40px * var(--vela-scale)) calc(50px * var(--vela-scale)) 0 #dc8a0c,
+    inset calc(3px * var(--vela-scale)) 0 calc(2px * var(--vela-scale)) 0 rgba(0, 133, 255, 0.6),
+    inset calc(-3px * var(--vela-scale)) 0 calc(2px * var(--vela-scale)) 0 rgba(0, 133, 255, 0.6);
+}
+
+.vela-glow:before {
+  width: 70%;
+  height: 60%;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.vela-blinking-glow {
+  width: calc(100px * var(--vela-scale));
+  height: calc(180px * var(--vela-scale));
+  left: 50%;
+  top: -55%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #ff6000;
+  filter: blur(calc(60px * var(--vela-scale)));
+  animation: velaBlinkIt 0.1s infinite;
+}
+
+.vela-blinking-glow.vela-paused {
+  animation-play-state: paused;
+}
+
+@keyframes velaBlinkIt {
+  50% { opacity: 0.8; }
+}
+
+/* Animação de apagar — encolhe e desaparece antes de sumir do DOM. */
+@keyframes velaApagando {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.85) translateY(8px); }
+}
+
+.vela-apagando {
+  animation: velaApagando 600ms ease-in forwards;
+}

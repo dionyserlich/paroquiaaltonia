@@ -9,6 +9,7 @@ import {
   Church,
   Clock,
   Facebook,
+  Flame,
   HandHeart,
   Instagram,
   MapPin,
@@ -94,6 +95,12 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
               onClick={handleInternalLinkClick}
             />
             <MenuItem href="https://www.bibliaonline.com.br/" icon={<Bible size={20} />} label="Bíblia" external />
+            <MenuItem
+              href="/velas"
+              icon={<Flame size={20} />}
+              label="Acender uma Vela"
+              onClick={handleInternalLinkClick}
+            />
           </MenuSection>
 
           {/* Conteúdo que muda com frequência — o que a pessoa vem checar de novo */}

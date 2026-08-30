@@ -88,3 +88,34 @@ export async function sendNotificationToAll(title: string, body: string, url = "
     return { success: false, error: "Falha ao enviar notificações" }
   }
 }
+
+// Notificação pra uma única inscrição — usada pelo cron de velas
+// (app/api/cron/check-velas-expiradas/route.ts) pra avisar só quem acendeu
+// quando a própria vela apaga, nunca todo mundo.
+export async function sendNotificationToOne(endpoint: string, title: string, body: string, url = "/") {
+  try {
+    if (!ensureVapid()) {
+      return { success: false, error: "VAPID keys não configuradas" }
+    }
+    const { rows } = await query<{ endpoint: string; p256dh: string; auth: string }>(
+      `SELECT endpoint, p256dh, auth FROM bot.push_subscriptions WHERE endpoint = $1`,
+      [endpoint]
+    )
+    const sub = rows[0]
+    if (!sub) {
+      return { success: false, error: "Inscrição não encontrada" }
+    }
+
+    const subscription: WebPushSubscription = { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }
+    const payload = JSON.stringify({ title, body, url })
+    await webpush.sendNotification(subscription, payload)
+    return { success: true }
+  } catch (error) {
+    const webPushError = error as Partial<WebPushError>
+    if (webPushError?.statusCode === 410 || webPushError?.statusCode === 404) {
+      await query(`DELETE FROM bot.push_subscriptions WHERE endpoint = $1`, [endpoint])
+    }
+    console.error("Erro ao enviar notificação individual:", error)
+    return { success: false, error: "Falha ao enviar notificação" }
+  }
+}
