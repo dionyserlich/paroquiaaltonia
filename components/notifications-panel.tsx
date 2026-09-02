@@ -56,6 +56,26 @@ async function buscarNotificacoes(endpoint: string | null): Promise<Notificacao[
   }
 }
 
+// Fecha as notificações que ainda estão paradas na bandeja do sistema
+// (central de notificações do Android/macOS). Sem isso elas ficavam lá
+// depois de já terem sido lidas aqui dentro, obrigando a dispensar tudo de
+// novo na mão — o estado no site e o do sistema operacional ficavam
+// divergindo.
+//
+// getNotifications() é a única leitura que a Web Notifications API oferece,
+// e devolve só o que está exibido no momento (não serve como histórico —
+// por isso o histórico vem do servidor).
+async function limparBandejaDoSistema() {
+  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return
+  try {
+    const registration = await navigator.serviceWorker.ready
+    const abertas = await registration.getNotifications()
+    abertas.forEach((n) => n.close())
+  } catch {
+    // Navegador sem suporte ou sem permissão — a bandeja só não é limpa.
+  }
+}
+
 export default function NotificationsPanel() {
   const { isSupported, isSubscribed, isLoading, iosNeedsInstall, endpoint, activate, deactivate } =
     usePushSubscription()
@@ -85,7 +105,10 @@ export default function NotificationsPanel() {
   async function abrir() {
     setLidasAteNaAbertura(getLidasAte())
     setAberto(true)
+    // Ler aqui dentro conta como ler: marca como lidas e tira da bandeja do
+    // sistema, pros dois lados ficarem consistentes.
     marcarTodasComoLidas()
+    limparBandejaDoSistema()
     const lista = await buscarNotificacoes(endpoint)
     if (lista) setNotificacoes(lista)
   }
