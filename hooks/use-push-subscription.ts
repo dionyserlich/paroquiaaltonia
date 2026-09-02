@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { subscribe, unsubscribe } from "@/app/actions"
 import { setUserProperty, trackEvent } from "@/lib/analytics"
+import { getDeviceId } from "@/lib/device-id"
 
 // Conversão explícita pra Uint8Array em vez de passar a VAPID key como string
 // direto pro pushManager.subscribe — suporte a string é inconsistente entre
@@ -17,6 +18,13 @@ function urlBase64ToUint8Array(base64String: string) {
   }
   return outputArray
 }
+
+// A re-sincronização precisa acontecer uma vez por carregamento da página,
+// não uma vez por componente: o hook é usado em dois lugares (sino do
+// cabeçalho e banner de boas-vindas) que podem coexistir, e o StrictMode
+// monta duas vezes em desenvolvimento. Escopo de módulo basta — o objetivo
+// é justamente reiniciar a cada carregamento.
+let jaSincronizou = false
 
 // Estado e lógica de inscrição de push compartilhados entre o sino do
 // cabeçalho (components/notification-button.tsx) e o banner de boas-vindas
@@ -47,13 +55,33 @@ export function usePushSubscription() {
 
     if ("serviceWorker" in navigator && "PushManager" in window) {
       setIsSupported(true)
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.pushManager.getSubscription().then((subscription) => {
+      navigator.serviceWorker.ready
+        .then((registration) => registration.pushManager.getSubscription())
+        .then(async (subscription) => {
           setIsSubscribed(!!subscription)
           setEndpoint(subscription?.endpoint ?? null)
           setChecked(true)
+
+          // Re-sincroniza o endpoint atual com o servidor a cada abertura.
+          // Antes, o servidor só ficava sabendo de um endpoint no momento
+          // do activate() — e o sino consulta o navegador localmente, então
+          // ele seguia mostrando "ativado" mesmo quando o navegador já tinha
+          // trocado a inscrição e o servidor tinha ficado com a antiga. As
+          // duas pontas divergiam e nada as reconciliava, o que obrigava a
+          // desativar/reativar o sino na mão pra voltar a receber. É
+          // idempotente (upsert), então repetir a cada carregamento não
+          // custa nada.
+          if (!subscription || jaSincronizou) return
+          jaSincronizou = true
+          const json = subscription.toJSON()
+          if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return
+          await subscribe({
+            endpoint: json.endpoint,
+            keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
+            deviceId: getDeviceId(),
+          }).catch(() => {})
         })
-      })
+        .catch(() => setChecked(true))
     } else {
       setChecked(true)
     }
@@ -98,6 +126,7 @@ export function usePushSubscription() {
       await subscribe({
         endpoint: json.endpoint,
         keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
+        deviceId: getDeviceId(),
       })
       setIsSubscribed(true)
       setEndpoint(json.endpoint)

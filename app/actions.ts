@@ -2,6 +2,7 @@
 
 import webpush, { type PushSubscription as WebPushSubscription, type WebPushError } from "web-push"
 import { query } from "@/app/lib/db"
+import { isValidSubscription, upsertPushSubscription } from "@/app/lib/push-subscriptions"
 
 let vapidConfigured = false
 function ensureVapid() {
@@ -14,19 +15,14 @@ function ensureVapid() {
   return true
 }
 
-type Sub = { endpoint: string; keys: { p256dh: string; auth: string } }
+type Sub = { endpoint: string; keys: { p256dh: string; auth: string }; deviceId?: string | null }
 
 export async function subscribe(subscription: Sub) {
   try {
-    if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+    if (!isValidSubscription(subscription)) {
       return { success: false, error: "Inscrição inválida" }
     }
-    await query(
-      `INSERT INTO bot.push_subscriptions (endpoint, p256dh, auth)
-       VALUES ($1,$2,$3)
-       ON CONFLICT (endpoint) DO NOTHING`,
-      [subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth]
-    )
+    await upsertPushSubscription(subscription)
     return { success: true }
   } catch (error) {
     console.error("Erro ao inscrever:", error)
