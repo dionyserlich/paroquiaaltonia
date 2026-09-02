@@ -25,7 +25,8 @@ export const Noticias: CollectionConfig = {
         if (!isNewPublish) return doc
         try {
           const { sendNotificationToAll } = await import("@/app/actions")
-          await sendNotificationToAll("Nova notícia da Paróquia", doc.titulo, `/noticias/${doc.slug}`)
+          const { NOTICIA } = await import("@/app/lib/notification-options")
+          await sendNotificationToAll("Nova notícia da Paróquia", doc.titulo, `/noticias/${doc.slug}`, NOTICIA)
         } catch (err) {
           console.error("[noticias] falha ao enviar notificação push:", err)
         }

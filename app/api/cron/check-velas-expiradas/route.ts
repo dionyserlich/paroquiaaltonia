@@ -41,12 +41,14 @@ export async function GET(req: NextRequest) {
 
       if (doc.notifyEndpoint) {
         const { sendNotificationToOne } = await import("@/app/actions")
+        const { VELA_APAGOU } = await import("@/app/lib/notification-options")
         const nome = doc.nomePrivado ? "" : ` por ${doc.nome}`
         const result = await sendNotificationToOne(
           doc.notifyEndpoint,
           "Sua vela apagou",
           `A vela que você acendeu${nome} já completou o tempo. Você pode acender outra quando quiser.`,
-          "/velas"
+          "/velas",
+          VELA_APAGOU
         )
         if (result.success) notificadas++
       }

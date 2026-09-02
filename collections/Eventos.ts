@@ -17,7 +17,8 @@ export const Eventos: CollectionConfig = {
         if (operation !== "create") return doc
         try {
           const { sendNotificationToAll } = await import("@/app/actions")
-          await sendNotificationToAll("Novo evento na Paróquia", doc.titulo, `/eventos/${doc.slug}`)
+          const { EVENTO } = await import("@/app/lib/notification-options")
+          await sendNotificationToAll("Novo evento na Paróquia", doc.titulo, `/eventos/${doc.slug}`, EVENTO)
         } catch (err) {
           console.error("[eventos] falha ao enviar notificação push:", err)
         }

@@ -1,6 +1,11 @@
 "use server"
 
-import webpush, { type PushSubscription as WebPushSubscription, type WebPushError } from "web-push"
+import webpush, {
+  type PushSubscription as WebPushSubscription,
+  type RequestOptions,
+  type Urgency,
+  type WebPushError,
+} from "web-push"
 import { query } from "@/app/lib/db"
 import { isValidSubscription, upsertPushSubscription } from "@/app/lib/push-subscriptions"
 import { registrarNotificacao, registrarResultado } from "@/app/lib/notification-log"
@@ -17,6 +22,38 @@ function ensureVapid() {
 }
 
 type Sub = { endpoint: string; keys: { p256dh: string; auth: string }; deviceId?: string | null }
+
+export type OpcoesNotificacao = {
+  // Por quanto tempo o serviço de push guarda a mensagem enquanto o
+  // aparelho está offline. O padrão da biblioteca são QUATRO SEMANAS, o que
+  // aqui seria sempre errado: "Missa ao vivo agora!" entregue dias depois é
+  // ruído, não aviso. Por isso todo envio define um prazo próprio.
+  ttlSegundos?: number
+  urgencia?: Urgency
+  // Mensagens com o mesmo tópico substituem as anteriores ainda pendentes
+  // no serviço de push, em vez de acumular (máx. 32 caracteres).
+  topico?: string
+  // Agrupa na bandeja do aparelho: uma notificação com a mesma tag substitui
+  // a anterior em vez de empilhar.
+  tag?: string
+}
+
+// Um dia. Vale pra avisos sem prazo próprio — bem menos que as quatro
+// semanas da biblioteca, que nenhum aviso desta paróquia justifica.
+const TTL_PADRAO_SEGUNDOS = 86400
+
+// Envios são disparados em lotes em vez de todos de uma vez. Com poucas
+// inscrições dá no mesmo, mas se a paróquia crescer, abrir uma conexão
+// simultânea por inscrição esgotaria os limites da função serverless.
+const TAMANHO_LOTE = 50
+
+function opcoesDeEnvio(opcoes: OpcoesNotificacao): RequestOptions {
+  return {
+    TTL: opcoes.ttlSegundos ?? TTL_PADRAO_SEGUNDOS,
+    urgency: opcoes.urgencia ?? "normal",
+    ...(opcoes.topico ? { topic: opcoes.topico } : {}),
+  }
+}
 
 export async function subscribe(subscription: Sub) {
   try {
@@ -41,7 +78,12 @@ export async function unsubscribe(endpoint: string) {
   }
 }
 
-export async function sendNotificationToAll(title: string, body: string, url = "/") {
+export async function sendNotificationToAll(
+  title: string,
+  body: string,
+  url = "/",
+  opcoes: OpcoesNotificacao = {}
+) {
   // Grava no histórico ANTES de tentar enviar, e independente do resultado:
   // o push é só um canal de entrega, o registro é a notificação em si. Sem
   // isso, quem não ativou o sino (a maioria) e quem está no iPhone sem a
@@ -55,17 +97,23 @@ export async function sendNotificationToAll(title: string, body: string, url = "
     const { rows } = await query<{ endpoint: string; p256dh: string; auth: string }>(
       `SELECT endpoint, p256dh, auth FROM bot.push_subscriptions`
     )
-    const payload = JSON.stringify({ title, body, url })
+    const payload = JSON.stringify({ title, body, url, tag: opcoes.tag })
+    const envio = opcoesDeEnvio(opcoes)
 
-    const results = await Promise.allSettled(
-      rows.map((s) => {
-        const subscription: WebPushSubscription = {
-          endpoint: s.endpoint,
-          keys: { p256dh: s.p256dh, auth: s.auth },
-        }
-        return webpush.sendNotification(subscription, payload)
-      })
-    )
+    const results: PromiseSettledResult<unknown>[] = []
+    for (let i = 0; i < rows.length; i += TAMANHO_LOTE) {
+      const lote = rows.slice(i, i + TAMANHO_LOTE)
+      const resultadosDoLote = await Promise.allSettled(
+        lote.map((s) => {
+          const subscription: WebPushSubscription = {
+            endpoint: s.endpoint,
+            keys: { p256dh: s.p256dh, auth: s.auth },
+          }
+          return webpush.sendNotification(subscription, payload, envio)
+        })
+      )
+      results.push(...resultadosDoLote)
+    }
 
     // Limpar inscrições com 410 Gone
     const expiredEndpoints: string[] = []
@@ -98,7 +146,13 @@ export async function sendNotificationToAll(title: string, body: string, url = "
 // Notificação pra uma única inscrição — usada pelo cron de velas
 // (app/api/cron/check-velas-expiradas/route.ts) pra avisar só quem acendeu
 // quando a própria vela apaga, nunca todo mundo.
-export async function sendNotificationToOne(endpoint: string, title: string, body: string, url = "/") {
+export async function sendNotificationToOne(
+  endpoint: string,
+  title: string,
+  body: string,
+  url = "/",
+  opcoes: OpcoesNotificacao = {}
+) {
   // Igual ao broadcast, o registro vem primeiro e vale por si — mas aqui
   // amarrado ao aparelho, pra este aviso aparecer só no histórico de quem
   // acendeu a vela, e não no de todo mundo.
@@ -118,8 +172,8 @@ export async function sendNotificationToOne(endpoint: string, title: string, bod
     }
 
     const subscription: WebPushSubscription = { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }
-    const payload = JSON.stringify({ title, body, url })
-    await webpush.sendNotification(subscription, payload)
+    const payload = JSON.stringify({ title, body, url, tag: opcoes.tag })
+    await webpush.sendNotification(subscription, payload, opcoesDeEnvio(opcoes))
     await registrarResultado(logId, 1, 0)
     return { success: true }
   } catch (error) {

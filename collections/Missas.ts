@@ -43,7 +43,8 @@ export const Missas: CollectionConfig = {
         if (operation !== "create" || !doc.notificado) return doc
         try {
           const { sendNotificationToAll } = await import("@/app/actions")
-          await sendNotificationToAll("Missa ao vivo agora!", doc.titulo, "/")
+          const { MISSA_AO_VIVO } = await import("@/app/lib/notification-options")
+          await sendNotificationToAll("Missa ao vivo agora!", doc.titulo, "/", MISSA_AO_VIVO)
         } catch (err) {
           console.error("[missas] falha ao enviar notificação push:", err)
         }

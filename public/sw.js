@@ -41,6 +41,11 @@ self.addEventListener("push", (event) => {
     icon: NOTIFICATION_ICON,
     badge: NOTIFICATION_ICON,
     data: { url: data.url || "/" },
+    // Com tag, uma notificação substitui a anterior de mesmo tipo em vez de
+    // empilhar — usado só onde faz sentido (missa ao vivo; ver
+    // app/lib/notification-options.ts). renotify faz o aparelho avisar de
+    // novo mesmo ao substituir, senão a troca passaria despercebida.
+    ...(data.tag ? { tag: data.tag, renotify: true } : {}),
   }
 
   event.waitUntil(
@@ -116,11 +121,36 @@ self.addEventListener("notificationclick", (event) => {
   const url = event.notification.data?.url || "/"
 
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientsList) => {
-      for (const client of clientsList) {
-        if (client.url === url && "focus" in client) return client.focus()
+    (async () => {
+      const janelas = await self.clients.matchAll({ type: "window", includeUncontrolled: true })
+
+      // client.url é absoluto ("https://.../velas") e o url do payload é um
+      // caminho ("/velas"): comparar os dois direto nunca dava igual, então
+      // o foco jamais acontecia e sempre era aberta uma janela nova — numa
+      // PWA, uma segunda instância em vez de trazer a que já estava aberta.
+      // Normalizar contra a origem do próprio service worker resolve.
+      const alvo = new URL(url, self.location.origin)
+
+      for (const janela of janelas) {
+        if (new URL(janela.url).pathname === alvo.pathname && "focus" in janela) {
+          return janela.focus()
+        }
       }
-      if (self.clients.openWindow) return self.clients.openWindow(url)
-    })
+
+      // Nenhuma janela na página certa: reaproveita uma aberta em outra
+      // página (navegando até o destino) antes de abrir mais uma.
+      const primeira = janelas[0]
+      if (primeira && "navigate" in primeira && "focus" in primeira) {
+        try {
+          const navegada = await primeira.navigate(alvo.href)
+          if (navegada) return navegada.focus()
+        } catch {
+          // navigate() falha se a janela for de outra origem ou estiver em
+          // estado que não permite navegação — cai pro openWindow abaixo.
+        }
+      }
+
+      if (self.clients.openWindow) return self.clients.openWindow(alvo.href)
+    })()
   )
 })
