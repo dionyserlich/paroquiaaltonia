@@ -16,7 +16,11 @@ function ensureVapid() {
   const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
   const priv = process.env.VAPID_PRIVATE_KEY
   if (!pub || !priv) return false
-  webpush.setVapidDetails("mailto:contato@paroquiasaosebastiao.com.br", pub, priv)
+  // Endereço de contato que os serviços de push (Google, Mozilla) usam pra
+  // avisar sobre problemas de entrega — precisa ser um e-mail que alguém
+  // realmente leia. Trocar isto não invalida nenhuma inscrição existente:
+  // só o par de chaves VAPID identifica o remetente.
+  webpush.setVapidDetails("mailto:contato@paroquiaaltonia.com.br", pub, priv)
   vapidConfigured = true
   return true
 }
