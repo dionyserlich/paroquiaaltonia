@@ -43,7 +43,20 @@ self.addEventListener("push", (event) => {
     data: { url: data.url || "/" },
   }
 
-  event.waitUntil(self.registration.showNotification(title, options))
+  event.waitUntil(
+    (async () => {
+      await self.registration.showNotification(title, options)
+
+      // Avisa as janelas abertas do site pra que o contador do sino
+      // atualize na hora. Sem isso, com o app já aberto (o caso comum numa
+      // PWA, que é retomada em vez de recarregada) o histórico só era
+      // buscado de novo depois de um recarregamento manual.
+      const janelas = await self.clients.matchAll({ type: "window", includeUncontrolled: true })
+      for (const janela of janelas) {
+        janela.postMessage({ type: "push-recebido" })
+      }
+    })()
+  )
 })
 
 // O navegador pode trocar a inscrição push por conta própria (renovação de

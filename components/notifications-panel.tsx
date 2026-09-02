@@ -45,7 +45,7 @@ async function buscarNotificacoes(endpoint: string | null): Promise<Notificacao[
     const deviceId = getDeviceId()
     if (deviceId) params.set("deviceId", deviceId)
     if (endpoint) params.set("endpoint", endpoint)
-    const res = await fetch(`/api/notificacoes?${params.toString()}`)
+    const res = await fetch(`/api/notificacoes?${params.toString()}`, { cache: "no-store" })
     if (!res.ok) return null
     const data = await res.json()
     return Array.isArray(data.notificacoes) ? data.notificacoes : []
@@ -88,15 +88,40 @@ export default function NotificationsPanel() {
   // terem sido marcadas como lidas.
   const [lidasAteNaAbertura, setLidasAteNaAbertura] = useState(0)
 
+  // O sino vive no cabeçalho, que fica montado o tempo todo — então buscar
+  // só na montagem significava buscar praticamente uma vez só. Numa PWA
+  // isso é pior ainda: o app é retomado, não recarregado, e o contador
+  // ficava congelado até a pessoa forçar um recarregamento na mão.
+  //
+  // Daí as três formas de atualizar abaixo: ao montar, ao voltar pro app, e
+  // na hora em que o push chega (o service worker avisa as janelas abertas).
   useEffect(() => {
     let ativo = true
-    buscarNotificacoes(endpoint).then((lista) => {
-      if (!ativo) return
-      if (lista) setNotificacoes(lista)
-      setCarregando(false)
-    })
+
+    const atualizar = () => {
+      buscarNotificacoes(endpoint).then((lista) => {
+        if (!ativo) return
+        if (lista) setNotificacoes(lista)
+        setCarregando(false)
+      })
+    }
+
+    atualizar()
+
+    const aoVoltarPraTela = () => {
+      if (document.visibilityState === "visible") atualizar()
+    }
+    document.addEventListener("visibilitychange", aoVoltarPraTela)
+
+    const aoChegarPush = (evento: MessageEvent) => {
+      if (evento.data?.type === "push-recebido") atualizar()
+    }
+    navigator.serviceWorker?.addEventListener("message", aoChegarPush)
+
     return () => {
       ativo = false
+      document.removeEventListener("visibilitychange", aoVoltarPraTela)
+      navigator.serviceWorker?.removeEventListener("message", aoChegarPush)
     }
   }, [endpoint])
 

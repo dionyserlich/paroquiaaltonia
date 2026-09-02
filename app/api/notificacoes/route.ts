@@ -13,7 +13,14 @@ export async function GET(req: NextRequest) {
     const deviceId = req.nextUrl.searchParams.get("deviceId")
     const endpoint = req.nextUrl.searchParams.get("endpoint")
     const notificacoes = await listarNotificacoes(deviceId, endpoint)
-    return NextResponse.json({ notificacoes })
+    // A resposta varia por aparelho (traz os avisos individuais), então não
+    // pode ser guardada por cache compartilhado — o padrão do Next aqui era
+    // "public", que permitiria um intermediário servir a resposta de um
+    // aparelho para outro.
+    return NextResponse.json(
+      { notificacoes },
+      { headers: { "Cache-Control": "no-store, private" } }
+    )
   } catch (err) {
     console.error("Erro ao listar notificações:", err)
     return NextResponse.json({ error: "Falha ao carregar notificações" }, { status: 500 })
