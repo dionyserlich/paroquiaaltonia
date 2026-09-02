@@ -63,13 +63,38 @@ export async function registrarNotificacao(input: RegistrarInput): Promise<numbe
   }
 }
 
-export async function registrarResultado(id: number | null, sent: number, failed: number): Promise<void> {
+// `erro` guarda o motivo da primeira falha. Sem ele, um envio que falha pra
+// todo mundo fica registrado apenas como "0 entregues, N falhas" — sem
+// distinguir inscrição morta de erro de rede ou de configuração, que é
+// exatamente a dúvida que aparece quando alguém diz que não recebeu.
+export async function registrarResultado(
+  id: number | null,
+  sent: number,
+  failed: number,
+  erro?: string | null
+): Promise<void> {
   if (id === null) return
   try {
-    await query(`UPDATE bot.notification_log SET sent = $2, failed = $3 WHERE id = $1`, [id, sent, failed])
+    await query(`UPDATE bot.notification_log SET sent = $2, failed = $3, erro = $4 WHERE id = $1`, [
+      id,
+      sent,
+      failed,
+      erro ?? null,
+    ])
   } catch (error) {
     console.error("Erro ao registrar resultado do envio:", error)
   }
+}
+
+// Resume um erro de envio numa linha curta o suficiente pra caber no
+// registro e ainda dizer o que aconteceu.
+export function descreverErro(motivo: unknown): string {
+  const erro = motivo as { statusCode?: number; body?: string; message?: string } | undefined
+  const partes: string[] = []
+  if (erro?.statusCode) partes.push(`HTTP ${erro.statusCode}`)
+  const detalhe = (erro?.body || erro?.message || String(motivo ?? "")).trim()
+  if (detalhe) partes.push(detalhe.slice(0, 300))
+  return partes.join(" — ") || "erro desconhecido"
 }
 
 const LIMITE_PADRAO = 50

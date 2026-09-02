@@ -65,8 +65,16 @@ export const Avisos: CollectionConfig = {
               tag: (data.tag ?? originalDoc?.tag) || undefined,
             }
           )
-          if ("sent" in resultado) enviadas = resultado.sent ?? 0
-          if ("failed" in resultado) falhas = resultado.failed ?? 0
+          if (resultado.success && "sent" in resultado) {
+            enviadas = resultado.sent ?? 0
+            falhas = resultado.failed ?? 0
+          } else {
+            // O envio nem chegou a acontecer (chaves ausentes, erro de
+            // banco). Sem isto ficava registrado como "0 entregues, 0
+            // falhas" — indistinguível de "não havia ninguém inscrito".
+            console.error("[avisos] envio não concluído:", "error" in resultado ? resultado.error : resultado)
+            falhas = -1
+          }
         } catch (err) {
           console.error("[avisos] falha ao enviar notificação push:", err)
           falhas = -1 // distingue "erro no disparo" de "nenhuma falha"
@@ -166,6 +174,11 @@ export const Avisos: CollectionConfig = {
         },
       ],
     },
+    // Os cinco campos abaixo registram o disparo, e todos são zerados na
+    // cópia (beforeDuplicate). É o que torna "Duplicar" útil: a cópia nasce
+    // como rascunho novo, com o texto pronto pra reenviar, em vez de nascer
+    // marcada como já enviada — o que a travaria pra sempre, já que um aviso
+    // enviado nunca reenvia.
     {
       name: "enviarAgora",
       type: "checkbox",
@@ -175,17 +188,22 @@ export const Avisos: CollectionConfig = {
         description: "Marque e salve para disparar. O envio é imediato e não pode ser desfeito.",
         condition: (data) => !data?.enviado,
       },
+      // Por segurança: uma cópia nunca deve nascer pronta pra disparar
+      // sozinha na primeira gravação.
+      hooks: { beforeDuplicate: [() => false] },
     },
     {
       name: "enviado",
       type: "checkbox",
       defaultValue: false,
       admin: { position: "sidebar", readOnly: true },
+      hooks: { beforeDuplicate: [() => false] },
     },
     {
       name: "enviadoEm",
       type: "date",
       admin: { position: "sidebar", readOnly: true },
+      hooks: { beforeDuplicate: [() => null] },
     },
     {
       name: "enviadas",
@@ -195,6 +213,7 @@ export const Avisos: CollectionConfig = {
         readOnly: true,
         description: "Aparelhos que receberam.",
       },
+      hooks: { beforeDuplicate: [() => null] },
     },
     {
       name: "falhas",
@@ -204,6 +223,7 @@ export const Avisos: CollectionConfig = {
         readOnly: true,
         description: "Envios que falharam. -1 indica erro geral no disparo.",
       },
+      hooks: { beforeDuplicate: [() => null] },
     },
   ],
 }

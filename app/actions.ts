@@ -8,7 +8,7 @@ import webpush, {
 } from "web-push"
 import { query } from "@/app/lib/db"
 import { isValidSubscription, upsertPushSubscription } from "@/app/lib/push-subscriptions"
-import { registrarNotificacao, registrarResultado } from "@/app/lib/notification-log"
+import { descreverErro, registrarNotificacao, registrarResultado } from "@/app/lib/notification-log"
 
 let vapidConfigured = false
 function ensureVapid() {
@@ -137,8 +137,14 @@ export async function sendNotificationToAll(
     const failed = results.filter((r) => r.status === "rejected").length
     // Fecha a lacuna que apareceu quando não deu pra saber se a notificação
     // da missa de domingo tinha sido entregue: agora fica registrado quantos
-    // envios saíram e quantos falharam.
-    await registrarResultado(logId, sent, failed)
+    // envios saíram, quantos falharam e — quando falham — por quê.
+    const primeiraFalha = results.find((r) => r.status === "rejected")
+    await registrarResultado(
+      logId,
+      sent,
+      failed,
+      primeiraFalha ? descreverErro((primeiraFalha as PromiseRejectedResult).reason) : null
+    )
 
     return { success: true, sent, failed }
   } catch (error) {
@@ -186,7 +192,7 @@ export async function sendNotificationToOne(
       await query(`DELETE FROM bot.push_subscriptions WHERE endpoint = $1`, [endpoint])
     }
     console.error("Erro ao enviar notificação individual:", error)
-    await registrarResultado(logId, 0, 1)
+    await registrarResultado(logId, 0, 1, descreverErro(error))
     return { success: false, error: "Falha ao enviar notificação" }
   }
 }
