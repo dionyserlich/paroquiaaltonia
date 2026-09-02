@@ -3,6 +3,7 @@
 import webpush, { type PushSubscription as WebPushSubscription, type WebPushError } from "web-push"
 import { query } from "@/app/lib/db"
 import { isValidSubscription, upsertPushSubscription } from "@/app/lib/push-subscriptions"
+import { registrarNotificacao, registrarResultado } from "@/app/lib/notification-log"
 
 let vapidConfigured = false
 function ensureVapid() {
@@ -41,6 +42,12 @@ export async function unsubscribe(endpoint: string) {
 }
 
 export async function sendNotificationToAll(title: string, body: string, url = "/") {
+  // Grava no histórico ANTES de tentar enviar, e independente do resultado:
+  // o push é só um canal de entrega, o registro é a notificação em si. Sem
+  // isso, quem não ativou o sino (a maioria) e quem está no iPhone sem a
+  // PWA instalada nunca ficaria sabendo do anúncio.
+  const logId = await registrarNotificacao({ title, body, url })
+
   try {
     if (!ensureVapid()) {
       return { success: false, error: "VAPID keys não configuradas" }
@@ -74,11 +81,14 @@ export async function sendNotificationToAll(title: string, body: string, url = "
       await query(`DELETE FROM bot.push_subscriptions WHERE endpoint = ANY($1::text[])`, [expiredEndpoints])
     }
 
-    return {
-      success: true,
-      sent: results.filter((r) => r.status === "fulfilled").length,
-      failed: results.filter((r) => r.status === "rejected").length,
-    }
+    const sent = results.filter((r) => r.status === "fulfilled").length
+    const failed = results.filter((r) => r.status === "rejected").length
+    // Fecha a lacuna que apareceu quando não deu pra saber se a notificação
+    // da missa de domingo tinha sido entregue: agora fica registrado quantos
+    // envios saíram e quantos falharam.
+    await registrarResultado(logId, sent, failed)
+
+    return { success: true, sent, failed }
   } catch (error) {
     console.error("Erro ao enviar notificações:", error)
     return { success: false, error: "Falha ao enviar notificações" }
@@ -89,6 +99,11 @@ export async function sendNotificationToAll(title: string, body: string, url = "
 // (app/api/cron/check-velas-expiradas/route.ts) pra avisar só quem acendeu
 // quando a própria vela apaga, nunca todo mundo.
 export async function sendNotificationToOne(endpoint: string, title: string, body: string, url = "/") {
+  // Igual ao broadcast, o registro vem primeiro e vale por si — mas aqui
+  // amarrado ao aparelho, pra este aviso aparecer só no histórico de quem
+  // acendeu a vela, e não no de todo mundo.
+  const logId = await registrarNotificacao({ title, body, url, endpoint })
+
   try {
     if (!ensureVapid()) {
       return { success: false, error: "VAPID keys não configuradas" }
@@ -105,6 +120,7 @@ export async function sendNotificationToOne(endpoint: string, title: string, bod
     const subscription: WebPushSubscription = { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }
     const payload = JSON.stringify({ title, body, url })
     await webpush.sendNotification(subscription, payload)
+    await registrarResultado(logId, 1, 0)
     return { success: true }
   } catch (error) {
     const webPushError = error as Partial<WebPushError>
@@ -112,6 +128,7 @@ export async function sendNotificationToOne(endpoint: string, title: string, bod
       await query(`DELETE FROM bot.push_subscriptions WHERE endpoint = $1`, [endpoint])
     }
     console.error("Erro ao enviar notificação individual:", error)
+    await registrarResultado(logId, 0, 1)
     return { success: false, error: "Falha ao enviar notificação" }
   }
 }

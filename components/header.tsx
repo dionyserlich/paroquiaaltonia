@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import NotificationButton from "@/components/notification-button"
+import NotificationsPanel from "@/components/notifications-panel"
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -42,7 +42,7 @@ export default function Header() {
         </div>
       </Link>
 
-      <NotificationButton />
+      <NotificationsPanel />
     </header>
   )
 }

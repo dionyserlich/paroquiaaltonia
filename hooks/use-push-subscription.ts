@@ -26,8 +26,8 @@ function urlBase64ToUint8Array(base64String: string) {
 // é justamente reiniciar a cada carregamento.
 let jaSincronizou = false
 
-// Estado e lógica de inscrição de push compartilhados entre o sino do
-// cabeçalho (components/notification-button.tsx) e o banner de boas-vindas
+// Estado e lógica de inscrição de push compartilhados entre o painel do
+// sino (components/notifications-panel.tsx) e o banner de boas-vindas
 // (components/welcome-banner.tsx) — mesmo fluxo, dois pontos de entrada.
 export function usePushSubscription() {
   const [isSupported, setIsSupported] = useState(false)
@@ -90,7 +90,7 @@ export function usePushSubscription() {
   // Propriedade de usuário no GA4 — reflete o estado real de inscrição
   // (não só "clicou pra ativar"), atualizada tanto na checagem inicial
   // quanto depois de activate()/deactivate(). Cobre os dois pontos de
-  // entrada (notification-button.tsx, welcome-banner.tsx) automaticamente,
+  // entrada (notifications-panel.tsx, welcome-banner.tsx) automaticamente,
   // por rodarem sobre este mesmo hook.
   useEffect(() => {
     if (!checked) return
