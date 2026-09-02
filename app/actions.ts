@@ -9,6 +9,7 @@ import webpush, {
 import { query } from "@/app/lib/db"
 import { isValidSubscription, upsertPushSubscription } from "@/app/lib/push-subscriptions"
 import { descreverErro, registrarNotificacao, registrarResultado } from "@/app/lib/notification-log"
+import { slugify } from "@/lib/slugify"
 
 let vapidConfigured = false
 function ensureVapid() {
@@ -51,11 +52,28 @@ const TTL_PADRAO_SEGUNDOS = 86400
 // simultânea por inscrição esgotaria os limites da função serverless.
 const TAMANHO_LOTE = 50
 
+// O cabeçalho `topic` só aceita até 32 caracteres do conjunto Base64 seguro
+// para URL (letras, números, - e _). A biblioteca LANÇA EXCEÇÃO diante de
+// qualquer outra coisa — e como o mesmo objeto de opções é usado em todos os
+// envios, um tópico com espaço ou acento derruba a notificação inteira, pra
+// todo mundo, e não só pra um destinatário.
+//
+// Isso aconteceu de verdade: avisos escritos pelo painel com "Iniciamos o
+// Ofertório" no campo Tópico falharam para 100% das inscrições. Como o campo
+// é preenchido por pessoas, e não por código, sanear aqui é obrigatório —
+// nenhum texto digitado deve ser capaz de impedir a entrega.
+function sanitizarTopico(topico: string | undefined): string | undefined {
+  if (!topico) return undefined
+  const limpo = slugify(topico).slice(0, 32).replace(/-+$/, "")
+  return limpo || undefined
+}
+
 function opcoesDeEnvio(opcoes: OpcoesNotificacao): RequestOptions {
+  const topico = sanitizarTopico(opcoes.topico)
   return {
     TTL: opcoes.ttlSegundos ?? TTL_PADRAO_SEGUNDOS,
     urgency: opcoes.urgencia ?? "normal",
-    ...(opcoes.topico ? { topic: opcoes.topico } : {}),
+    ...(topico ? { topic: topico } : {}),
   }
 }
 

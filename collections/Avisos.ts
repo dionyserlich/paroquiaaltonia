@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload"
+import { slugify } from "@/lib/slugify"
 
 // Envio manual de notificação push pelo CMS, para avisos que não nascem de
 // uma notícia, evento ou missa (mudança de horário, convocação, recado
@@ -160,7 +161,15 @@ export const Avisos: CollectionConfig = {
           maxLength: 32,
           admin: {
             description:
-              "Opcional. Avisos com o mesmo tópico substituem o anterior que ainda não foi entregue, em vez de acumular. Útil para avisos que se atualizam.",
+              "Opcional. Avisos com o mesmo tópico substituem o anterior que ainda não foi entregue, em vez de acumular. Útil para avisos que se atualizam. Só aceita letras, números e hífen — o que você digitar é convertido ao salvar (ex.: “Missa ao vivo” vira “missa-ao-vivo”).",
+          },
+          // Normaliza ao salvar, em vez de recusar: o serviço de push só
+          // aceita letras, números, - e _ aqui, e um valor fora disso fazia
+          // o envio falhar para TODOS os destinatários. Converter na
+          // gravação mostra desde já o valor que será usado, em vez de a
+          // pessoa descobrir pelo contador de falhas.
+          hooks: {
+            beforeValidate: [({ value }) => (typeof value === "string" && value ? slugify(value).slice(0, 32).replace(/-+$/, "") : value)],
           },
         },
         {
