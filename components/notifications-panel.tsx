@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { usePushSubscription } from "@/hooks/use-push-subscription"
 import { getDeviceId } from "@/lib/device-id"
-import { getLidasAte, marcarTodasComoLidas } from "@/lib/notificacoes-lidas"
+import { getLidasAte, getPrimeiroAcesso, marcarTodasComoLidas } from "@/lib/notificacoes-lidas"
 
 type Notificacao = {
   id: number
@@ -45,6 +45,8 @@ async function buscarNotificacoes(endpoint: string | null): Promise<Notificacao[
     const deviceId = getDeviceId()
     if (deviceId) params.set("deviceId", deviceId)
     if (endpoint) params.set("endpoint", endpoint)
+    const primeiroAcesso = getPrimeiroAcesso()
+    if (primeiroAcesso) params.set("desde", String(primeiroAcesso))
     const res = await fetch(`/api/notificacoes?${params.toString()}`, { cache: "no-store" })
     if (!res.ok) return null
     const data = await res.json()
@@ -87,6 +89,12 @@ export default function NotificationsPanel() {
   // precisam continuar visíveis enquanto a pessoa lê, mesmo depois de já
   // terem sido marcadas como lidas.
   const [lidasAteNaAbertura, setLidasAteNaAbertura] = useState(0)
+  // Estes dois vêm do localStorage, que não existe no servidor — por isso
+  // ficam em estado, preenchido depois da primeira busca, em vez de lidos
+  // durante a renderização (o que causaria divergência de hidratação, e no
+  // caso da primeira visita ainda gravaria um valor durante o render).
+  const [lidasAte, setLidasAte] = useState(0)
+  const [primeiroAcesso, setPrimeiroAcesso] = useState(0)
 
   // O sino vive no cabeçalho, que fica montado o tempo todo — então buscar
   // só na montagem significava buscar praticamente uma vez só. Numa PWA
@@ -103,6 +111,10 @@ export default function NotificationsPanel() {
         if (!ativo) return
         if (lista) setNotificacoes(lista)
         setCarregando(false)
+        // Aqui já é seguro tocar no localStorage: estamos no cliente e fora
+        // da renderização.
+        setLidasAte(getLidasAte())
+        setPrimeiroAcesso(getPrimeiroAcesso())
       })
     }
 
@@ -125,14 +137,23 @@ export default function NotificationsPanel() {
     }
   }, [endpoint])
 
-  const naoLidas = notificacoes.filter((n) => new Date(n.createdAt).getTime() > getLidasAte()).length
+  // Convite de boas-vindas: aparece enquanto os avisos não estiverem
+  // ativados e a ativação for possível neste aparelho. É o que dá conteúdo
+  // ao painel de quem acabou de chegar — o histórico começa na primeira
+  // visita, então para essa pessoa ele está legitimamente vazio.
+  const podeAtivar = isSupported && !iosNeedsInstall && !isSubscribed
+  const conviteNovo = podeAtivar && primeiroAcesso > 0 && primeiroAcesso > lidasAte
+
+  const naoLidas =
+    notificacoes.filter((n) => new Date(n.createdAt).getTime() > lidasAte).length + (conviteNovo ? 1 : 0)
 
   async function abrir() {
-    setLidasAteNaAbertura(getLidasAte())
+    setLidasAteNaAbertura(lidasAte)
     setAberto(true)
     // Ler aqui dentro conta como ler: marca como lidas e tira da bandeja do
     // sistema, pros dois lados ficarem consistentes.
     marcarTodasComoLidas()
+    setLidasAte(Date.now())
     limparBandejaDoSistema()
     const lista = await buscarNotificacoes(endpoint)
     if (lista) setNotificacoes(lista)
@@ -200,12 +221,42 @@ export default function NotificationsPanel() {
               <div className="flex justify-center py-10">
                 <Loader2 className="animate-spin text-gray-400" size={24} />
               </div>
-            ) : notificacoes.length === 0 ? (
+            ) : notificacoes.length === 0 && !podeAtivar ? (
               <p className="px-4 py-10 text-center text-sm text-gray-400">
                 Nenhuma notificação por enquanto.
               </p>
             ) : (
               <ul className="divide-y divide-white/10">
+                {/* Convite de ativação. Não é um aviso que a paróquia
+                    enviou, então não se disfarça de um: leva ícone e texto
+                    próprios. Existe porque o histórico começa na primeira
+                    visita — sem ele, quem acabou de chegar abriria o painel
+                    e não veria nada. */}
+                {podeAtivar && (
+                  <li>
+                    <button
+                      onClick={() => activate()}
+                      disabled={isLoading}
+                      className={`w-full text-left px-4 py-3 hover:bg-white/5 disabled:opacity-60 ${
+                        conviteNovo ? "bg-white/[0.04]" : ""
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        {conviteNovo && <span className="mt-1.5 w-2 h-2 rounded-full bg-yellow-500 shrink-0" />}
+                        <div className={`min-w-0 flex-1 ${conviteNovo ? "" : "pl-4"}`}>
+                          <p className="font-medium text-sm leading-snug flex items-center gap-1.5">
+                            <Bell size={14} className="text-yellow-500 shrink-0" />
+                            Ative os avisos da paróquia
+                          </p>
+                          <p className="text-sm text-gray-300 leading-snug mt-0.5">
+                            Toque aqui para ser avisado das missas ao vivo, notícias e eventos.
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  </li>
+                )}
+
                 {notificacoes.map((n) => {
                   const nova = new Date(n.createdAt).getTime() > lidasAteNaAbertura
                   return (

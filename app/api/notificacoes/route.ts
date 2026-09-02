@@ -12,7 +12,13 @@ export async function GET(req: NextRequest) {
   try {
     const deviceId = req.nextUrl.searchParams.get("deviceId")
     const endpoint = req.nextUrl.searchParams.get("endpoint")
-    const notificacoes = await listarNotificacoes(deviceId, endpoint)
+
+    // Timestamp em milissegundos da primeira visita deste navegador. Valor
+    // ausente ou inválido vira null — aí vale só a janela padrão.
+    const desdeParam = Number(req.nextUrl.searchParams.get("desde"))
+    const desde = Number.isFinite(desdeParam) && desdeParam > 0 ? new Date(desdeParam) : null
+
+    const notificacoes = await listarNotificacoes(deviceId, endpoint, desde)
     // A resposta varia por aparelho (traz os avisos individuais), então não
     // pode ser guardada por cache compartilhado — o padrão do Next aqui era
     // "public", que permitiria um intermediário servir a resposta de um

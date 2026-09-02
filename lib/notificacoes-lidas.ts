@@ -3,6 +3,31 @@
 // isso no servidor exigiria tratar o device_id como identidade de usuário,
 // o que ele não é.
 const STORAGE_KEY = "notificacoes-lidas-ate"
+const PRIMEIRO_ACESSO_KEY = "notificacoes-primeiro-acesso"
+
+// Momento em que este navegador viu o site pela primeira vez. O histórico
+// começa daqui: um aviso enviado antes da pessoa existir como visitante não
+// é dela, e mostrar tudo o que já foi anunciado faria quem chega agora abrir
+// o sino com dezenas de itens "novos" que nunca perdeu. É como funciona
+// qualquer caixa de notificações — ela começa quando você entra.
+export function getPrimeiroAcesso(): number {
+  if (typeof window === "undefined") return 0
+  try {
+    const salvo = window.localStorage.getItem(PRIMEIRO_ACESSO_KEY)
+    if (salvo) {
+      const valor = Number(salvo)
+      if (Number.isFinite(valor)) return valor
+    }
+    const agora = Date.now()
+    window.localStorage.setItem(PRIMEIRO_ACESSO_KEY, String(agora))
+    return agora
+  } catch {
+    // Sem localStorage não dá pra saber quando foi a primeira visita.
+    // Devolver 0 mantém o comportamento antigo (mostra o histórico
+    // disponível) em vez de esconder tudo.
+    return 0
+  }
+}
 
 export function getLidasAte(): number {
   if (typeof window === "undefined") return 0

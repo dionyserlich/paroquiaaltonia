@@ -79,7 +79,15 @@ const JANELA_DIAS = 90
 // Sem login: a identidade é o device_id gravado no navegador, com o
 // endpoint atual como reforço pra não perder avisos gravados antes de o
 // aparelho ter um device_id.
-export async function listarNotificacoes(deviceId?: string | null, endpoint?: string | null) {
+// `desde` é a primeira visita deste navegador (ver lib/notificacoes-lidas.ts):
+// avisos anteriores a ela não são exibidos, pra quem chega agora não receber
+// de uma vez tudo o que a paróquia já anunciou. A janela de 90 dias continua
+// valendo como limite externo.
+export async function listarNotificacoes(
+  deviceId?: string | null,
+  endpoint?: string | null,
+  desde?: Date | null
+) {
   const { rows } = await query<{
     id: number
     title: string
@@ -92,6 +100,7 @@ export async function listarNotificacoes(deviceId?: string | null, endpoint?: st
     `SELECT id, title, body, url, created_at, device_id, endpoint
      FROM bot.notification_log
      WHERE created_at >= now() - ($1 || ' days')::interval
+       AND ($4::timestamptz IS NULL OR created_at >= $4)
        AND (
          (device_id IS NULL AND endpoint IS NULL)
          OR ($2::text IS NOT NULL AND device_id = $2)
@@ -99,7 +108,7 @@ export async function listarNotificacoes(deviceId?: string | null, endpoint?: st
        )
      ORDER BY created_at DESC
      LIMIT ${LIMITE_PADRAO}`,
-    [String(JANELA_DIAS), deviceId ?? null, endpoint ?? null]
+    [String(JANELA_DIAS), deviceId ?? null, endpoint ?? null, desde ?? null]
   )
 
   return rows.map(
