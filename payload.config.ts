@@ -17,6 +17,7 @@ import { Capelas } from "./collections/Capelas"
 import { Intencoes } from "./collections/Intencoes"
 import { Velas } from "./collections/Velas"
 import { Avisos } from "./collections/Avisos"
+import { resendEmailAdapter } from "./app/lib/payload-email"
 import { MassSchedule } from "./globals/MassSchedule"
 import { Sobre } from "./globals/Sobre"
 import { Dizimo } from "./globals/Dizimo"
@@ -43,6 +44,9 @@ export default buildConfig({
   graphQL: {
     disable: true,
   },
+  // Sem isto o Payload só escreve os e-mails no console, e o
+  // "Esqueci minha senha" do CMS não chega a ninguém.
+  email: resendEmailAdapter,
   collections: [Users, Media, Noticias, Eventos, Missas, Banners, Pastorais, Capelas, Intencoes, Velas, Avisos],
   globals: [MassSchedule, Sobre, Dizimo, Ofertas, ContactInfo, Horarios],
   editor: lexicalEditor(),
