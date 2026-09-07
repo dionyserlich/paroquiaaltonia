@@ -2,6 +2,12 @@ export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
 export type MassSlot = { day: DayOfWeek; hour: number; minute: number; label: string }
 
+// Missa avulsa, numa data específica, fora da grade semanal — feriado,
+// festa da padroeira, encerramento de encontro. Diferente de MassSlot, que
+// se repete toda semana, esta acontece uma vez só, então é identificada por
+// um instante absoluto em vez de dia-da-semana + hora.
+export type MassSpecial = { at: Date; label: string }
+
 // Fallback só para o caso raro de o Global MassSchedule do Payload estar
 // vazio/indisponível — a fonte de verdade real é o Payload (ver
 // app/lib/live-mass-bot.ts), não esta constante.
@@ -47,9 +53,23 @@ function brtDayAndMinutes(now: Date): { day: DayOfWeek; minutesNow: number } {
   return { day, minutesNow }
 }
 
+// Converte uma missa avulsa para o formato de slot só para a resposta —
+// dia/hora/minuto ficam corretos para aquela ocorrência específica, o que é
+// tudo que quem consome usa (basicamente o label).
+function slotDeEspecial(especial: MassSpecial): MassSlot {
+  const { day, minutesNow } = brtDayAndMinutes(especial.at)
+  return {
+    day,
+    hour: Math.floor(minutesNow / 60),
+    minute: minutesNow % 60,
+    label: especial.label,
+  }
+}
+
 export function findActiveMassWindow(
   now: Date = new Date(),
   schedule: MassSlot[] = MASS_SCHEDULE,
+  especiais: MassSpecial[] = [],
 ): {
   inWindow: boolean
   slot?: MassSlot
@@ -58,6 +78,24 @@ export function findActiveMassWindow(
   nextSlot?: MassSlot
   nextStartsAt?: Date
 } {
+  const agora = now.getTime()
+
+  // Missas avulsas são verificadas antes e por tempo absoluto: como têm data
+  // própria, não passam pela aritmética de dia-da-semana abaixo (que é o que
+  // faz uma missa de feriado, fora da grade, nunca ser encontrada).
+  for (const especial of especiais) {
+    const inicio = especial.at.getTime() - PRE_WINDOW_MIN * 60000
+    const fim = especial.at.getTime() + POST_WINDOW_MIN * 60000
+    if (agora >= inicio && agora <= fim) {
+      return {
+        inWindow: true,
+        slot: slotDeEspecial(especial),
+        startsAt: especial.at,
+        endsAt: new Date(fim),
+      }
+    }
+  }
+
   const { day, minutesNow } = brtDayAndMinutes(now)
 
   const candidates = schedule.flatMap((slot) => {
@@ -86,5 +124,16 @@ export function findActiveMassWindow(
     const startsAt = new Date(now.getTime() + (totalMinutes - minutesNow) * 60000)
     if (!bestNext || startsAt < bestNext.startsAt) bestNext = { slot, startsAt }
   }
+
+  // Uma missa avulsa ainda por vir pode ser a próxima — inclusive antes da
+  // próxima da grade semanal. Datas já passadas são ignoradas, então sobras
+  // antigas no cadastro não atrapalham.
+  for (const especial of especiais) {
+    if (especial.at.getTime() <= agora) continue
+    if (!bestNext || especial.at < bestNext.startsAt) {
+      bestNext = { slot: slotDeEspecial(especial), startsAt: especial.at }
+    }
+  }
+
   return { inWindow: false, nextSlot: bestNext?.slot, nextStartsAt: bestNext?.startsAt }
 }

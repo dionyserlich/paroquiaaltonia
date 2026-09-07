@@ -1,27 +1,37 @@
 import { query } from "@/app/lib/db"
-import { findActiveMassWindow, type MassSlot } from "@/app/lib/mass-schedule"
+import { findActiveMassWindow, type MassSlot, type MassSpecial } from "@/app/lib/mass-schedule"
 import { fetchLiveVideo, type LiveVideo } from "@/app/lib/youtube-live-scraper"
 import { payloadClient } from "@/app/lib/payload"
 
 // Busca o horário semanal no Global do Payload (fonte única — também usada
 // por /horarios) em vez da constante fixa. Cai no fallback hardcoded só se o
 // Global vier vazio por algum motivo.
-async function loadSchedule(): Promise<MassSlot[]> {
+async function loadSchedule(): Promise<{ slots: MassSlot[]; especiais: MassSpecial[] }> {
   try {
     const payload = await payloadClient()
     const global = await payload.findGlobal({ slug: "mass-schedule" })
     const horarios = (global.horarios || []) as { diaSemana: string; hora: number; minuto: number; label?: string | null }[]
     if (horarios.length === 0) throw new Error("Global mass-schedule vazio")
-    return horarios.map((h) => ({
-      day: Number(h.diaSemana) as MassSlot["day"],
-      hour: h.hora,
-      minute: h.minuto,
-      label: h.label || `Missa ${h.diaSemana} ${h.hora}h${h.minuto}`,
-    }))
+
+    // Missas avulsas (feriado, festa, encerramento de encontro) — datas
+    // inválidas são descartadas em vez de derrubar a checagem inteira.
+    const especiais = ((global.especiais || []) as { dataHora?: string | null; label?: string | null }[])
+      .map((e) => ({ at: new Date(e.dataHora ?? ""), label: e.label || "Missa especial" }))
+      .filter((e) => !Number.isNaN(e.at.getTime()))
+
+    return {
+      slots: horarios.map((h) => ({
+        day: Number(h.diaSemana) as MassSlot["day"],
+        hour: h.hora,
+        minute: h.minuto,
+        label: h.label || `Missa ${h.diaSemana} ${h.hora}h${h.minuto}`,
+      })),
+      especiais,
+    }
   } catch (err) {
     console.error("[live-mass-bot] falha ao buscar mass-schedule do Payload, usando fallback:", err)
     const { MASS_SCHEDULE } = await import("@/app/lib/mass-schedule")
-    return MASS_SCHEDULE
+    return { slots: MASS_SCHEDULE, especiais: [] }
   }
 }
 
@@ -36,8 +46,8 @@ export type RunResult = {
 
 export async function runLiveMassCheck(trigger: "cron" | "manual"): Promise<RunResult> {
   const now = new Date()
-  const schedule = await loadSchedule()
-  const win = findActiveMassWindow(now, schedule)
+  const { slots, especiais } = await loadSchedule()
+  const win = findActiveMassWindow(now, slots, especiais)
 
   if (!win.inWindow) {
     // Rede de segurança: se por algum motivo (falha da API, etc.) uma live

@@ -52,5 +52,35 @@ export const MassSchedule: GlobalConfig = {
         },
       ],
     },
+    {
+      // Missas fora da grade semanal — feriado, festa, encerramento de
+      // encontro. Sem isto o bot de missa ao vivo só procura transmissão nos
+      // horários fixos e ignora uma missa especial mesmo estando no ar, que
+      // foi o que aconteceu no 7 de setembro de 2026.
+      name: "especiais",
+      type: "array",
+      labels: { singular: "Missa especial", plural: "Missas especiais" },
+      admin: {
+        description:
+          "Missas avulsas, em datas que não seguem o horário semanal. O bot passa a procurar a transmissão ao vivo nesse horário, como faz com as missas fixas. Datas passadas podem ser removidas quando quiser — elas são ignoradas sozinhas.",
+      },
+      fields: [
+        {
+          name: "dataHora",
+          type: "date",
+          required: true,
+          admin: {
+            date: { pickerAppearance: "dayAndTime", timeFormat: "HH:mm" },
+            description: "Data e horário de início da missa (horário de Brasília).",
+          },
+        },
+        {
+          name: "label",
+          type: "text",
+          required: true,
+          admin: { description: "Nome que aparece nos registros, ex.: “Missa de 7 de setembro”." },
+        },
+      ],
+    },
   ],
 }
