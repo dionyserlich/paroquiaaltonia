@@ -232,7 +232,11 @@ body.has-install-prompt-tall main {
   box-shadow:
     inset calc(20px * var(--vela-scale)) calc(-30px * var(--vela-scale)) calc(50px * var(--vela-scale)) 0 rgba(0, 0, 0, 0.4),
     inset calc(-20px * var(--vela-scale)) 0 calc(50px * var(--vela-scale)) 0 rgba(0, 0, 0, 0.4);
-  background: linear-gradient(#e48825, #e78e0e, #833c03, #4c1a03 50%, #1c0900);
+  /* Cera clara, cor de marfim, como uma vela de verdade — não o âmbar do
+     CodePen original. O topo é o trecho iluminado pela chama e a cor cai
+     para a sombra na metade de baixo, que é o que dá a sensação de vela
+     acesa no escuro em vez de um cilindro chapado. */
+  background: linear-gradient(#fff5e0, #f5e9d2, #d8c7a5, #7a6a52 62%, #1a1510);
 }
 
 /* Nos cards com foto (components/vela-dialog.tsx não usa isso, só
@@ -247,8 +251,10 @@ body.has-install-prompt-tall main {
   width: 100%;
   height: calc(40px * var(--vela-scale));
   border-radius: 50%;
-  border: calc(2px * var(--vela-scale)) solid #d47401;
-  background: radial-gradient(#eaa121, #8e4901 45%, #b86409 80%);
+  /* Topo da vela: centro claro perto do pavio, o anel de cera derretida um
+     pouco mais escuro em volta, e a borda voltando a pegar luz. */
+  border: calc(2px * var(--vela-scale)) solid #e6d9bd;
+  background: radial-gradient(#fff8e8, #cdbb98 45%, #efe3c8 80%);
 }
 
 .vela-candle:after {
