@@ -6,6 +6,7 @@ import PageClient from "../page-client"
 
 export const metadata: Metadata = {
   title: "Ofertas",
+  alternates: { canonical: "/ofertas" },
   description:
     "Contribua com ofertas para a Paróquia São Sebastião de Altônia. Ajude a manter nossa comunidade e obras sociais.",
   keywords: ["ofertas", "contribuição", "doação", "paróquia", "são sebastião", "altônia"],

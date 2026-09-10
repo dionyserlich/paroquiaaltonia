@@ -8,6 +8,7 @@ import { payloadClient } from "@/app/lib/payload"
 
 export const metadata: Metadata = {
   title: "Capelas e Comunidades",
+  alternates: { canonical: "/capelas" },
   description:
     "Conheça as capelas e comunidades da Paróquia São Sebastião de Altônia, espalhadas pela cidade e pela zona rural.",
   keywords: ["capelas", "comunidades", "paróquia", "são sebastião", "altônia"],

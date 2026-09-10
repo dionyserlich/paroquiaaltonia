@@ -6,6 +6,7 @@ import VelasContent from "./velas-content"
 
 export const metadata: Metadata = {
   title: "Acenda uma Vela",
+  alternates: { canonical: "/velas" },
   description: "Acenda uma vela virtual e faça sua oração na Paróquia São Sebastião de Altônia.",
   keywords: ["vela", "oração", "capela virtual", "paróquia", "são sebastião", "altônia"],
   openGraph: {

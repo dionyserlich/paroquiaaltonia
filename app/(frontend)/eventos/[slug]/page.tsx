@@ -33,17 +33,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const evento = await getEvento(slug)
   const description = evento.descricao || `${evento.titulo} - ${formatarData(evento.startAt)}`
 
+  // Ver comentário equivalente em noticias/[slug]: o sufixo da paróquia vem
+  // do template só no `title`; em openGraph/twitter precisa ser explícito.
+  const tituloCompartilhado = `${evento.titulo} - Paróquia São Sebastião`
+
   return {
-    title: `${evento.titulo} - Paróquia São Sebastião`,
+    title: evento.titulo,
     description,
+    alternates: { canonical: `/eventos/${slug}` },
     openGraph: {
-      title: `${evento.titulo} - Paróquia São Sebastião`,
+      title: tituloCompartilhado,
       description,
       type: "article",
     },
     twitter: {
       card: "summary",
-      title: `${evento.titulo} - Paróquia São Sebastião`,
+      title: tituloCompartilhado,
       description,
     },
   }

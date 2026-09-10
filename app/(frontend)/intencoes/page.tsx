@@ -6,6 +6,7 @@ import PageClient from "../page-client"
 
 export const metadata: Metadata = {
   title: "Intenções de Missa",
+  alternates: { canonical: "/intencoes" },
   description:
     "Envie suas intenções para as missas da Paróquia São Sebastião de Altônia. Aniversários, ação de graças, enfermos e muito mais.",
   keywords: ["intenções", "missa", "oração", "paróquia", "são sebastião", "altônia"],

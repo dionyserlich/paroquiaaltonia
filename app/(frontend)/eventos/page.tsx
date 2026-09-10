@@ -6,16 +6,17 @@ import { payloadClient } from "@/app/lib/payload"
 import type { Evento } from "@/app/lib/content-types"
 
 export const metadata = {
-  title: "Eventos - Paróquia São Sebastião",
+  title: "Eventos",
+  alternates: { canonical: "/eventos" },
   description: "Confira os próximos eventos e atividades da Paróquia São Sebastião de Altônia",
   openGraph: {
-    title: "Eventos - Paróquia São Sebastião",
+    title: "Eventos",
     description: "Confira os próximos eventos e atividades da Paróquia São Sebastião de Altônia",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Eventos - Paróquia São Sebastião",
+    title: "Eventos",
     description: "Confira os próximos eventos e atividades da Paróquia São Sebastião de Altônia",
   },
 }

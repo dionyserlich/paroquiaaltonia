@@ -34,19 +34,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const noticia = await getNoticia(slug)
   const imagem = typeof noticia.imagem === "object" ? noticia.imagem : null
 
+  const descricao = noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`
+  // `title` sai sem sufixo porque o template do layout raiz já acrescenta
+  // " - Paróquia São Sebastião". Em openGraph/twitter o template NÃO se
+  // aplica, então lá o sufixo é escrito à mão — sem ele, um link
+  // compartilhado no WhatsApp apareceria sem dizer de que paróquia é.
+  const tituloCompartilhado = `${noticia.titulo} - Paróquia São Sebastião`
+
   return {
-    title: `${noticia.titulo} - Paróquia São Sebastião`,
-    description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
+    title: noticia.titulo,
+    description: descricao,
+    alternates: { canonical: `/noticias/${slug}` },
     openGraph: {
-      title: `${noticia.titulo} - Paróquia São Sebastião`,
-      description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
+      title: tituloCompartilhado,
+      description: descricao,
       images: [imagem?.url || "/images/logo-icone.png"],
       type: "article",
     },
     twitter: {
       card: "summary_large_image",
-      title: `${noticia.titulo} - Paróquia São Sebastião`,
-      description: noticia.resumo || `Leia mais sobre ${noticia.titulo} na Paróquia São Sebastião`,
+      title: tituloCompartilhado,
+      description: descricao,
       images: [imagem?.url || "/images/logo-icone.png"],
     },
   }

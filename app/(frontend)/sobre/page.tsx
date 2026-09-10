@@ -7,6 +7,7 @@ import { payloadClient } from "@/app/lib/payload"
 
 export const metadata: Metadata = {
   title: "Sobre a Paróquia",
+  alternates: { canonical: "/sobre" },
   description:
     "Conheça a história da Paróquia São Sebastião de Altônia, desde sua fundação em 1969 até os dias atuais. Um marco de fé e compromisso comunitário no noroeste do Paraná.",
   keywords: [

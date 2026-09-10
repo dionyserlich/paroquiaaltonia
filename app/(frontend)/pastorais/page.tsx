@@ -7,6 +7,7 @@ import { payloadClient } from "@/app/lib/payload"
 
 export const metadata: Metadata = {
   title: "Pastorais",
+  alternates: { canonical: "/pastorais" },
   description:
     "Conheça as pastorais da Paróquia São Sebastião de Altônia. Pastoral da Comunicação, Família, Sobriedade e muito mais.",
   keywords: ["pastorais", "grupos", "comunidade", "paróquia", "são sebastião", "altônia"],

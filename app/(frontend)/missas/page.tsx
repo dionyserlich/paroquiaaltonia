@@ -6,6 +6,7 @@ import PageClient from "../page-client"
 
 export const metadata: Metadata = {
   title: "Missas",
+  alternates: { canonical: "/missas" },
   description:
     "Horários das missas e celebrações anteriores da Paróquia São Sebastião de Altônia. Acompanhe nossa programação litúrgica.",
   keywords: ["missas", "horários", "celebrações", "liturgia", "paróquia", "são sebastião", "altônia"],

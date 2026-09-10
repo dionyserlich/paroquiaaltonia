@@ -7,6 +7,7 @@ import { payloadClient } from "@/app/lib/payload"
 
 export const metadata: Metadata = {
   title: "Dízimo",
+  alternates: { canonical: "/dizimo" },
   description:
     "Adira ao dízimo da Paróquia São Sebastião de Altônia. Contribua mensalmente para o crescimento da nossa comunidade.",
   keywords: ["dízimo", "contribuição mensal", "paróquia", "são sebastião", "altônia"],

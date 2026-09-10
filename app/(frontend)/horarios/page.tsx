@@ -5,18 +5,19 @@ import PageClient from "../page-client"
 import { payloadClient } from "@/app/lib/payload"
 
 export const metadata = {
-  title: "Horários - Paróquia São Sebastião",
+  title: "Horários",
+  alternates: { canonical: "/horarios" },
   description:
     "Confira os horários das missas, atendimento da secretaria, confissões e contatos da Paróquia São Sebastião de Altônia",
   openGraph: {
-    title: "Horários - Paróquia São Sebastião",
+    title: "Horários",
     description:
       "Confira os horários das missas, atendimento da secretaria, confissões e contatos da Paróquia São Sebastião de Altônia",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Horários - Paróquia São Sebastião",
+    title: "Horários",
     description:
       "Confira os horários das missas, atendimento da secretaria, confissões e contatos da Paróquia São Sebastião de Altônia",
   },

@@ -20,6 +20,11 @@ export const metadata: Metadata = {
     template: "%s - Paróquia São Sebastião"
   },
   description: "Site oficial da Paróquia São Sebastião de Altônia - Missas, eventos, notícias e liturgia diária",
+  // Canonical da home. As demais páginas declaram o próprio — sem isso, o
+  // mesmo conteúdo acessado com parâmetros de campanha na URL (utm_source
+  // etc., comuns em link compartilhado no WhatsApp) conta como página
+  // duplicada para o buscador.
+  alternates: { canonical: "/" },
   keywords: ["paróquia", "são sebastião", "altônia", "igreja católica", "missa", "liturgia", "eventos"],
   authors: [{ name: "Paróquia São Sebastião" }],
   creator: "Dionys Erlich",
@@ -31,7 +36,6 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "Paróquia São Sebastião",
   },
-  generator: 'v0.dev',
   openGraph: {
     type: "website",
     locale: "pt_BR",
@@ -39,9 +43,12 @@ export const metadata: Metadata = {
     siteName: "Paróquia São Sebastião",
     title: "Paróquia São Sebastião de Altônia",
     description: "Site oficial da Paróquia São Sebastião de Altônia - Missas, eventos, notícias e liturgia diária",
+    // icon-512.png tem de fato 512x512. Antes apontava para logo-icone.png,
+    // que é 357x349 — as dimensões declaradas não batiam com o arquivo, e
+    // WhatsApp/Facebook usam esses valores para reservar o espaço da prévia.
     images: [
       {
-        url: "/images/logo-icone.png",
+        url: "/images/icon-512.png",
         width: 512,
         height: 512,
         alt: "Logo da Paróquia São Sebastião",
@@ -52,7 +59,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Paróquia São Sebastião de Altônia",
     description: "Site oficial da Paróquia São Sebastião de Altônia - Missas, eventos, notícias e liturgia diária",
-    images: ["/images/logo-icone.png"],
+    images: ["/images/icon-512.png"],
   },
   robots: {
     index: true,

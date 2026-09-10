@@ -8,16 +8,17 @@ import { formatarData } from "@/lib/utils"
 import type { Noticia } from "@/app/lib/content-types"
 
 export const metadata = {
-  title: "Notícias - Paróquia São Sebastião",
+  title: "Notícias",
+  alternates: { canonical: "/noticias" },
   description: "Confira as últimas notícias e novidades da Paróquia São Sebastião de Altônia",
   openGraph: {
-    title: "Notícias - Paróquia São Sebastião",
+    title: "Notícias",
     description: "Confira as últimas notícias e novidades da Paróquia São Sebastião de Altônia",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Notícias - Paróquia São Sebastião",
+    title: "Notícias",
     description: "Confira as últimas notícias e novidades da Paróquia São Sebastião de Altônia",
   },
 }
