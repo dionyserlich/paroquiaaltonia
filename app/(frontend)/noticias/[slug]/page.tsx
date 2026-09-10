@@ -48,14 +48,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: tituloCompartilhado,
       description: descricao,
-      images: [imagem?.url || "/images/logo-icone.png"],
+      images: [imagem?.url || "/images/og-compartilhamento.jpg"],
       type: "article",
     },
     twitter: {
       card: "summary_large_image",
       title: tituloCompartilhado,
       description: descricao,
-      images: [imagem?.url || "/images/logo-icone.png"],
+      images: [imagem?.url || "/images/og-compartilhamento.jpg"],
     },
   }
 }

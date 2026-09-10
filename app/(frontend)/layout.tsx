@@ -43,23 +43,27 @@ export const metadata: Metadata = {
     siteName: "Paróquia São Sebastião",
     title: "Paróquia São Sebastião de Altônia",
     description: "Site oficial da Paróquia São Sebastião de Altônia - Missas, eventos, notícias e liturgia diária",
-    // icon-512.png tem de fato 512x512. Antes apontava para logo-icone.png,
-    // que é 357x349 — as dimensões declaradas não batiam com o arquivo, e
-    // WhatsApp/Facebook usam esses valores para reservar o espaço da prévia.
+    // 1200x630 é o formato que WhatsApp, Facebook e Telegram esperam — antes
+    // era o logo quadrado, que rendia uma miniatura pequena ao lado do texto
+    // em vez da faixa larga. Montada a partir da foto da igreja usada no
+    // topo da home. JPEG, e não PNG, porque o WhatsApp costuma desistir da
+    // prévia em arquivos grandes (este tem ~177 KB; o PNG passava de 1 MB).
     images: [
       {
-        url: "/images/icon-512.png",
-        width: 512,
-        height: 512,
-        alt: "Logo da Paróquia São Sebastião",
+        url: "/images/og-compartilhamento.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Igreja Matriz da Paróquia São Sebastião de Altônia",
       },
     ],
   },
   twitter: {
-    card: "summary",
+    // summary_large_image agora que existe uma imagem no formato certo —
+    // com o logo quadrado, o card grande ficaria com bordas vazias.
+    card: "summary_large_image",
     title: "Paróquia São Sebastião de Altônia",
     description: "Site oficial da Paróquia São Sebastião de Altônia - Missas, eventos, notícias e liturgia diária",
-    images: ["/images/icon-512.png"],
+    images: ["/images/og-compartilhamento.jpg"],
   },
   robots: {
     index: true,
