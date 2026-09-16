@@ -1,4 +1,5 @@
 import type { GlobalConfig } from "payload"
+import { revalidarCaminhos } from "@/app/lib/revalidar"
 
 // A grade regular de missas vem do global MassSchedule (fonte única também
 // usada pelo bot). Aqui ficam só as informações complementares da página
@@ -6,6 +7,11 @@ import type { GlobalConfig } from "payload"
 // reproduzir cada card/ícone como campo estruturado (ver decisão do time).
 export const Horarios: GlobalConfig = {
   slug: "horarios",
+  hooks: {
+    // Invalida o cache na hora em que o conteúdo muda — ver
+    // app/lib/revalidar.ts para o porquê do cache existir.
+    afterChange: [() => revalidarCaminhos(["/horarios"])],
+  },
   access: {
     read: () => true,
   },

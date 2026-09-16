@@ -4,21 +4,25 @@
 // privacidade, já que o access control do Payload não faz isso sozinho
 // (é tudo ou nada por operação, não por campo condicional).
 import { NextResponse } from "next/server"
+import { consultaCacheada } from "@/app/lib/cache-consulta"
 import { payloadClient } from "@/app/lib/payload"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const payload = await payloadClient()
-    const { docs } = await payload.find({
-      collection: "velas",
-      where: {
-        and: [{ extinta: { equals: false } }, { expiraEm: { greater_than_equal: new Date().toISOString() } }],
-      },
-      sort: "-createdAt",
-      limit: 100,
-    })
+    const docs = await consultaCacheada("velas-publicas", "velas", 60, async () => {
+      const payload = await payloadClient()
+      const { docs } = await payload.find({
+        collection: "velas",
+        where: {
+          and: [{ extinta: { equals: false } }, { expiraEm: { greater_than_equal: new Date().toISOString() } }],
+        },
+        sort: "-createdAt",
+        limit: 100,
+      })
+      return docs
+    })()
 
     type VelaDoc = {
       id: number

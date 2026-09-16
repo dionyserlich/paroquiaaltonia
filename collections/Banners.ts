@@ -1,7 +1,14 @@
 import type { CollectionConfig } from "payload"
+import { revalidarCaminhos } from "@/app/lib/revalidar"
 
 export const Banners: CollectionConfig = {
   slug: "banners",
+  hooks: {
+    // Invalida o cache na hora em que o conteúdo muda — ver
+    // app/lib/revalidar.ts para o porquê do cache existir.
+    afterChange: [() => revalidarCaminhos(["/", "/api/banners"])],
+    afterDelete: [() => revalidarCaminhos(["/", "/api/banners"])],
+  },
   admin: {
     useAsTitle: "titulo",
     defaultColumns: ["titulo", "ordem"],

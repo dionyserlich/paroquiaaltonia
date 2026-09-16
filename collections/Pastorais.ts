@@ -1,7 +1,14 @@
 import type { CollectionConfig } from "payload"
+import { revalidarCaminhos } from "@/app/lib/revalidar"
 
 export const Pastorais: CollectionConfig = {
   slug: "pastorais",
+  hooks: {
+    // Invalida o cache na hora em que o conteúdo muda — ver
+    // app/lib/revalidar.ts para o porquê do cache existir.
+    afterChange: [() => revalidarCaminhos(["/pastorais"])],
+    afterDelete: [() => revalidarCaminhos(["/pastorais"])],
+  },
   admin: {
     useAsTitle: "nome",
     defaultColumns: ["nome", "ordem"],

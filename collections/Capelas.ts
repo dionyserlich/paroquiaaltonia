@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload"
+import { revalidarCaminhos } from "@/app/lib/revalidar"
 
 // Só `nome` é obrigatório de propósito — os 16 nomes já são conhecidos (via
 // a Diocese de Umuarama), mas endereço/horário/mapa de cada capela ainda
@@ -6,6 +7,12 @@ import type { CollectionConfig } from "payload"
 // além do nome já aparece certinho em /capelas, sem parecer quebrada.
 export const Capelas: CollectionConfig = {
   slug: "capelas",
+  hooks: {
+    // Invalida o cache na hora em que o conteúdo muda — ver
+    // app/lib/revalidar.ts para o porquê do cache existir.
+    afterChange: [() => revalidarCaminhos(["/capelas"])],
+    afterDelete: [() => revalidarCaminhos(["/capelas"])],
+  },
   admin: {
     useAsTitle: "nome",
     defaultColumns: ["nome", "zona"],

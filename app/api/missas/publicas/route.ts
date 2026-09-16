@@ -4,18 +4,18 @@
 // Mesmo formato de resposta da rota antiga para não exigir mudança na lógica
 // de fallback do botão de missa ao vivo, que é a feature mais crítica do site.
 import { NextResponse } from "next/server"
+import { consultaCacheada } from "@/app/lib/cache-consulta"
 import { payloadClient } from "@/app/lib/payload"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const payload = await payloadClient()
-    const { docs } = await payload.find({
-      collection: "missas",
-      sort: "-inicio",
-      limit: 100,
-    })
+    const docs = await consultaCacheada("missas-publicas", "missas", 600, async () => {
+      const payload = await payloadClient()
+      const { docs } = await payload.find({ collection: "missas", sort: "-inicio", limit: 100 })
+      return docs
+    })()
     type MissaDoc = {
       id: number
       titulo: string

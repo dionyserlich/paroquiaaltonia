@@ -24,27 +24,37 @@ const STATIC_ROUTES = [
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const payload = await payloadClient()
-
-  const [{ docs: noticias }, { docs: eventos }] = await Promise.all([
-    payload.find({ collection: "noticias", where: { slug: { exists: true } }, limit: 1000, depth: 0 }),
-    payload.find({ collection: "eventos", where: { slug: { exists: true } }, limit: 1000, depth: 0 }),
-  ])
-
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((path) => ({
     url: `${baseUrl}${path}`,
     lastModified: new Date(),
   }))
 
-  const noticiaEntries: MetadataRoute.Sitemap = noticias.map((n) => ({
-    url: `${baseUrl}/noticias/${n.slug}`,
-    lastModified: n.updatedAt ? new Date(n.updatedAt) : undefined,
-  }))
+  // Se o banco falhar, devolve só as páginas fixas em vez de estourar. Duas
+  // razões já observadas na prática: o Search Console acusou "não foi
+  // possível ler o sitemap" numa instabilidade momentânea, e — pior — como
+  // esta rota é pré-renderizada, o erro derrubava o BUILD inteiro. Ou seja,
+  // banco fora do ar impedia até de publicar a correção. Um sitemap parcial
+  // é muito melhor que nenhum.
+  try {
+    const payload = await payloadClient()
+    const [{ docs: noticias }, { docs: eventos }] = await Promise.all([
+      payload.find({ collection: "noticias", where: { slug: { exists: true } }, limit: 1000, depth: 0 }),
+      payload.find({ collection: "eventos", where: { slug: { exists: true } }, limit: 1000, depth: 0 }),
+    ])
 
-  const eventoEntries: MetadataRoute.Sitemap = eventos.map((e) => ({
-    url: `${baseUrl}/eventos/${e.slug}`,
-    lastModified: e.updatedAt ? new Date(e.updatedAt) : undefined,
-  }))
+    const noticiaEntries: MetadataRoute.Sitemap = noticias.map((n) => ({
+      url: `${baseUrl}/noticias/${n.slug}`,
+      lastModified: n.updatedAt ? new Date(n.updatedAt) : undefined,
+    }))
 
-  return [...staticEntries, ...noticiaEntries, ...eventoEntries]
+    const eventoEntries: MetadataRoute.Sitemap = eventos.map((e) => ({
+      url: `${baseUrl}/eventos/${e.slug}`,
+      lastModified: e.updatedAt ? new Date(e.updatedAt) : undefined,
+    }))
+
+    return [...staticEntries, ...noticiaEntries, ...eventoEntries]
+  } catch (err) {
+    console.error("[sitemap] banco indisponível, devolvendo só as páginas fixas:", err)
+    return staticEntries
+  }
 }

@@ -1,10 +1,16 @@
 import type { GlobalConfig } from "payload"
+import { revalidarCaminhos } from "@/app/lib/revalidar"
 
 // Fonte única de verdade para o horário semanal de missas — lida tanto por
 // /horarios (exibição) quanto por app/lib/mass-schedule.ts (janela do bot
 // de missa ao vivo). Antes havia duas cópias divergentes desse horário.
 export const MassSchedule: GlobalConfig = {
   slug: "mass-schedule",
+  hooks: {
+    // Invalida o cache na hora em que o conteúdo muda — ver
+    // app/lib/revalidar.ts para o porquê do cache existir.
+    afterChange: [() => revalidarCaminhos(["/horarios", "/missas", "/api/missas/publicas"])],
+  },
   access: {
     read: () => true,
   },

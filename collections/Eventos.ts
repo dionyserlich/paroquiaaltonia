@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload"
+import { revalidarCaminhos } from "@/app/lib/revalidar"
 import { slugify } from "@/lib/slugify"
 
 export const Eventos: CollectionConfig = {
@@ -13,6 +14,8 @@ export const Eventos: CollectionConfig = {
   hooks: {
     afterChange: [
       async ({ doc, operation }) => {
+        // Publicação instantânea apesar do cache (ver app/lib/revalidar.ts).
+        revalidarCaminhos(["/", "/eventos", `/eventos/${doc.slug}`, "/api/eventos/proximos"])
         // Eventos não tem drafts — todo create já é público.
         if (operation !== "create") return doc
         try {

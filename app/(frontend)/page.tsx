@@ -18,11 +18,23 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.paroquiaaltonia
 // Sem isso, o resultado do payload.findGlobal (contato pro schema.org
 // abaixo) fica congelado no build — edições feitas depois via CMS nunca
 // apareceriam no dado estruturado até o próximo deploy.
-export const dynamic = "force-dynamic"
+export const revalidate = 900
 
 export default async function Home() {
-  const payload = await payloadClient()
-  const contato = await payload.findGlobal({ slug: "contact-info" }).catch(() => null)
+  // O banco só alimenta o dado estruturado abaixo; se ele estiver fora do
+  // ar, a home ainda tem tudo que importa (a busca dos demais blocos é
+  // feita no cliente). Sem este try, `payloadClient()` estourava e a página
+  // inteira caía no error.tsx — foi o que deixou o site com "Algo deu
+  // errado" quando a cota do banco acabou.
+  const contato = await (async () => {
+    try {
+      const payload = await payloadClient()
+      return await payload.findGlobal({ slug: "contact-info" })
+    } catch (err) {
+      console.error("[home] banco indisponível para o dado estruturado:", err)
+      return null
+    }
+  })()
 
   // Schema.org "Church" — é o que permite o Google mostrar endereço,
   // telefone e redes sociais direto no resultado de busca/Google Maps, sem

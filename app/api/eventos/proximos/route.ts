@@ -2,19 +2,23 @@
 // painel admin antigo a partir do banco antigo) — esta já busca do Payload,
 // usada pelo widget de eventos da home (components/events-list.tsx).
 import { NextResponse } from "next/server"
+import { consultaCacheada } from "@/app/lib/cache-consulta"
 import { payloadClient } from "@/app/lib/payload"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const payload = await payloadClient()
-    const { docs } = await payload.find({
-      collection: "eventos",
-      where: { startAt: { greater_than_equal: new Date().toISOString() } },
-      sort: "startAt",
-      limit: 4,
-    })
+    const docs = await consultaCacheada("eventos-proximos", "eventos", 300, async () => {
+      const payload = await payloadClient()
+      const { docs } = await payload.find({
+        collection: "eventos",
+        where: { startAt: { greater_than_equal: new Date().toISOString() } },
+        sort: "startAt",
+        limit: 4,
+      })
+      return docs
+    })()
     return NextResponse.json(docs)
   } catch (error) {
     console.error("Erro ao listar próximos eventos:", error)

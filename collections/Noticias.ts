@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload"
+import { revalidarCaminhos } from "@/app/lib/revalidar"
 import { slugify } from "@/lib/slugify"
 
 export const Noticias: CollectionConfig = {
@@ -16,6 +17,8 @@ export const Noticias: CollectionConfig = {
   hooks: {
     afterChange: [
       async ({ doc, previousDoc, operation }) => {
+        // Publicação instantânea apesar do cache (ver app/lib/revalidar.ts).
+        revalidarCaminhos(["/", "/noticias", `/noticias/${doc.slug}`, "/api/ultimas-noticias"])
         // Notifica só na transição pra publicado (não a cada autosave de
         // rascunho) — cobre tanto "criar já publicado" quanto "publicar um
         // rascunho existente".
