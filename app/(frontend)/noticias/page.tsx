@@ -4,6 +4,7 @@ import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
 import PageClient from "../page-client"
 import { payloadClient } from "@/app/lib/payload"
+import { consultaCacheada } from "@/app/lib/cache-consulta"
 import { formatarData } from "@/lib/utils"
 import type { Noticia } from "@/app/lib/content-types"
 
@@ -23,10 +24,11 @@ export const metadata = {
   },
 }
 
-// Sem isso, Next trata esta página como estática (nenhuma API dinâmica é
-// chamada aqui) e congela o resultado do payload.find no build — conteúdo
-// publicado depois via CMS nunca aparece até o próximo deploy.
-export const revalidate = 300
+// Dinâmica com a CONSULTA cacheada, não a rota — mesmo motivo da home
+// (ver app/(frontend)/page.tsx): com `revalidate` esta página era gerada
+// durante o build, e cada geração inicializa o Payload com introspecção
+// completa do schema contra um banco em outro continente.
+export const dynamic = "force-dynamic"
 
 export default async function NoticiasPage() {
   // Banco fora do ar não pode derrubar a página inteira no error.tsx:
@@ -34,8 +36,10 @@ export default async function NoticiasPage() {
   // renderizar, do que a tela de "Algo deu errado".
   const { docs: noticias } = await (async () => {
     try {
-      const payload = await payloadClient()
-      return await payload.find({ collection: "noticias", sort: "-data", depth: 1, limit: 50 })
+      return await consultaCacheada("pag-noticias", "noticias", 300, async () => {
+        const payload = await payloadClient()
+        return payload.find({ collection: "noticias", sort: "-data", depth: 1, limit: 50 })
+      })()
     } catch (err) {
       console.error("[noticias] banco indisponível:", err)
       return { docs: [] as Noticia[] }

@@ -12,13 +12,21 @@ import Header from "@/components/header"
 import { JsonLd } from "@/components/json-ld"
 import PageClient from "./page-client"
 import { payloadClient } from "@/app/lib/payload"
+import { consultaCacheada } from "@/app/lib/cache-consulta"
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.paroquiaaltonia.com.br"
 
-// Sem isso, o resultado do payload.findGlobal (contato pro schema.org
-// abaixo) fica congelado no build — edições feitas depois via CMS nunca
-// apareceriam no dado estruturado até o próximo deploy.
-export const revalidate = 900
+// Dinâmica de propósito, com a CONSULTA cacheada (app/lib/cache-consulta.ts)
+// em vez da rota. É o mesmo princípio já aplicado às rotas de API, e por dois
+// motivos: nada é congelado no build, e — o que motivou a volta atrás — a
+// página deixa de ser gerada durante o build.
+//
+// Com `revalidate`, o Next pré-renderizava esta página, e cada geração
+// inicializa o Payload, que faz introspecção completa do schema. Com o banco
+// em São Paulo e a máquina de build da Vercel nos EUA, isso levou o deploy de
+// ~2 para ~20 minutos. O ganho de cache continua: quem paga a consulta é o
+// primeiro visitante depois de expirar, não o build.
+export const dynamic = "force-dynamic"
 
 export default async function Home() {
   // O banco só alimenta o dado estruturado abaixo; se ele estiver fora do
@@ -28,8 +36,10 @@ export default async function Home() {
   // errado" quando a cota do banco acabou.
   const contato = await (async () => {
     try {
-      const payload = await payloadClient()
-      return await payload.findGlobal({ slug: "contact-info" })
+      return await consultaCacheada("home-contato", "contato", 3600, async () => {
+        const payload = await payloadClient()
+        return payload.findGlobal({ slug: "contact-info" })
+      })()
     } catch (err) {
       console.error("[home] banco indisponível para o dado estruturado:", err)
       return null
