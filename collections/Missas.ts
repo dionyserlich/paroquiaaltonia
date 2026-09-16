@@ -105,9 +105,25 @@ export const Missas: CollectionConfig = {
       },
     },
     {
+      // Botão que consulta o canal no YouTube e preenche os campos abaixo.
+      // Fica antes do link de propósito: o fluxo é procurar, conferir e só
+      // então salvar.
+      name: "verificarTransmissao",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "/components/cms/verificar-transmissao#VerificarTransmissao",
+        },
+      },
+    },
+    {
       // Lido pelo fallback de components/live-mass-button.tsx — manter o nome do campo.
       name: "linkEmbed",
       type: "text",
+      admin: {
+        description:
+          "Link de incorporação da transmissão. Preenchido com o botão acima, ou colado à mão. Com este campo e o horário de início e fim preenchidos, a missa aparece como “ao vivo” no site durante esse intervalo — sem depender do robô.",
+      },
     },
     {
       name: "descricao",

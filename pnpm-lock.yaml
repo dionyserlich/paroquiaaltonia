@@ -20,6 +20,9 @@ importers:
       '@payloadcms/storage-vercel-blob':
         specifier: ^3.88.0
         version: 3.88.0(@types/react@19.0.0)(monaco-editor@0.56.0)(next@16.3.3(@babel/core@7.29.7)(@types/node@22.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(sass@1.77.4))(payload@3.88.0(graphql@16.14.2)(typescript@5.0.2))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.0.2)
+      '@payloadcms/ui':
+        specifier: ^3.88.0
+        version: 3.88.0(@types/react@19.0.0)(monaco-editor@0.56.0)(next@16.3.3(@babel/core@7.29.7)(@types/node@22.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(sass@1.77.4))(payload@3.88.0(graphql@16.14.2)(typescript@5.0.2))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.0.2)
       '@radix-ui/react-dialog':
         specifier: 1.1.4
         version: 1.1.4(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -8864,7 +8867,7 @@ snapshots:
 
   resolve@1.22.10:
     dependencies:
-      is-core-module: 2.16.1
+      is-core-module: 2.16.2
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 

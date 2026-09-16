@@ -230,22 +230,45 @@ async function logRun(trigger: string, r: RunResult) {
   }
 }
 
-export async function getCurrentLiveMass() {
-  const { rows } = await query<{
-    titulo: string | null
-    inicio: string | null
-    fim: string | null
-    linkEmbed: string | null
-    updatedAt: string | null
-  }>(
+type MissaAoVivo = {
+  titulo: string | null
+  inicio: string | null
+  fim: string | null
+  linkEmbed: string | null
+  updatedAt: string | null
+}
+
+export async function getCurrentLiveMass(): Promise<MissaAoVivo | null> {
+  const { rows } = await query<MissaAoVivo>(
     `SELECT titulo, inicio, fim, link_embed AS "linkEmbed", updated_at AS "updatedAt"
      FROM bot.missa_ao_vivo WHERE id = 1`
   )
   const row = rows[0]
-  if (!row || !row.linkEmbed) return null
   const now = new Date()
-  if (row.fim && new Date(row.fim) < now) return null
-  return row
+  if (row?.linkEmbed && !(row.fim && new Date(row.fim) < now)) return row
+
+  // Nada detectado pelo bot — procura uma missa cadastrada à mão no CMS.
+  //
+  // Existe porque o cron passou a rodar só nas janelas das três transmissões
+  // semanais: uma missa fora disso (feriado, festa) nunca seria detectada.
+  // Em vez de depender do bot descobrir o que a secretaria já sabe, o
+  // cadastro informa direto o link, e o site resolve na hora da visita —
+  // sem cron nenhum.
+  //
+  // O `fim` preenchido é o que distingue um cadastro manual de um registro
+  // do bot (que deixa `fim` vazio enquanto a transmissão está no ar) e é
+  // também o que faz o aviso se apagar sozinho quando a missa acaba.
+  const manual = await query<MissaAoVivo>(
+    `SELECT titulo, inicio, fim, link_embed AS "linkEmbed", updated_at AS "updatedAt"
+     FROM public.missas
+     WHERE link_embed IS NOT NULL
+       AND fim IS NOT NULL
+       AND inicio <= NOW()
+       AND fim >= NOW()
+     ORDER BY inicio DESC
+     LIMIT 1`
+  )
+  return manual.rows[0] ?? null
 }
 
 // Cobre missas cadastradas manualmente pelo /cms com `inicio` no futuro
