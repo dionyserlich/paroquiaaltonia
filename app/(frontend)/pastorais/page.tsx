@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Header from "@/components/header"
+import ConteudoIndisponivel from "@/components/conteudo-indisponivel"
 import BottomNavbar from "@/components/bottom-navbar"
 import PastoraisContent, { type Pastoral } from "./pastorais-content"
 import PageClient from "../page-client"
@@ -29,8 +30,21 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function PastoraisPage() {
-  const payload = await payloadClient()
-  const { docs } = await payload.find({ collection: "pastorais", sort: "ordem", limit: 50 })
+  // Busca isolada num IIFE com catch: o JSX precisa ficar FORA do
+  // try, porque React só renderiza depois e um try/catch em volta do
+  // return não capturaria erro nenhum de renderização.
+  const dados = await (async () => {
+    try {
+      const payload = await payloadClient()
+      const { docs } = await payload.find({ collection: "pastorais", sort: "ordem", limit: 50 })
+      return { ok: true as const, docs }
+    } catch (err) {
+      console.error("[pastorais] banco indisponível:", err)
+      return { ok: false as const }
+    }
+  })()
+  if (!dados.ok) return <ConteudoIndisponivel titulo="Pastorais" />
+  const { docs } = dados
 
   return (
     <PageClient>

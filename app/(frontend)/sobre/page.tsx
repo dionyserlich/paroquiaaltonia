@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Header from "@/components/header"
+import ConteudoIndisponivel from "@/components/conteudo-indisponivel"
 import BottomNavbar from "@/components/bottom-navbar"
 import SobreContent from "./sobre-content"
 import PageClient from "../page-client"
@@ -38,11 +39,24 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function SobrePage() {
-  const payload = await payloadClient()
-  const [sobre, contactInfo] = await Promise.all([
-    payload.findGlobal({ slug: "sobre" }),
-    payload.findGlobal({ slug: "contact-info" }),
-  ])
+  // Busca isolada num IIFE com catch: o JSX precisa ficar FORA do
+  // try, porque React só renderiza depois e um try/catch em volta do
+  // return não capturaria erro nenhum de renderização.
+  const dados = await (async () => {
+    try {
+      const payload = await payloadClient()
+      const [sobre, contactInfo] = await Promise.all([
+        payload.findGlobal({ slug: "sobre" }),
+        payload.findGlobal({ slug: "contact-info" }),
+      ])
+      return { ok: true as const, sobre, contactInfo }
+    } catch (err) {
+      console.error("[sobre] banco indisponível:", err)
+      return { ok: false as const }
+    }
+  })()
+  if (!dados.ok) return <ConteudoIndisponivel titulo="Sobre a Paróquia" />
+  const { sobre, contactInfo } = dados
 
   return (
     <PageClient>

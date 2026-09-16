@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Header from "@/components/header"
+import ConteudoIndisponivel from "@/components/conteudo-indisponivel"
 import BottomNavbar from "@/components/bottom-navbar"
 import { JsonLd } from "@/components/json-ld"
 import PageClient from "../page-client"
@@ -30,9 +31,21 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function CapelasPage() {
-  const payload = await payloadClient()
-  const { docs } = await payload.find({ collection: "capelas", sort: "nome", limit: 100 })
-  const capelas = docs as Capela[]
+  // Busca isolada num IIFE com catch: o JSX precisa ficar FORA do
+  // try, porque React só renderiza depois e um try/catch em volta do
+  // return não capturaria erro nenhum de renderização.
+  const dados = await (async () => {
+    try {
+      const payload = await payloadClient()
+      const { docs } = await payload.find({ collection: "capelas", sort: "nome", limit: 100 })
+      return { ok: true as const, capelas: docs as Capela[] }
+    } catch (err) {
+      console.error("[capelas] banco indisponível:", err)
+      return { ok: false as const }
+    }
+  })()
+  if (!dados.ok) return <ConteudoIndisponivel titulo="Capelas e Comunidades" />
+  const capelas = dados.capelas
 
   // Schema.org "Place" por capela (só as que já têm endereço cadastrado) —
   // ajuda buscas locais tipo "missa capela Santo Antônio Altônia" a
