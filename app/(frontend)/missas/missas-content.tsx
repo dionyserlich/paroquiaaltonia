@@ -11,11 +11,18 @@ interface Missa {
   linkVideo: string
 }
 
-export default function MissasContent() {
-  const [missasAnteriores, setMissasAnteriores] = useState<Missa[]>([])
-  const [loading, setLoading] = useState(true)
+// Recebe as celebrações já buscadas no servidor (ver page.tsx): antes a
+// lista era carregada no navegador e o título de nenhuma celebração
+// aparecia no HTML entregue ao Googlebot.
+//
+// Segue de cliente por causa da interação (abrir o vídeo). A busca no
+// navegador fica só como rede de segurança, se o servidor não trouxer nada.
+export default function MissasContent({ inicial }: { inicial?: Missa[] }) {
+  const [missasAnteriores, setMissasAnteriores] = useState<Missa[]>(inicial ?? [])
+  const [loading, setLoading] = useState(!inicial)
 
   useEffect(() => {
+    if (inicial) return
     async function carregarMissas() {
       try {
         const response = await fetch("/api/missas/publicas")
@@ -38,6 +45,7 @@ export default function MissasContent() {
     }
 
     carregarMissas()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const horariosMissas = [
