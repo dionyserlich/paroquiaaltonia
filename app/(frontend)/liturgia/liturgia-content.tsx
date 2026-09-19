@@ -45,9 +45,18 @@ interface LiturgiaData {
   }
 }
 
-export default function LiturgiaContent() {
-  const [liturgia, setLiturgia] = useState<LiturgiaData | null>(null)
-  const [loading, setLoading] = useState(true)
+// Recebe a liturgia já buscada no servidor (ver page.tsx). Antes buscava
+// só no navegador, e o HTML entregue ao Googlebot tinha 422 caracteres —
+// nenhuma leitura, nenhum evangelho. Justamente a página com o conteúdo
+// mais rico e mais procurado do site ("liturgia diária", "evangelho de
+// hoje") era a mais vazia para quem indexa.
+//
+// O componente segue de cliente porque tem interação própria (recarregar,
+// explicação de leitura). A diferença é que agora ele NASCE com os dados em
+// vez de começar vazio: some também o piscar de carregamento em toda visita.
+export default function LiturgiaContent({ inicial }: { inicial?: LiturgiaData | null }) {
+  const [liturgia, setLiturgia] = useState<LiturgiaData | null>(inicial ?? null)
+  const [loading, setLoading] = useState(!inicial)
   const [error, setError] = useState<string | null>(null)
 
   const fetchLiturgia = async () => {
@@ -72,7 +81,10 @@ export default function LiturgiaContent() {
   }
 
   useEffect(() => {
-    fetchLiturgia()
+    // Só busca se o servidor não trouxe nada (API externa fora do ar na
+    // hora da renderização, por exemplo).
+    if (!inicial) fetchLiturgia()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const formatarData = (dataString: string) => {
