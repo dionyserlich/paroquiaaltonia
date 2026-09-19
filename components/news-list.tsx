@@ -1,45 +1,21 @@
-"use client"
-
-import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { getUltimasNoticias } from "@/lib/api"
 import type { Noticia, MediaDoc } from "@/app/lib/content-types"
 
-// A rota que alimenta esta lista busca com depth: 1, então `imagem` sempre
-// vem como o objeto de mídia populado — nunca o id numérico cru.
+// Componente de SERVIDOR de propósito. Antes buscava no navegador, e o
+// resultado era que o HTML entregue ao Googlebot não continha manchete
+// nenhuma — a home inteira tinha ~800 caracteres de texto. O Search Console
+// reportou o site como "rastreada, mas não indexada", que é o sintoma
+// clássico de página que só ganha conteúdo depois do JavaScript rodar.
+//
+// Buscando aqui, os títulos das notícias existem no HTML desde o primeiro
+// byte. De quebra consome menos banco: a consulta é cacheada e serve todo
+// mundo, enquanto antes cada visitante disparava a sua.
 function asMedia(imagem: Noticia["imagem"]): MediaDoc | null {
   return imagem && typeof imagem === "object" ? imagem : null
 }
 
-export default function NewsList() {
-  const [noticias, setNoticias] = useState<Noticia[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    async function loadNoticias() {
-      try {
-        const noticiasData = await getUltimasNoticias()
-        setNoticias(Array.isArray(noticiasData) ? noticiasData : [])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadNoticias()
-  }, [])
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-48 bg-gray-700/50 rounded-lg animate-pulse" />
-        <div className="grid grid-cols-2 gap-4">
-          <div className="h-32 bg-gray-700/50 rounded-lg animate-pulse" />
-          <div className="h-32 bg-gray-700/50 rounded-lg animate-pulse" />
-        </div>
-      </div>
-    )
-  }
+export default function NewsList({ noticias }: { noticias: Noticia[] }) {
 
   if (noticias.length === 0) {
     return (
@@ -49,9 +25,7 @@ export default function NewsList() {
     )
   }
 
-  // Primeira notícia em destaque
   const noticiaDestaque = noticias[0]
-  // Outras notícias
   const outrasNoticias = noticias.slice(1, 3)
 
   return (

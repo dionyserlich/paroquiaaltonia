@@ -13,6 +13,7 @@ import { JsonLd } from "@/components/json-ld"
 import PageClient from "./page-client"
 import { payloadClient } from "@/app/lib/payload"
 import { consultaCacheada } from "@/app/lib/cache-consulta"
+import type { Noticia, Evento } from "@/app/lib/content-types"
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.paroquiaaltonia.com.br"
 
@@ -29,11 +30,45 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.paroquiaaltonia
 export const dynamic = "force-dynamic"
 
 export default async function Home() {
-  // O banco só alimenta o dado estruturado abaixo; se ele estiver fora do
-  // ar, a home ainda tem tudo que importa (a busca dos demais blocos é
-  // feita no cliente). Sem este try, `payloadClient()` estourava e a página
-  // inteira caía no error.tsx — foi o que deixou o site com "Algo deu
-  // errado" quando a cota do banco acabou.
+  // Notícias e eventos buscados AQUI, no servidor, e passados por prop.
+  // Antes os componentes buscavam no navegador e o HTML da home saía sem uma
+  // única manchete — o Google via ~800 caracteres e reportou "rastreada, mas
+  // não indexada". As consultas são cacheadas, então isto não custa banco a
+  // mais: uma consulta serve todos os visitantes, em vez de uma por pessoa.
+  const [noticias, eventos] = await Promise.all([
+    (async () => {
+      try {
+        return await consultaCacheada("home-noticias", "noticias", 300, async () => {
+          const payload = await payloadClient()
+          const { docs } = await payload.find({ collection: "noticias", sort: "-data", depth: 1, limit: 5 })
+          return docs as unknown as Noticia[]
+        })()
+      } catch (err) {
+        console.error("[home] falha ao buscar notícias:", err)
+        return [] as Noticia[]
+      }
+    })(),
+    (async () => {
+      try {
+        return await consultaCacheada("home-eventos", "eventos", 300, async () => {
+          const payload = await payloadClient()
+          const { docs } = await payload.find({
+            collection: "eventos",
+            where: { startAt: { greater_than_equal: new Date().toISOString() } },
+            sort: "startAt",
+            limit: 4,
+          })
+          return docs as unknown as Evento[]
+        })()
+      } catch (err) {
+        console.error("[home] falha ao buscar eventos:", err)
+        return [] as Evento[]
+      }
+    })(),
+  ])
+
+  // Banco fora do ar não pode derrubar a página: sem este try,
+  // payloadClient() estourava e a home caía no error.tsx.
   const contato = await (async () => {
     try {
       return await consultaCacheada("home-contato", "contato", 3600, async () => {
@@ -133,7 +168,7 @@ export default async function Home() {
                   </div>
                 }
               >
-                <EventsList />
+                <EventsList eventos={eventos} />
               </Suspense>
             </div>
             <div className="mt-4">
@@ -153,7 +188,7 @@ export default async function Home() {
               <span className="text-white ml-1 text-xl">notícias:</span>
             </div>
             <Suspense fallback={<div className="h-64 bg-gray-300/20 animate-pulse rounded-xl" />}>
-              <NewsList />
+              <NewsList noticias={noticias} />
             </Suspense>
             <div className="mt-4">
               <Link
