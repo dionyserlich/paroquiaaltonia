@@ -27,7 +27,11 @@ export const metadata: Metadata = {
 // Busca no SERVIDOR para os títulos das celebrações existirem no HTML.
 async function buscarMissas() {
   try {
-    return await consultaCacheada("pag-missas", "missas", 600, async () => {
+    // 60s, e não os 10 minutos iniciais: uma missa recém-transmitida precisa
+    // aparecer logo na lista. Com 600s, a missa de sábado às 20h ainda mostrava
+    // a de quinta como a mais recente para quem abria o site — foi o que
+    // aconteceu de verdade. Conteúdo com hora marcada não tolera cache longo.
+    return await consultaCacheada("pag-missas", "missas", 60, async () => {
       const payload = await payloadClient()
       const { docs } = await payload.find({ collection: "missas", sort: "-inicio", limit: 100 })
       return (docs as unknown as { id: string; titulo: string; inicio: string; linkEmbed?: string }[]).map((m) => ({
