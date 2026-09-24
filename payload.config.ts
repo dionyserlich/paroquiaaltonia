@@ -31,8 +31,14 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   admin: {
     user: Users.slug,
+    // Raiz do projeto, e não app/(payload)/cms: os caminhos de componente
+    // custom são declarados a partir da raiz (ver Missas.ts, que aponta
+    // "/components/cms/verificar-transmissao"). Com o baseDir apontando para
+    // dentro de app/(payload)/cms, o Payload regerava o importMap.js com
+    // ".//components/cms/..." — um caminho que não existe — toda vez que o
+    // dev subia, quebrando o campo no painel até alguém desfazer à mão.
     importMap: {
-      baseDir: path.resolve(dirname, "app/(payload)/cms"),
+      baseDir: path.resolve(dirname),
     },
   },
   // /admin e /api já são usados pelo painel legado e pelas rotas públicas
