@@ -73,16 +73,20 @@ header.bg-transparent {
   /* Era um PNG de 2,07 MB servido cru. Como isto é background CSS, e não
      next/image, o Next não otimiza nada: os 2 MB iam inteiros para o
      celular, no caminho crítico — este elemento é o maior da primeira tela
-     (100vw x 60vh) e portanto o candidato a LCP da home.
-     WebP a 1200px resolve em 264 KB, e de quebra mais nítido: o original
-     tinha 786px de largura e era esticado tanto no celular quanto no
-     desktop. A linha de url() sozinha fica antes como reserva para
-     navegador sem image-set(). */
+     (100vw x 60vh) e portanto o candidato a LCP da home. O JPEG a 1200px
+     resolve em 345 KB, 83% menos, e ainda mais nítido: o original tinha
+     786px de largura para um elemento que ocupa a viewport inteira.
+
+     JPEG puro, e NÃO image-set() com WebP, porque isso quebrou no iPhone: o
+     compilador descarta a linha de url() de reserva por considerá-la
+     redundante e deixa só as duas de image-set(), ambas com type() — que o
+     -webkit-image-set() do Safari não aceita antes da versão 17. Sem
+     declaração válida, o hero simplesmente não aparecia.
+
+     Se um dia valer perseguir os ~80 KB que o WebP economizaria, o caminho é
+     trocar o background por um <img> com next/image, que negocia o formato
+     pelo cabeçalho Accept — não dá pra resolver no CSS com segurança. */
   background-image: url("/images/imagem-principal-hero.jpg");
-  background-image: image-set(
-    url("/images/imagem-principal-hero.webp") type("image/webp"),
-    url("/images/imagem-principal-hero.jpg") type("image/jpeg")
-  );
   background-size: cover;
   background-position-y: 60%;
   background-repeat: no-repeat;
