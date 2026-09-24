@@ -2,9 +2,9 @@ import { cache } from "react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { ChevronLeft, Calendar, MapPin } from "lucide-react"
-import { RichText as RichTextBase } from "@payloadcms/richtext-lexical/react"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
+import ConteudoRico from "@/components/conteudo-rico"
 import { JsonLd } from "@/components/json-ld"
 import PageClient from "../../page-client"
 import { payloadClient } from "@/app/lib/payload"
@@ -14,10 +14,6 @@ import type { Evento } from "@/app/lib/content-types"
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.paroquiaaltonia.com.br"
 
-// Cast: o tipo de retorno do RichText (ReactNode) não bate com o que a
-// versão do @types/react instalada aceita como componente JSX.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const RichText: (props: { data: unknown; className?: string }) => any = RichTextBase as any
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -147,9 +143,7 @@ export default async function EventoPage({ params }: Props) {
                 {!localDoEvento && <div className="mb-6" />}
 
                 {evento.conteudo ? (
-                  <div className="prose prose-invert max-w-none">
-                    <RichText data={evento.conteudo} />
-                  </div>
+                  <ConteudoRico data={evento.conteudo} />
                 ) : (
                   <p className="text-white">{evento.descricao}</p>
                 )}

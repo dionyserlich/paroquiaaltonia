@@ -369,3 +369,138 @@ body.has-install-prompt-tall main {
 .vela-apagando {
   animation: velaApagando 600ms ease-in forwards;
 }
+
+/* ---------------------------------------------------------------------------
+   Conteúdo rico vindo do CMS (notícias, eventos, dízimo).
+
+   Antes esses blocos usavam `prose prose-invert`, do @tailwindcss/typography
+   — que NUNCA esteve instalado neste projeto. As classes não existiam, então
+   o CSS base do Tailwind (que zera margens, tamanho de fonte e marcadores de
+   lista) valia sozinho: título, parágrafo e item de lista saíam exatamente
+   iguais, tudo grudado, e o texto inteiro virava um bloco só.
+
+   Escrito à mão em vez de instalar o plugin porque o site tem paleta e
+   larguras próprias (--parish-*), e o `prose-invert` teria que ser
+   reconfigurado quase inteiro para caber nelas.
+   --------------------------------------------------------------------------- */
+.conteudo-rico {
+  color: rgb(255 255 255 / 0.88);
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+
+.conteudo-rico > *:first-child {
+  margin-top: 0;
+}
+
+.conteudo-rico > *:last-child {
+  margin-bottom: 0;
+}
+
+.conteudo-rico p {
+  margin: 0 0 1rem;
+}
+
+.conteudo-rico h2 {
+  color: var(--color-parish-accent);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 2rem 0 0.75rem;
+}
+
+.conteudo-rico h3 {
+  color: #fff;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.conteudo-rico h4 {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+}
+
+/* Um filete sob os h2 separa as seções sem precisar de <hr> no conteúdo —
+   é o que faz "programação" e "o que vai ser servido" pararem de se
+   misturar quando o texto é corrido. */
+.conteudo-rico h2::after {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  margin-top: 0.5rem;
+  background: var(--color-parish-accent);
+  opacity: 0.55;
+}
+
+.conteudo-rico ul,
+.conteudo-rico ol {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.conteudo-rico ul {
+  list-style: disc;
+}
+
+.conteudo-rico ol {
+  list-style: decimal;
+}
+
+.conteudo-rico li {
+  margin: 0 0 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.conteudo-rico li::marker {
+  color: var(--color-parish-accent);
+}
+
+.conteudo-rico a {
+  color: var(--color-parish-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.conteudo-rico strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.conteudo-rico em {
+  font-style: italic;
+}
+
+.conteudo-rico blockquote {
+  margin: 1.5rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  border-left: 3px solid var(--color-parish-accent);
+  color: rgb(255 255 255 / 0.75);
+  font-style: italic;
+}
+
+.conteudo-rico hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid rgb(255 255 255 / 0.15);
+}
+
+.conteudo-rico img,
+.conteudo-rico video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.5rem auto;
+  border-radius: 12px;
+}
+
+/* Reel é vertical: sem teto de altura ele empurra todo o resto da página
+   para fora da primeira tela no celular. */
+.conteudo-rico video {
+  max-height: 70vh;
+  background: #000;
+}

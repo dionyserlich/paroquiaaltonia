@@ -1,11 +1,7 @@
+import ConteudoRico from "@/components/conteudo-rico"
 import { Heart, Calendar, Shield, Users, Gift, Repeat } from "lucide-react"
-import { RichText as RichTextBase } from "@payloadcms/richtext-lexical/react"
 import PixKey from "@/components/pix-key"
 
-// Cast: o tipo de retorno do RichText (ReactNode) não bate com o que a
-// versão do @types/react instalada aceita como componente JSX.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const RichText: (props: { data: unknown; className?: string }) => any = RichTextBase as any
 
 type Props = {
   conteudo?: unknown
@@ -60,9 +56,7 @@ export default function DizimoContent({ conteudo, chavePix }: Props) {
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
           <h2 className="text-2xl font-bold mb-4 text-yellow-500">O que é o Dízimo?</h2>
           {conteudo ? (
-            <div className="prose prose-invert max-w-none text-gray-300">
-              <RichText data={conteudo} />
-            </div>
+            <ConteudoRico data={conteudo} />
           ) : null}
         </div>
 
