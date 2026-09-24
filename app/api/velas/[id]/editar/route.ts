@@ -47,11 +47,15 @@ export async function POST(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: validacaoFoto.error }, { status: 400 })
     }
 
+    const fotoPrivada = Boolean(body?.fotoPrivada)
+
     let fotoId: number | null | undefined = undefined // undefined = não mexe no campo
     if (novaFoto) {
+      // Sem o nome no alt, e com a flag de sigilo acompanhando a escolha —
+      // mesmo raciocínio de app/api/velas/route.ts.
       const media = await payload.create({
         collection: "media",
-        data: { alt: `Foto da vela de ${nome}` },
+        data: { alt: "Foto enviada com uma vela", privado: fotoPrivada },
         file: await fileParaPayloadFile(novaFoto),
       })
       fotoId = media.id as number
@@ -67,10 +71,26 @@ export async function POST(request: NextRequest, { params }: Params) {
         nomePrivado: Boolean(body?.nomePrivado),
         intencao,
         intencaoPrivada: Boolean(body?.intencaoPrivada),
-        fotoPrivada: Boolean(body?.fotoPrivada),
+        fotoPrivada,
         ...(fotoId !== undefined ? { foto: fotoId } : {}),
       },
     })
+
+    // Quando a foto NÃO foi trocada, a flag de sigilo mudou só na vela — e o
+    // documento de mídia, que é quem decide se a imagem aparece na listagem
+    // pública, continuaria como estava. Ou seja: marcar "esconder a foto"
+    // numa vela já acesa não esconderia nada. Sincroniza os dois.
+    if (fotoId === undefined) {
+      const fotoAtual = doc.foto
+      const idFotoAtual = typeof fotoAtual === "object" && fotoAtual ? fotoAtual.id : fotoAtual
+      if (idFotoAtual) {
+        await payload.update({
+          collection: "media",
+          id: idFotoAtual as number,
+          data: { privado: fotoPrivada },
+        })
+      }
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {

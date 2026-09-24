@@ -81,9 +81,16 @@ export async function POST(request: NextRequest) {
 
     let fotoId: number | null = null
     if (foto) {
+      // Texto alternativo SEM o nome. Antes era `Foto da vela de ${nome}`, e
+      // como o documento de mídia é público isso publicava o nome de quem
+      // acendeu — inclusive de quem marcou nomePrivado. O alt de um documento
+      // público não é lugar para dado de pessoa.
+      //
+      // `privado` acompanha a escolha de quem acendeu: é o que tira a imagem
+      // da listagem pública e da URL direta (ver collections/Media.ts).
       const media = await payload.create({
         collection: "media",
-        data: { alt: `Foto da vela de ${nome}` },
+        data: { alt: "Foto enviada com uma vela", privado: fotoPrivada },
         file: await fileParaPayloadFile(foto),
       })
       fotoId = media.id as number
