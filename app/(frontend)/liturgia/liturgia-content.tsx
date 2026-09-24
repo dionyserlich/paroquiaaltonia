@@ -97,7 +97,7 @@ export default function LiturgiaContent({ inicial }: { inicial?: LiturgiaData | 
         month: "long",
         day: "numeric",
       })
-    } catch (error) {
+    } catch {
       return dataString
     }
   }

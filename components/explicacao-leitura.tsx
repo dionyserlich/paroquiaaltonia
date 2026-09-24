@@ -140,7 +140,7 @@ export default function ExplicacaoLeitura({ tipo, referencia, titulo, texto }: E
       const data = await response.json()
       setExplicacao(data.explicacao)
       setMostrarExplicacao(true)
-    } catch (err) {
+    } catch {
       setError("Não foi possível obter a explicação. Tente novamente.")
     } finally {
       setLoading(false)
