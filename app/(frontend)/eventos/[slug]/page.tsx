@@ -1,7 +1,7 @@
 import { cache } from "react"
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ChevronLeft, Calendar } from "lucide-react"
+import { ChevronLeft, Calendar, MapPin } from "lucide-react"
 import { RichText as RichTextBase } from "@payloadcms/richtext-lexical/react"
 import Header from "@/components/header"
 import BottomNavbar from "@/components/bottom-navbar"
@@ -60,9 +60,43 @@ export default async function EventoPage({ params }: Props) {
   const payload = await payloadClient()
   const contato = await payload.findGlobal({ slug: "contact-info" }).catch(() => null)
 
-  // Schema.org "Event" — ver https://schema.org/Event. Sem endereço próprio
-  // por evento no CMS hoje, então usa o endereço da própria paróquia como
-  // local (a grande maioria dos eventos acontece ali).
+  // Schema.org "Event" — ver https://schema.org/Event.
+  //
+  // O local sai do campo `local` do evento; vazio significa "na matriz", que
+  // é a grande maioria dos casos. Antes não havia esse campo e TODO evento
+  // declarava o endereço da matriz, inclusive as festas de comunidade que
+  // acontecem em outro lugar — endereço errado no JSON-LD é endereço errado
+  // no resultado do Google.
+  //
+  // Quando o evento tem local próprio, o `address` vai como texto simples
+  // (schema.org aceita Text ou PostalAddress em `address`). Só a matriz sai
+  // como PostalAddress, porque só dela sabemos cidade/estado com certeza.
+  const localDoEvento = evento.local?.trim()
+  const enderecoDoEvento = evento.endereco?.trim()
+  const enderecoDaMatriz = contato?.endereco
+
+  const localJsonLd = localDoEvento
+    ? {
+        "@type": "Place",
+        name: localDoEvento,
+        ...(enderecoDoEvento ? { address: enderecoDoEvento } : {}),
+      }
+    : {
+        "@type": "Place",
+        name: "Paróquia São Sebastião de Altônia",
+        ...(enderecoDaMatriz
+          ? {
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: enderecoDaMatriz,
+                addressLocality: "Altônia",
+                addressRegion: "PR",
+                addressCountry: "BR",
+              },
+            }
+          : {}),
+      }
+
   const eventoJsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -73,21 +107,7 @@ export default async function EventoPage({ params }: Props) {
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     url: `${baseUrl}/eventos/${slug}`,
-    location: {
-      "@type": "Place",
-      name: "Paróquia São Sebastião de Altônia",
-      ...(contato?.endereco
-        ? {
-            address: {
-              "@type": "PostalAddress",
-              streetAddress: contato.endereco,
-              addressLocality: "Altônia",
-              addressRegion: "PR",
-              addressCountry: "BR",
-            },
-          }
-        : {}),
-    },
+    location: localJsonLd,
   }
 
   return (
@@ -107,10 +127,24 @@ export default async function EventoPage({ params }: Props) {
               <div className="p-6">
                 <h1 className="text-2xl font-bold text-white mb-4">{evento.titulo}</h1>
 
-                <div className="flex items-center mb-6 text-yellow-500">
+                <div className="flex items-center mb-2 text-yellow-500">
                   <Calendar className="mr-2" size={20} />
                   <span>{formatarData(evento.startAt)}</span>
                 </div>
+
+                {/* Só aparece quando o evento acontece fora da matriz — é a
+                    informação que mais falta em festa de comunidade. */}
+                {localDoEvento && (
+                  <div className="flex items-start mb-6 text-yellow-500">
+                    <MapPin className="mr-2 shrink-0 mt-1" size={20} />
+                    <span>
+                      {localDoEvento}
+                      {enderecoDoEvento && <span className="block text-white/70 text-sm">{enderecoDoEvento}</span>}
+                    </span>
+                  </div>
+                )}
+
+                {!localDoEvento && <div className="mb-6" />}
 
                 {evento.conteudo ? (
                   <div className="prose prose-invert max-w-none">

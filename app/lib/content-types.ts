@@ -31,6 +31,8 @@ export type Evento = {
   titulo: string
   startAt: string
   endAt?: string | null
+  local?: string | null
+  endereco?: string | null
   descricao?: string | null
   conteudo?: unknown
 }

@@ -79,6 +79,30 @@ export const Eventos: CollectionConfig = {
       },
     },
     {
+      // Onde o evento acontece, quando NÃO é na matriz. Vazio significa
+      // "na paróquia": é o caso da grande maioria, e deixar em branco
+      // preserva o comportamento de todos os eventos já cadastrados.
+      //
+      // Existe porque o dado estruturado (schema.org/Event, ver
+      // app/(frontend)/eventos/[slug]/page.tsx) declarava o endereço da
+      // matriz em todo evento — inclusive nos que acontecem em outro lugar,
+      // como as festas de comunidade na Sociedade Rural. Endereço errado no
+      // JSON-LD vira endereço errado no resultado do Google.
+      name: "local",
+      type: "text",
+      admin: {
+        description: "Deixe vazio se for na matriz. Ex.: Sociedade Rural de Altônia",
+      },
+    },
+    {
+      name: "endereco",
+      type: "text",
+      admin: {
+        description: "Endereço do local, se souber. Só usado quando há um local preenchido acima.",
+        condition: (data) => Boolean(data?.local),
+      },
+    },
+    {
       name: "descricao",
       type: "textarea",
     },
