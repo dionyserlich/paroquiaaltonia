@@ -1,10 +1,16 @@
 import Link from "next/link"
 
-// Cobre only o caso de uma URL de topo que não bate com nenhum route group
-// (nem (frontend), nem (payload)/cms) — 404s de conteúdo real (ex.: slug de
-// notícia inválido) já usam app/(frontend)/not-found.tsx normalmente. Como
-// não há um único root layout compartilhado entre os route groups deste
-// projeto, este arquivo precisa definir <html>/<body> próprios.
+// Convenção `global-not-found` do Next: um 404 que é o documento inteiro,
+// para URLs de topo que não batem com nenhum route group (nem (frontend),
+// nem (payload)/cms). 404s de conteúdo real (ex.: slug de notícia inválido)
+// continuam usando app/(frontend)/not-found.tsx, que herda o layout do site.
+//
+// Este projeto não tem um root layout único — cada route group define o seu
+// —, então este arquivo precisa declarar <html>/<body> próprios. Como
+// `not-found.tsx`, isso quebrava o `next dev` ("doesn't have a root
+// layout"): o loader do Next exige um root layout para todo not-found,
+// exceto justamente o global. Requer `experimental.globalNotFound` ligado
+// em next.config.mjs.
 export default function GlobalNotFound() {
   return (
     <html lang="pt-BR">

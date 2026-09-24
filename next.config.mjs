@@ -12,6 +12,14 @@ const __dirname = path.dirname(__filename)
 const nextConfig = {
   devIndicators: false,
   agentRules: false,
+  experimental: {
+    // Liga a convenção `app/global-not-found.tsx`. Sem isso o Next exige um
+    // root layout para o not-found de topo, e como aqui cada route group tem
+    // o seu (não existe um root layout único), o `next dev` nem compilava:
+    // "app/not-found.tsx doesn't have a root layout". O build tolerava, o
+    // dev não — ou seja, o `npm run dev` estava quebrado.
+    globalNotFound: true,
+  },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       ".cjs": [".cts", ".cjs"],
