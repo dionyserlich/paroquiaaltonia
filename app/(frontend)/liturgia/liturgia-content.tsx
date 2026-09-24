@@ -102,9 +102,35 @@ export default function LiturgiaContent({ inicial }: { inicial?: LiturgiaData | 
     }
   }
 
+  // O texto da liturgia vem de uma API de terceiro (liturgia.up.railway.app)
+  // e é injetado com dangerouslySetInnerHTML em onze pontos desta página.
+  // Hoje ela devolve texto puro, sem marcação nenhuma — mas é um servidor que
+  // não é nosso: no dia em que devolver HTML, por comprometimento ou por
+  // simples mudança de formato, um <script> ou um atributo de evento passaria
+  // a executar no domínio da paróquia, com acesso a tudo que o navegador
+  // guarda aqui.
+  //
+  // Escapar na ENTRADA, e não sanitizar na saída, é o que mantém a fronteira
+  // nítida: tudo que chega de fora vira texto inerte ANTES de qualquer
+  // transformação, e as únicas tags que sobram no HTML final são as que o
+  // próprio formatarTextoComSobrescrito gera na linha de baixo (<br>,
+  // <strong>). Na ordem inversa não dá: depois de transformar, marcação
+  // nossa e marcação deles já estão misturadas no mesmo texto, e qualquer
+  // filtro passaria a ter que adivinhar de quem é cada tag.
+  //
+  // De propósito não usamos sanitizeRichText de lib/sanitize.ts, que seria o
+  // caminho óbvio: (1) ela depende de `window` (DOMPurify) e este componente
+  // também renderiza no servidor — ver page.tsx, que já traz a liturgia
+  // pronta no HTML pra indexação —, então quebraria justamente o
+  // carregamento inicial; (2) a allowlist dela libera <a>, <img> e companhia,
+  // porque foi feita pra conteúdo do editor, e aqui a resposta certa é não
+  // permitir NADA vindo da API.
+  const escaparHtml = (t: string) =>
+    t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+
   const formatarTextoComSobrescrito = (texto: string) => {
     // Converte TODOS os números para sobrescrito
-    const textoFormatado = texto.replace(/\d+/g, (numero) => {
+    const textoFormatado = escaparHtml(texto).replace(/\d+/g, (numero) => {
       return numero
         .split("")
         .map((digit) => {
