@@ -70,7 +70,19 @@ header.bg-transparent {
   width: 100vw; /* Ocupar toda a largura da viewport */
   height: 60vh;
   min-height: 170px;
-  background-image: url("/images/imagem-principal-hero.png");
+  /* Era um PNG de 2,07 MB servido cru. Como isto é background CSS, e não
+     next/image, o Next não otimiza nada: os 2 MB iam inteiros para o
+     celular, no caminho crítico — este elemento é o maior da primeira tela
+     (100vw x 60vh) e portanto o candidato a LCP da home.
+     WebP a 1200px resolve em 264 KB, e de quebra mais nítido: o original
+     tinha 786px de largura e era esticado tanto no celular quanto no
+     desktop. A linha de url() sozinha fica antes como reserva para
+     navegador sem image-set(). */
+  background-image: url("/images/imagem-principal-hero.jpg");
+  background-image: image-set(
+    url("/images/imagem-principal-hero.webp") type("image/webp"),
+    url("/images/imagem-principal-hero.jpg") type("image/jpeg")
+  );
   background-size: cover;
   background-position-y: 60%;
   background-repeat: no-repeat;
