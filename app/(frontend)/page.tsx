@@ -139,7 +139,9 @@ export default async function Home() {
         <div className="relative z-20">
           {/* Banner Slider */}
           <section className="w-full px-4 py-2 mt-[-80px]">
-            <Suspense fallback={<div className="h-48 bg-gray-300/20 animate-pulse rounded-xl" />}>
+            {/* Mesma proporção do carrossel — ver o comentário no esqueleto
+                de components/banner-slider.tsx. */}
+            <Suspense fallback={<div className="w-full aspect-[18/9] bg-gray-300/20 animate-pulse rounded-xl" />}>
               <BannerSlider />
             </Suspense>
           </section>

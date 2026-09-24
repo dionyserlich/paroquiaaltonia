@@ -63,7 +63,12 @@ export default function BannerSlider() {
   }, [emblaApi, onSelect])
 
   if (isLoading) {
-    return <div className="h-48 bg-gray-700/50 rounded-xl animate-pulse" />
+    // aspect-[18/9], e não uma altura fixa: o esqueleto precisa ocupar
+    // exatamente o espaço do carrossel carregado (mesma proporção logo
+    // abaixo). Com h-48 fixo, num container de 650px o banner chegava
+    // 117px mais alto que o esqueleto e empurrava a página inteira para
+    // baixo — salto de layout visível justamente em quem abre no desktop.
+    return <div className="w-full aspect-[18/9] bg-gray-700/50 rounded-xl animate-pulse" />
   }
 
   // Nenhum banner cadastrado (ou a busca falhou) — some de vez, sem deixar
