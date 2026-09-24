@@ -69,7 +69,13 @@ export default async function NoticiasPage() {
                     >
                       <div className="md:flex">
                         <div className="md:w-1/3 relative">
-                          <div className="aspect-w-16 aspect-h-9 md:h-full">
+                          {/* aspect-[16/9], e não aspect-w-16/aspect-h-9: essas duas são
+                              do plugin @tailwindcss/aspect-ratio, que NUNCA esteve
+                              instalado aqui — não geravam CSS nenhum. Sem proporção
+                              declarada, o espaço da imagem não era reservado e o texto
+                              abaixo pulava quando ela carregava (CLS de 0,146 medido).
+                              No md a altura volta a ser a da linha do flex. */}
+                          <div className="aspect-[16/9] md:aspect-auto md:h-full">
                             <Image
                               src={imagem?.url || "/placeholder.svg?height=200&width=300"}
                               alt={imagem?.alt || noticia.titulo}
