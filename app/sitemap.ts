@@ -21,6 +21,8 @@ const STATIC_ROUTES = [
   "/missas",
   "/intencoes",
   "/liturgia",
+  "/capelas",
+  "/velas",
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
