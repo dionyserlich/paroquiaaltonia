@@ -31,9 +31,14 @@ type VelaMinha = {
 }
 
 function formatarData(iso: string) {
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(
-    new Date(iso)
-  )
+  // timeZone fixo pelo mesmo motivo de lib/utils.ts — perto da meia-noite,
+  // servidor em UTC e navegador em Brasília discordam até do DIA.
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date(iso))
 }
 
 export default function VelasContent() {

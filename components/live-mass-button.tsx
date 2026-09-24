@@ -83,6 +83,9 @@ export default function LiveMassButton() {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      // Ver o comentário em lib/utils.ts: sem fuso fixo o servidor formata
+      // em UTC e o horário da missa sai errado no HTML.
+      timeZone: "America/Sao_Paulo",
     }).format(data)
   }
 

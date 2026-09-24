@@ -33,7 +33,13 @@ function tempoRelativo(iso: string) {
   const dias = Math.floor(horas / 24)
   if (dias === 1) return "ontem"
   if (dias < 7) return `há ${dias} dias`
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit" }).format(new Date(iso))
+  // timeZone fixo pelo mesmo motivo de lib/utils.ts — perto da meia-noite,
+  // servidor em UTC e navegador em Brasília discordam até do DIA.
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date(iso))
 }
 
 // Busca separada da atualização de estado de propósito: deixa o efeito
@@ -164,7 +170,15 @@ export default function NotificationsPanel() {
   // justamente o único jeito de a pessoa ficar sabendo dos avisos.
   return (
     <>
-      <button onClick={abrir} className="relative text-white p-2" aria-label="Notificações">
+      {/* O contador aparece como texto dentro do botão, então precisa estar no
+          nome acessível também — senão quem usa leitor de tela ouve só
+          "Notificações" e perde a informação de que há avisos novos (é o que a
+          regra label-content-name-mismatch cobra). */}
+      <button
+        onClick={abrir}
+        className="relative text-white p-2"
+        aria-label={naoLidas > 0 ? `Notificações, ${naoLidas > 9 ? "9+" : naoLidas} não lidas` : "Notificações"}
+      >
         {isSubscribed ? <Bell size={24} /> : <BellOff size={24} />}
         {naoLidas > 0 && (
           <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[11px] font-bold leading-none">
