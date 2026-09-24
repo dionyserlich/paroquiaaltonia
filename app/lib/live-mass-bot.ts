@@ -296,9 +296,12 @@ export async function notifyDueManualMissas() {
 
   for (const doc of docs) {
     try {
-      const { sendNotificationToAll } = await import("@/app/actions")
+      // Módulo comum em vez da action sendNotificationToAll: isto roda no
+      // cron, sem nenhuma sessão de CMS — e a action agora exige uma (ver
+      // app/actions.ts).
+      const { dispararParaTodos } = await import("@/app/lib/push-broadcast")
       const { MISSA_AO_VIVO } = await import("@/app/lib/notification-options")
-      await sendNotificationToAll("Missa ao vivo agora!", String(doc.titulo), "/", MISSA_AO_VIVO)
+      await dispararParaTodos("Missa ao vivo agora!", String(doc.titulo), "/", MISSA_AO_VIVO)
       await payload.update({ collection: "missas", id: doc.id, data: { notificado: true } })
     } catch (err) {
       console.error("[live-mass-bot] falha ao notificar missa agendada manualmente:", doc.id, err)

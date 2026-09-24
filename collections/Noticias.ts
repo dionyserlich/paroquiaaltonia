@@ -27,9 +27,13 @@ export const Noticias: CollectionConfig = {
           (operation === "create" || previousDoc?._status !== "published")
         if (!isNewPublish) return doc
         try {
-          const { sendNotificationToAll } = await import("@/app/actions")
+          // Módulo comum em vez da action sendNotificationToAll: a action
+          // exige sessão do CMS (ver app/actions.ts) e este hook roda dentro
+          // da gravação, sem requisição pra checar — a autorização aqui é a
+          // publicação da notícia em si.
+          const { dispararParaTodos } = await import("@/app/lib/push-broadcast")
           const { NOTICIA } = await import("@/app/lib/notification-options")
-          await sendNotificationToAll("Nova notícia da Paróquia", doc.titulo, `/noticias/${doc.slug}`, NOTICIA)
+          await dispararParaTodos("Nova notícia da Paróquia", doc.titulo, `/noticias/${doc.slug}`, NOTICIA)
         } catch (err) {
           console.error("[noticias] falha ao enviar notificação push:", err)
         }

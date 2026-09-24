@@ -19,9 +19,13 @@ export const Eventos: CollectionConfig = {
         // Eventos não tem drafts — todo create já é público.
         if (operation !== "create") return doc
         try {
-          const { sendNotificationToAll } = await import("@/app/actions")
+          // Envia pelo módulo comum, não pela action sendNotificationToAll:
+          // a action exige sessão do CMS (ela é a porta externa, ver
+          // app/actions.ts) e aqui não há requisição de usuário pra conferir
+          // — quem autoriza é o próprio create desta collection.
+          const { dispararParaTodos } = await import("@/app/lib/push-broadcast")
           const { EVENTO } = await import("@/app/lib/notification-options")
-          await sendNotificationToAll("Novo evento na Paróquia", doc.titulo, `/eventos/${doc.slug}`, EVENTO)
+          await dispararParaTodos("Novo evento na Paróquia", doc.titulo, `/eventos/${doc.slug}`, EVENTO)
         } catch (err) {
           console.error("[eventos] falha ao enviar notificação push:", err)
         }

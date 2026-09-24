@@ -54,8 +54,13 @@ export const Avisos: CollectionConfig = {
         let enviadas = 0
         let falhas = 0
         try {
-          const { sendNotificationToAll } = await import("@/app/actions")
-          const resultado = await sendNotificationToAll(
+          // Módulo comum em vez da action sendNotificationToAll: quem está
+          // autorizado a disparar daqui já foi decidido pelo access.create /
+          // access.update desta collection (só com req.user), e a action, que
+          // é a porta externa, confere sessão por outro caminho — ver
+          // app/actions.ts.
+          const { dispararParaTodos } = await import("@/app/lib/push-broadcast")
+          const resultado = await dispararParaTodos(
             titulo,
             mensagem,
             data.url ?? originalDoc?.url ?? "/",

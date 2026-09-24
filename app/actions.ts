@@ -1,81 +1,33 @@
 "use server"
 
+import { headers } from "next/headers"
 import webpush, {
   type PushSubscription as WebPushSubscription,
-  type RequestOptions,
-  type Urgency,
   type WebPushError,
 } from "web-push"
 import { query } from "@/app/lib/db"
+import { payloadClient } from "@/app/lib/payload"
 import { isValidSubscription, upsertPushSubscription } from "@/app/lib/push-subscriptions"
 import { descreverErro, registrarNotificacao, registrarResultado } from "@/app/lib/notification-log"
-import { slugify } from "@/lib/slugify"
+import {
+  dispararParaTodos,
+  ensureVapid,
+  opcoesDeEnvio,
+  type OpcoesNotificacao,
+} from "@/app/lib/push-broadcast"
 
-let vapidConfigured = false
-function ensureVapid() {
-  if (vapidConfigured) return true
-  const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-  const priv = process.env.VAPID_PRIVATE_KEY
-  if (!pub || !priv) return false
-  // Endereço de contato que os serviços de push (Google, Mozilla) usam pra
-  // avisar sobre problemas de entrega — precisa ser um e-mail que alguém
-  // realmente leia. Trocar isto não invalida nenhuma inscrição existente:
-  // só o par de chaves VAPID identifica o remetente.
-  webpush.setVapidDetails("mailto:contato@paroquiaaltonia.com.br", pub, priv)
-  vapidConfigured = true
-  return true
-}
+// Lembrete sobre este arquivo: "use server" faz de CADA função exportada aqui
+// um endpoint POST que o Next registra e expõe por um identificador de ação —
+// chamável de fora, sem passar por nenhuma tela do site. Então nada é
+// exportado daqui sem que a pergunta "e se um estranho chamar isso?" tenha uma
+// resposta escrita.
+//
+// Reexportado como tipo (não vira endpoint: `export type` é apagado na
+// compilação) porque app/lib/notification-options.ts importa daqui desde
+// antes de a lógica de envio mudar de arquivo.
+export type { OpcoesNotificacao }
 
 type Sub = { endpoint: string; keys: { p256dh: string; auth: string }; deviceId?: string | null }
-
-export type OpcoesNotificacao = {
-  // Por quanto tempo o serviço de push guarda a mensagem enquanto o
-  // aparelho está offline. O padrão da biblioteca são QUATRO SEMANAS, o que
-  // aqui seria sempre errado: "Missa ao vivo agora!" entregue dias depois é
-  // ruído, não aviso. Por isso todo envio define um prazo próprio.
-  ttlSegundos?: number
-  urgencia?: Urgency
-  // Mensagens com o mesmo tópico substituem as anteriores ainda pendentes
-  // no serviço de push, em vez de acumular (máx. 32 caracteres).
-  topico?: string
-  // Agrupa na bandeja do aparelho: uma notificação com a mesma tag substitui
-  // a anterior em vez de empilhar.
-  tag?: string
-}
-
-// Um dia. Vale pra avisos sem prazo próprio — bem menos que as quatro
-// semanas da biblioteca, que nenhum aviso desta paróquia justifica.
-const TTL_PADRAO_SEGUNDOS = 86400
-
-// Envios são disparados em lotes em vez de todos de uma vez. Com poucas
-// inscrições dá no mesmo, mas se a paróquia crescer, abrir uma conexão
-// simultânea por inscrição esgotaria os limites da função serverless.
-const TAMANHO_LOTE = 50
-
-// O cabeçalho `topic` só aceita até 32 caracteres do conjunto Base64 seguro
-// para URL (letras, números, - e _). A biblioteca LANÇA EXCEÇÃO diante de
-// qualquer outra coisa — e como o mesmo objeto de opções é usado em todos os
-// envios, um tópico com espaço ou acento derruba a notificação inteira, pra
-// todo mundo, e não só pra um destinatário.
-//
-// Isso aconteceu de verdade: avisos escritos pelo painel com "Iniciamos o
-// Ofertório" no campo Tópico falharam para 100% das inscrições. Como o campo
-// é preenchido por pessoas, e não por código, sanear aqui é obrigatório —
-// nenhum texto digitado deve ser capaz de impedir a entrega.
-function sanitizarTopico(topico: string | undefined): string | undefined {
-  if (!topico) return undefined
-  const limpo = slugify(topico).slice(0, 32).replace(/-+$/, "")
-  return limpo || undefined
-}
-
-function opcoesDeEnvio(opcoes: OpcoesNotificacao): RequestOptions {
-  const topico = sanitizarTopico(opcoes.topico)
-  return {
-    TTL: opcoes.ttlSegundos ?? TTL_PADRAO_SEGUNDOS,
-    urgency: opcoes.urgencia ?? "normal",
-    ...(topico ? { topic: topico } : {}),
-  }
-}
 
 export async function subscribe(subscription: Sub) {
   try {
@@ -90,6 +42,17 @@ export async function subscribe(subscription: Sub) {
   }
 }
 
+// Apaga a inscrição sem exigir prova de posse, e fica assim de propósito. O
+// endpoint é uma URL longa e aleatória emitida pelo serviço de push (FCM,
+// Mozilla) e nunca é publicada em lugar nenhum: quem não tem o endpoint não
+// consegue adivinhar nem enumerar. Quem TEM o endpoint de alguém é, na
+// prática, quem já está com o aparelho ou o navegador da pessoa na mão.
+//
+// E o pior caso é pequeno e reversível: a pessoa para de receber push e
+// reativa tocando no sino de novo (o navegador manda a inscrição outra vez).
+// Nada é destruído e nenhum dado é exposto. Exigir autenticação aqui, ao
+// contrário, quebraria o cancelamento para o fiel comum, que nunca tem login
+// no CMS — o remédio sairia mais caro que a doença.
 export async function unsubscribe(endpoint: string) {
   try {
     await query(`DELETE FROM bot.push_subscriptions WHERE endpoint=$1`, [endpoint])
@@ -100,80 +63,43 @@ export async function unsubscribe(endpoint: string) {
   }
 }
 
+// Disparo em massa exposto como Server Action: aqui só entra quem tem sessão
+// do CMS. Sem essa conferência, esta função era um endpoint anônimo capaz de
+// mandar notificação com título, corpo e URL arbitrários para TODAS as
+// inscrições em nome da paróquia — phishing com credibilidade máxima e sem
+// desfazer. Não havia exploração conhecida só porque nenhum componente
+// cliente importava a ação; isso não é proteção, é sorte.
+//
+// O envio em si vive em app/lib/push-broadcast.ts (módulo comum, sem
+// "use server"), que é de onde os hooks das collections, o cron e o bot da
+// missa chamam — eles rodam no servidor e não têm sessão nenhuma.
 export async function sendNotificationToAll(
   title: string,
   body: string,
   url = "/",
   opcoes: OpcoesNotificacao = {}
 ) {
-  // Grava no histórico ANTES de tentar enviar, e independente do resultado:
-  // o push é só um canal de entrega, o registro é a notificação em si. Sem
-  // isso, quem não ativou o sino (a maioria) e quem está no iPhone sem a
-  // PWA instalada nunca ficaria sabendo do anúncio.
-  const logId = await registrarNotificacao({ title, body, url })
-
-  try {
-    if (!ensureVapid()) {
-      return { success: false, error: "VAPID keys não configuradas" }
-    }
-    const { rows } = await query<{ endpoint: string; p256dh: string; auth: string }>(
-      `SELECT endpoint, p256dh, auth FROM bot.push_subscriptions`
-    )
-    const payload = JSON.stringify({ title, body, url, tag: opcoes.tag })
-    const envio = opcoesDeEnvio(opcoes)
-
-    const results: PromiseSettledResult<unknown>[] = []
-    for (let i = 0; i < rows.length; i += TAMANHO_LOTE) {
-      const lote = rows.slice(i, i + TAMANHO_LOTE)
-      const resultadosDoLote = await Promise.allSettled(
-        lote.map((s) => {
-          const subscription: WebPushSubscription = {
-            endpoint: s.endpoint,
-            keys: { p256dh: s.p256dh, auth: s.auth },
-          }
-          return webpush.sendNotification(subscription, payload, envio)
-        })
-      )
-      results.push(...resultadosDoLote)
-    }
-
-    // Limpar inscrições com 410 Gone
-    const expiredEndpoints: string[] = []
-    results.forEach((r, i) => {
-      if (r.status === "rejected") {
-        const reason = r.reason as Partial<WebPushError> | undefined
-        if (reason?.statusCode === 410 || reason?.statusCode === 404) {
-          expiredEndpoints.push(rows[i].endpoint)
-        }
-      }
-    })
-    if (expiredEndpoints.length) {
-      await query(`DELETE FROM bot.push_subscriptions WHERE endpoint = ANY($1::text[])`, [expiredEndpoints])
-    }
-
-    const sent = results.filter((r) => r.status === "fulfilled").length
-    const failed = results.filter((r) => r.status === "rejected").length
-    // Fecha a lacuna que apareceu quando não deu pra saber se a notificação
-    // da missa de domingo tinha sido entregue: agora fica registrado quantos
-    // envios saíram, quantos falharam e — quando falham — por quê.
-    const primeiraFalha = results.find((r) => r.status === "rejected")
-    await registrarResultado(
-      logId,
-      sent,
-      failed,
-      primeiraFalha ? descreverErro((primeiraFalha as PromiseRejectedResult).reason) : null
-    )
-
-    return { success: true, sent, failed }
-  } catch (error) {
-    console.error("Erro ao enviar notificações:", error)
-    return { success: false, error: "Falha ao enviar notificações" }
+  const payload = await payloadClient()
+  // Mesma verificação de app/api/admin/transmissao-ao-vivo/route.ts; numa
+  // Server Action os headers (com o cookie de sessão do Payload) vêm de
+  // headers(), que é assíncrono no Next 16.
+  const { user } = await payload.auth({ headers: await headers() })
+  if (!user) {
+    console.warn("[push] disparo em massa recusado: sem sessão do CMS")
+    return { success: false, error: "Não autorizado" }
   }
+
+  return dispararParaTodos(title, body, url, opcoes)
 }
 
 // Notificação pra uma única inscrição — usada pelo cron de velas
 // (app/api/cron/check-velas-expiradas/route.ts) pra avisar só quem acendeu
 // quando a própria vela apaga, nunca todo mundo.
+//
+// Continua sem exigir sessão, pelo mesmo raciocínio de unsubscribe acima: só
+// atinge quem já teve o endpoint (URL longa e aleatória, nunca publicada)
+// vazado, um aparelho por vez, e é o cron — sem login — que chama. O disparo
+// em massa é que muda de patamar, porque alcança todo mundo de uma vez.
 export async function sendNotificationToOne(
   endpoint: string,
   title: string,
