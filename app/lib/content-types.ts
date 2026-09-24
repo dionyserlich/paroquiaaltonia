@@ -24,6 +24,13 @@ export type Noticia = {
   data: string
 }
 
+export type Banner = {
+  id: number
+  titulo?: string | null
+  link?: string | null
+  imagem?: { url?: string | null; alt?: string | null } | null
+}
+
 export type Evento = {
   id: number
   legacyId?: number | null

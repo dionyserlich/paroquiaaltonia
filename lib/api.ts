@@ -15,20 +15,6 @@ export async function getMissas() {
   }
 }
 
-export async function getBanners() {
-  try {
-    const res = await fetch("/api/banners", {
-      next: { revalidate: 3600 },
-      cache: "no-store",
-    })
-    if (!res.ok) return []
-    return res.json()
-  } catch (error) {
-    console.error("Erro ao buscar banners:", error)
-    return []
-  }
-}
-
 export async function getProximosEventos() {
   try {
     // Adicionar timestamp para evitar cache do navegador

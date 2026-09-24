@@ -5,20 +5,18 @@ import Image from "next/image"
 import useEmblaCarousel from "embla-carousel-react"
 import Autoplay from "embla-carousel-autoplay"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { getBanners } from "@/lib/api"
-
-type Banner = {
-  id: number
-  titulo?: string | null
-  link?: string | null
-  imagem?: { url?: string | null; alt?: string | null } | null
-}
+import type { Banner } from "@/app/lib/content-types"
 
 const AUTOPLAY_MS = 5000
 
-export default function BannerSlider() {
-  const [banners, setBanners] = useState<Banner[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+// Continua sendo componente de CLIENTE — o Embla precisa do DOM —, mas os
+// banners chegam prontos por prop, buscados no servidor pela home. Antes este
+// componente buscava sozinho depois da hidratação, e isso custava duas coisas:
+// a imagem só era descoberta pelo navegador no fim de uma ida e volta extra
+// (o `priority` do next/image abaixo não servia pra nada, porque o elemento
+// nem existia no HTML inicial), e o carrossel aparecia com um salto visível.
+// Mesmo raciocínio já aplicado a notícias e eventos.
+export default function BannerSlider({ banners }: { banners: Banner[] }) {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   // Embla cuida de arraste vs. clique vs. rolagem vertical da página de
@@ -28,19 +26,6 @@ export default function BannerSlider() {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, axis: "x" }, [
     Autoplay({ delay: AUTOPLAY_MS, stopOnInteraction: false, stopOnMouseEnter: true }),
   ])
-
-  useEffect(() => {
-    async function loadBanners() {
-      try {
-        const bannersData = await getBanners()
-        setBanners(Array.isArray(bannersData) ? bannersData : [])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadBanners()
-  }, [])
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return
@@ -61,15 +46,6 @@ export default function BannerSlider() {
       emblaApi.off("reInit", onSelect)
     }
   }, [emblaApi, onSelect])
-
-  if (isLoading) {
-    // aspect-[18/9], e não uma altura fixa: o esqueleto precisa ocupar
-    // exatamente o espaço do carrossel carregado (mesma proporção logo
-    // abaixo). Com h-48 fixo, num container de 650px o banner chegava
-    // 117px mais alto que o esqueleto e empurrava a página inteira para
-    // baixo — salto de layout visível justamente em quem abre no desktop.
-    return <div className="w-full aspect-[18/9] bg-gray-700/50 rounded-xl animate-pulse" />
-  }
 
   // Nenhum banner cadastrado (ou a busca falhou) — some de vez, sem deixar
   // um espaço de "carregando" preso pra sempre nem uma mensagem de erro

@@ -13,7 +13,7 @@ import { JsonLd } from "@/components/json-ld"
 import PageClient from "./page-client"
 import { payloadClient } from "@/app/lib/payload"
 import { consultaCacheada } from "@/app/lib/cache-consulta"
-import type { Noticia, Evento } from "@/app/lib/content-types"
+import type { Noticia, Evento, Banner } from "@/app/lib/content-types"
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.paroquiaaltonia.com.br"
 
@@ -35,7 +35,7 @@ export default async function Home() {
   // única manchete — o Google via ~800 caracteres e reportou "rastreada, mas
   // não indexada". As consultas são cacheadas, então isto não custa banco a
   // mais: uma consulta serve todos os visitantes, em vez de uma por pessoa.
-  const [noticias, eventos] = await Promise.all([
+  const [noticias, eventos, banners] = await Promise.all([
     (async () => {
       try {
         return await consultaCacheada("home-noticias", "noticias", 300, async () => {
@@ -63,6 +63,22 @@ export default async function Home() {
       } catch (err) {
         console.error("[home] falha ao buscar eventos:", err)
         return [] as Evento[]
+      }
+    })(),
+    // Mesma razão de notícias e eventos: buscado aqui em vez de no navegador,
+    // pro carrossel já vir no HTML. Cache mais longo porque banner muda muito
+    // pouco — e a publicação continua instantânea, porque a collection
+    // invalida a tag ao salvar (ver collections/Banners.ts).
+    (async () => {
+      try {
+        return await consultaCacheada("home-banners", "banners", 900, async () => {
+          const payload = await payloadClient()
+          const { docs } = await payload.find({ collection: "banners", sort: "ordem", depth: 1, limit: 50 })
+          return docs as unknown as Banner[]
+        })()
+      } catch (err) {
+        console.error("[home] falha ao buscar banners:", err)
+        return [] as Banner[]
       }
     })(),
   ])
@@ -139,11 +155,7 @@ export default async function Home() {
         <div className="relative z-20">
           {/* Banner Slider */}
           <section className="w-full px-4 py-2 mt-[-80px]">
-            {/* Mesma proporção do carrossel — ver o comentário no esqueleto
-                de components/banner-slider.tsx. */}
-            <Suspense fallback={<div className="w-full aspect-[18/9] bg-gray-300/20 animate-pulse rounded-xl" />}>
-              <BannerSlider />
-            </Suspense>
+            <BannerSlider banners={banners} />
           </section>
 
           {/* Quick Links */}
