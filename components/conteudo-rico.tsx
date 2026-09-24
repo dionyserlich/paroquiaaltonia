@@ -40,6 +40,33 @@ const conversores: JSXConvertersFunction = ({ defaultConverters }) => ({
     const padrao = defaultConverters.upload
     return typeof padrao === "function" ? padrao(args) : null
   },
+
+  // Os conversores de tabela que vêm no pacote embutem `border: 1px solid #ccc`
+  // e padding como estilo inline, que ganha de qualquer CSS e destoa do tema
+  // escuro. Estes emitem marcação limpa, estilizada em .conteudo-rico table.
+  table: ({ node, nodesToJSX }) => (
+    <div className="tabela-rolavel">
+      <table>
+        <tbody>{nodesToJSX({ nodes: node.children })}</tbody>
+      </table>
+    </div>
+  ),
+  tablerow: ({ node, nodesToJSX }) => <tr>{nodesToJSX({ nodes: node.children })}</tr>,
+  tablecell: ({ node, nodesToJSX }) => {
+    const celula = node as unknown as { headerState?: number; colSpan?: number; rowSpan?: number }
+    const conteudo = nodesToJSX({ nodes: node.children })
+    const colSpan = celula.colSpan && celula.colSpan > 1 ? celula.colSpan : undefined
+    const rowSpan = celula.rowSpan && celula.rowSpan > 1 ? celula.rowSpan : undefined
+    return (celula.headerState ?? 0) > 0 ? (
+      <th colSpan={colSpan} rowSpan={rowSpan} scope="col">
+        {conteudo}
+      </th>
+    ) : (
+      <td colSpan={colSpan} rowSpan={rowSpan}>
+        {conteudo}
+      </td>
+    )
+  },
 })
 
 export default function ConteudoRico({ data, className }: { data: unknown; className?: string }) {

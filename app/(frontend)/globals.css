@@ -504,3 +504,54 @@ body.has-install-prompt-tall main {
   max-height: 70vh;
   background: #000;
 }
+
+/* Tabela dentro do conteúdo rico — usada pelas tabelas de preço das festas.
+   Marcação vem de components/conteudo-rico.tsx, que substitui o conversor do
+   Payload justamente para poder estilizar aqui em vez de aceitar o cinza
+   inline que ele embute. */
+.conteudo-rico .tabela-rolavel {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.05);
+}
+
+.conteudo-rico table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.conteudo-rico th {
+  padding: 0.75rem 1rem;
+  background: rgb(255 255 255 / 0.07);
+  color: var(--color-parish-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.conteudo-rico td {
+  padding: 0.6875rem 1rem;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+  color: rgb(255 255 255 / 0.92);
+}
+
+/* A coluna de valor é sempre a última: alinhada à direita e destacada, que é
+   como se lê uma tabela de preço. */
+.conteudo-rico th:last-child,
+.conteudo-rico td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.conteudo-rico td:last-child {
+  color: var(--color-parish-accent);
+  font-weight: 600;
+}
+
+.conteudo-rico table p {
+  margin: 0;
+}

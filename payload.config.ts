@@ -2,7 +2,7 @@ import path from "path"
 import { fileURLToPath } from "url"
 import { buildConfig } from "payload"
 import { postgresAdapter } from "@payloadcms/db-postgres"
-import { lexicalEditor } from "@payloadcms/richtext-lexical"
+import { lexicalEditor, EXPERIMENTAL_TableFeature } from "@payloadcms/richtext-lexical"
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob"
 import sharp from "sharp"
 
@@ -55,7 +55,18 @@ export default buildConfig({
   email: resendEmailAdapter,
   collections: [Users, Media, Noticias, Eventos, Missas, Banners, Pastorais, Capelas, Intencoes, Velas, Avisos],
   globals: [MassSchedule, Sobre, Dizimo, Ofertas, ContactInfo, Horarios],
-  editor: lexicalEditor(),
+  // Tabela não vem no conjunto padrão. Entrou por causa das tabelas de preço
+  // das festas de comunidade, que em lista corrida viram uma parede de texto
+  // — e serve para qualquer conteúdo com colunas daqui pra frente.
+  //
+  // O `EXPERIMENTAL_` é do Payload e se refere à edição no painel; o formato
+  // salvo é o nó de tabela padrão do Lexical, e quem desenha no site são os
+  // conversores próprios em components/conteudo-rico.tsx (os que vêm no
+  // pacote embutem borda cinza inline, que destoa do tema escuro). Ou seja, o
+  // risco fica na experiência de editar, não no que já está publicado.
+  editor: lexicalEditor({
+    features: ({ defaultFeatures }) => [...defaultFeatures, EXPERIMENTAL_TableFeature()],
+  }),
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
