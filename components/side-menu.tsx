@@ -68,7 +68,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
       >
         <div className="p-4 border-b border-blue-900 flex justify-between items-center">
           <h2 className="text-xl font-bold text-white">Menu</h2>
-          <button onClick={onClose} className="text-white p-1">
+          <button onClick={onClose} className="text-white p-1" aria-label="Fechar menu">
             <X size={24} />
           </button>
         </div>
