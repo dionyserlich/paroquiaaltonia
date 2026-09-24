@@ -9,6 +9,9 @@ const eslintConfig = [
       // Script de ETL de uso único (já rodou, migração concluída) — não faz
       // parte do app em produção.
       "scripts/migrate-to-payload.ts",
+      // Ambiente Python do gerador do relatório de auditoria. Não é código do
+      // app, e as libs instaladas ali trazem JS próprio que o lint reprovava.
+      "docs/security-audit/.venv/**",
     ],
   },
   ...nextCoreWebVitals,

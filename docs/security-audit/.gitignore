@@ -1,0 +1,16 @@
+# Ambiente isolado do gerador do relatório — recriar com:
+#   python3 -m venv docs/security-audit/.venv
+#   docs/security-audit/.venv/bin/pip install reportlab matplotlib pymupdf
+.venv/
+# PNGs intermediários dos gráficos, regerados a cada execução
+.graficos/
+
+# ---------------------------------------------------------------------------
+# O repositório é PÚBLICO. Os nomes de pessoas reais já foram redigidos da
+# fonte (dados_auditoria.py) e do PDF, mas os dois arquivos abaixo ainda
+# descrevem, passo a passo, como explorar uma falha que continua aberta
+# (F-01). Publicá-los antes da correção entrega o ataque pronto.
+#
+# Remover as duas linhas quando T0 e T1 (ver tarefas.md) estiverem concluídos.
+relatorio-auditoria-seguranca.pdf
+tarefas.md
