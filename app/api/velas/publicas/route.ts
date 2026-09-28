@@ -36,15 +36,24 @@ export async function GET() {
       expiraEm: string
     }
 
-    const velas = (docs as VelaDoc[]).map((v) => ({
-      id: v.id,
-      nome: v.nomePrivado ? null : v.nome,
-      intencao: v.intencaoPrivada ? null : v.intencao,
-      intencaoPrivada: Boolean(v.intencaoPrivada),
-      foto: v.fotoPrivada ? null : typeof v.foto === "object" ? v.foto?.url ?? null : null,
-      createdAt: v.createdAt,
-      expiraEm: v.expiraEm,
-    }))
+    // O filtro de expiraEm na consulta vale para o instante em que ela rodou,
+    // não para agora. Vencido o TTL, o unstable_cache devolve a entrada velha
+    // e só então atualiza em segundo plano (e o último-bom-resultado pode ter
+    // dias): numa página com poucas visitas, quem abria /velas depois de um
+    // tempo parado via acesas velas que tinham apagado dias antes. Refiltrar
+    // aqui não custa consulta nenhuma.
+    const agora = Date.now()
+    const velas = (docs as VelaDoc[])
+      .filter((v) => new Date(v.expiraEm).getTime() > agora)
+      .map((v) => ({
+        id: v.id,
+        nome: v.nomePrivado ? null : v.nome,
+        intencao: v.intencaoPrivada ? null : v.intencao,
+        intencaoPrivada: Boolean(v.intencaoPrivada),
+        foto: v.fotoPrivada ? null : typeof v.foto === "object" ? v.foto?.url ?? null : null,
+        createdAt: v.createdAt,
+        expiraEm: v.expiraEm,
+      }))
 
     return NextResponse.json(velas)
   } catch (error) {

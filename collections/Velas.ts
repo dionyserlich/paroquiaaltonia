@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload"
+import { revalidarTag } from "@/app/lib/revalidar"
 
 // Envio público sem login, mesmo modelo de collections/Intencoes.ts — travada
 // no access, só as rotas em app/api/velas/* criam/alteram via Local API
@@ -10,6 +11,14 @@ export const Velas: CollectionConfig = {
     defaultColumns: ["nome", "duracaoHoras", "expiraEm", "extinta", "createdAt"],
   },
   defaultSort: "-createdAt",
+  hooks: {
+    // Sem isto, acender/apagar/editar só aparecia na listagem depois de o
+    // cache vencer — e a listagem desatualizada fazia velas-content.tsx
+    // descartar a posse de uma vela recém-acesa. Também avisa o cron de que
+    // a próxima expiração mudou (ver app/api/cron/check-velas-expiradas).
+    afterChange: [() => revalidarTag("velas")],
+    afterDelete: [() => revalidarTag("velas")],
+  },
   access: {
     // Leitura pública de verdade só via /api/velas/publicas (que redige os
     // campos privados por documento) — bloquear aqui é uma segunda camada

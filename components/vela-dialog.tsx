@@ -172,7 +172,7 @@ export default function VelaDialog({ open, onOpenChange, velaExistente, onAcesa,
         onEditada?.()
         handleOpenChange(false)
       } else {
-        salvarVelaOwnership(data.id, data.ownershipToken)
+        salvarVelaOwnership(data.id, data.ownershipToken, data.expiraEm)
         // Fecha na hora e já joga pra tela cheia da vela (vela-fullscreen.tsx)
         // em vez de mostrar uma confirmação própria aqui — o pedido é que a
         // pessoa já vá direto pra lá depois de acender.

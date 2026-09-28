@@ -4,7 +4,9 @@
 // direto e inline); este arquivo estabelece o padrão pra esta feature.
 const STORAGE_KEY = "velas-minhas"
 
-export type VelaOwnership = { id: number; token: string }
+// expiraEm só existe nos registros gravados depois que ele passou a ser
+// guardado — os mais antigos têm só id e token.
+export type VelaOwnership = { id: number; token: string; expiraEm?: string }
 
 export function getMinhasVelas(): VelaOwnership[] {
   if (typeof window === "undefined") return []
@@ -21,10 +23,10 @@ export function getMinhasVelas(): VelaOwnership[] {
   }
 }
 
-export function salvarVelaOwnership(id: number, token: string): void {
+export function salvarVelaOwnership(id: number, token: string, expiraEm?: string): void {
   if (typeof window === "undefined") return
   const atuais = getMinhasVelas().filter((v) => v.id !== id)
-  atuais.push({ id, token })
+  atuais.push({ id, token, ...(expiraEm ? { expiraEm } : {}) })
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(atuais))
   } catch {

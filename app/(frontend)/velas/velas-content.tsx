@@ -53,14 +53,25 @@ export default function VelasContent() {
   const carregar = useCallback(async () => {
     try {
       const res = await fetch("/api/velas/publicas", { cache: "no-store" })
-      const data: VelaPublica[] = res.ok ? await res.json() : []
-      setVelas(Array.isArray(data) ? data : [])
+      const recebidas: VelaPublica[] = res.ok ? await res.json() : []
+      // A rota já tira as vencidas; repetir aqui cobre uma resposta de um
+      // deploy anterior e o relógio de quem deixou a página aberta.
+      const agora = Date.now()
+      const data = (Array.isArray(recebidas) ? recebidas : []).filter(
+        (v) => new Date(v.expiraEm).getTime() > agora
+      )
+      setVelas(data)
 
       const ownerships = getMinhasVelas()
       const idsAtuais = new Set(data.map((v) => v.id))
-      // Poda ownerships órfãos (vela já não existe mais na listagem pública).
+      // Poda ownerships de velas que já apagaram. Com a expiração guardada,
+      // decide só por ela: logo depois de acender, a listagem ainda pode vir
+      // sem a vela nova (a invalidação do cache roda depois da resposta), e
+      // podar por ausência jogava fora a posse de quem acabou de acender —
+      // sem ela, a pessoa não consegue mais editar nem apagar.
       for (const o of ownerships) {
-        if (!idsAtuais.has(o.id)) removerVelaOwnership(o.id)
+        const apagou = o.expiraEm ? new Date(o.expiraEm).getTime() <= agora : !idsAtuais.has(o.id)
+        if (apagou) removerVelaOwnership(o.id)
       }
 
       const minhasAtuais = ownerships.filter((o) => idsAtuais.has(o.id))
@@ -89,7 +100,17 @@ export default function VelasContent() {
   useEffect(() => {
     carregar()
     const interval = setInterval(carregar, 60000)
-    return () => clearInterval(interval)
+    // Aba em segundo plano (ou PWA retomada em vez de recarregada) congela o
+    // setInterval, e ao voltar a pessoa via a lista de quando saiu — com
+    // velas que já tinham apagado — até o próximo tique.
+    function aoVoltar() {
+      if (document.visibilityState === "visible") carregar()
+    }
+    document.addEventListener("visibilitychange", aoVoltar)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", aoVoltar)
+    }
   }, [carregar])
 
   async function handleApagar(id: number) {

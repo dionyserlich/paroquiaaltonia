@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 // As páginas e rotas de conteúdo deixaram de ser force-dynamic e passaram a
 // ter cache por tempo (ver os `export const revalidate` espalhados). Isso
@@ -21,5 +21,18 @@ export function revalidarCaminhos(caminhos: string[]) {
       // expiração serve de rede de segurança.
       console.error("[revalidar] falha em", caminho, err)
     }
+  }
+}
+
+// Para o que é lido por tag (ver `consultaCacheada`) em vez de por caminho —
+// caso das velas, cuja consulta é usada tanto pela listagem pública quanto
+// pelo cron. `expire: 0` descarta a entrada na hora: com o perfil "max" o Next
+// ainda serviria a versão velha uma vez antes de atualizar.
+export function revalidarTag(tag: string) {
+  try {
+    revalidateTag(tag, { expire: 0 })
+  } catch (err) {
+    // Mesmo raciocínio de revalidarCaminhos: a gravação vale mais que o cache.
+    console.error("[revalidar] falha na tag", tag, err)
   }
 }

@@ -1,13 +1,45 @@
 import { NextRequest, NextResponse } from "next/server"
+import { consultaCacheada } from "@/app/lib/cache-consulta"
 import { payloadClient } from "@/app/lib/payload"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
-// Diferente do bot de missa (granularidade de 5 min, quase em tempo real),
-// a duração mínima de uma vela é de horas — rodar a cada 15-30 min é
-// suficiente. Agendado direto no painel da Vercel (ver nota no plano sobre
-// não misturar com vercel.json).
+// Quando vence a próxima vela ainda acesa. Fica no cache de dados do Next, e
+// não no banco, porque é isso que deixa o cron rodar a cada 15 minutos sem
+// acordar a Neon toda vez: com o banco adormecendo após 5 minutos parado, um
+// cron que consulta sempre o mantém ligado boa parte do dia (ver
+// app/lib/cache-consulta.ts). Por causa disso o agendamento tinha sido
+// espaçado para uma vez ao dia, e o aviso de "sua vela apagou" chegava até
+// um dia depois de a vela apagar.
+//
+// Toda gravação em velas invalida a tag (hook em collections/Velas.ts), então
+// uma vela recém-acesa entra na conta na execução seguinte. As 6 horas são só
+// a rede de segurança caso uma invalidação se perca.
+const proximaExpiracao = consultaCacheada("velas-proxima-expiracao", "velas", 6 * 3600, async () => {
+  const payload = await payloadClient()
+  const { docs } = await payload.find({
+    collection: "velas",
+    where: { extinta: { equals: false } },
+    sort: "expiraEm",
+    limit: 1,
+    depth: 0,
+  })
+  return docs[0]?.expiraEm ?? null
+})
+
+// Dia em que a vela foi acesa, para o aviso dizer de qual vela se trata —
+// com o nome privado, o texto não trazia nada que a identificasse. Fuso fixo
+// porque o servidor roda em UTC (mesmo motivo de lib/utils.ts).
+function diaEmQueAcendeu(iso: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date(iso))
+}
+
+// Chamado pelo agendador externo (cron-job.org), como o bot de missa.
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
   const authHeader = req.headers.get("authorization") ?? ""
@@ -21,6 +53,12 @@ export async function GET(req: NextRequest) {
     }
   } else if (cronSecret && provided !== cronSecret) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  }
+
+  // Nenhuma vela vencida: responde sem tocar no banco.
+  const proxima = await proximaExpiracao()
+  if (!proxima || new Date(proxima).getTime() > Date.now()) {
+    return NextResponse.json({ verificadas: 0, fechadas: 0, notificadas: 0, proxima })
   }
 
   const payload = await payloadClient()
@@ -46,7 +84,7 @@ export async function GET(req: NextRequest) {
         const result = await sendNotificationToOne(
           doc.notifyEndpoint,
           "Sua vela apagou",
-          `A vela que você acendeu${nome} já completou o tempo. Você pode acender outra quando quiser.`,
+          `A vela que você acendeu${nome} em ${diaEmQueAcendeu(doc.createdAt)} já completou o tempo. Você pode acender outra quando quiser.`,
           "/velas",
           VELA_APAGOU
         )
