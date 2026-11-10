@@ -238,14 +238,45 @@ type MissaAoVivo = {
   updatedAt: string | null
 }
 
+// Quanto tempo a última confirmação do bot vale. O cron roda a cada 5 min e
+// só fecha a live depois de 2 ticks seguidos sem ela (ver
+// handleNoLiveInWindow), então 15 min sem confirmação significa que o cron
+// parou de olhar — não que a live continua.
+const CONFIRMACAO_VALIDA_MS = 15 * 60_000
+
 export async function getCurrentLiveMass(): Promise<MissaAoVivo | null> {
-  const { rows } = await query<MissaAoVivo>(
-    `SELECT titulo, inicio, fim, link_embed AS "linkEmbed", updated_at AS "updatedAt"
+  const { rows } = await query<MissaAoVivo & { lastConfirmedAt: string | null }>(
+    `SELECT titulo, inicio, fim, link_embed AS "linkEmbed", updated_at AS "updatedAt",
+            last_confirmed_at AS "lastConfirmedAt"
      FROM bot.missa_ao_vivo WHERE id = 1`
   )
   const row = rows[0]
   const now = new Date()
-  if (row?.linkEmbed && !(row.fim && new Date(row.fim) < now)) return row
+  if (row?.linkEmbed && !(row.fim && new Date(row.fim) < now)) {
+    const confirmadoEm = row.lastConfirmedAt ? new Date(row.lastConfirmedAt).getTime() : 0
+    if (now.getTime() - confirmadoEm <= CONFIRMACAO_VALIDA_MS) {
+      return {
+        titulo: row.titulo,
+        inicio: row.inicio,
+        fim: row.fim,
+        linkEmbed: row.linkEmbed,
+        updatedAt: row.updatedAt,
+      }
+    }
+
+    // Registro órfão: a live ainda estava no ar no último tick da janela e
+    // o cron não rodou mais depois (o agendador externo só dispara dentro
+    // das janelas), então nem handleNoLiveInWindow nem o fechamento fora da
+    // janela chegaram a acontecer — e o site mostrava "ao vivo" até a missa
+    // seguinte. Fecha aqui, na leitura, com o horário da última confirmação.
+    // Fechar também preenche `fim` em `missas`, que é o que o botão da home
+    // usa como segunda fonte (fim em branco = ainda ao vivo).
+    try {
+      await closeStaleTrackedMissa(now)
+    } catch (err) {
+      console.error("[live-mass-bot] falha ao fechar live órfã:", err)
+    }
+  }
 
   // Nada detectado pelo bot — procura uma missa cadastrada à mão no CMS.
   //
